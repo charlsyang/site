@@ -46,6 +46,25 @@ const GlobalStyles = createGlobalStyle`
     }
 
 
+    /* DESIGN TOKENS */
+
+    html {
+
+        /* Typography */
+        
+        --fallback-sans: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
+            Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+        
+        --fallback-serif: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, 
+            Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+        
+        --ampersand-stack: Baskerville, Apple Garamond, Iowan Old Style, Athelas, Palatino, 
+            Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, 
+            Segoe UI Emoji, Segoe UI Symbol;
+
+        
+    }
+
     /* GLOBAL STYLES */
 
     *,
@@ -53,19 +72,20 @@ const GlobalStyles = createGlobalStyle`
     *:after {
     box-sizing: border-box;
     line-height: 1.5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--fallback-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: auto;
     }
 
     html,
     body {
-        padding: 0;
+        /* padding: 0;
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
             Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
         line-height: 1.6;
-        font-size: 18px;
+        font-size: 18px; */
+
     }
 
     a {
