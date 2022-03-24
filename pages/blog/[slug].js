@@ -33,9 +33,9 @@ export default function BlogPost({ code, frontmatter }) {
             </Head>
             <BlogMeta>
                 <Title>{frontmatter.title}</Title>
-                <PublisheddDate>
+                <PublishedDate>
                     <Date dateString={frontmatter.date} />
-                </PublisheddDate>
+                </PublishedDate>
             </BlogMeta>
             <Article>
                 <Component/>
@@ -52,14 +52,16 @@ const BlogMeta = styled.header`
 const Title = styled.h1`
     font-size: 1.5rem;
     margin-bottom: .5rem;
+    color: var(--color-gray-900);
 `
 
-const PublisheddDate = styled.p`
-    color: gray;
+const PublishedDate = styled.p`
+    color: var(--color-gray-600);
 `
 
 const Article = styled.article`
     margin-bottom: 240px;
+    color: var(--color-gray-900);
 
     & h2 {
         margin-top: 2rem;

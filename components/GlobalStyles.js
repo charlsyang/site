@@ -21,7 +21,7 @@ const GlobalStyles = createGlobalStyle`
         margin: 0;
         padding: 0;
         border: 0;
-    font-size: 100%;
+        font-size: 100%;
         vertical-align: baseline;
     }
     /* HTML5 display-role reset for older browsers */
@@ -51,6 +51,7 @@ const GlobalStyles = createGlobalStyle`
         font-display: swap;
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
     }  
+
     /* DESIGN TOKENS */
 
     html {
@@ -67,6 +68,41 @@ const GlobalStyles = createGlobalStyle`
 
         --font-sans: 'Diatype', var(--fallback-sans);
         --font-serif: 'Newsreader', var(--fallback-serif);
+        
+        --font-weight-normal: 360;
+        --font-weight-bold: 700;
+
+        --font-size-base: 16;
+        --font-size-xs: calc(14 / var(--font-size-base) * 1rem);
+        --font-size-s: calc(16 / var(--font-size-base) * 1rem);
+        --font-size-m: calc(18 / var(--font-size-base) * 1rem);
+        --font-size-l: calc(20 / var(--font-size-base) * 1rem);
+        --font-size-xl: calc(24 / var(--font-size-base) * 1rem);
+
+        /* Color */
+
+        --color-bg: hsl(0 0% 9%);
+        --color-accent-hsl: 240 95% 76%;
+        --color-accent: hsla(var(--color-accent-hsl) / 1);
+        --color-accent-500: hsla(var(--color-accent-hsl) / .5);
+        --color-accent-300: hsla(var(--color-accent-hsl) / .3);
+        --color-gray-900: hsla(0 0% 100% / 0.9);
+        --color-gray-600: hsla(0 0% 100% / 0.6);
+        --color-gray-400: hsla(0 0% 100% / 0.4);
+        --color-gray-300: hsla(0 0% 100% / 0.3);
+
+        /* Spacing */
+        --spacing-base: 8px;
+        --spacing-s: calc(var(--spacing-base) / 2);
+        --spacing-1x: var(--spacing-base);
+        --spacing-2x: calc(var(--spacing-base) * 2);
+        --spacing-3x: calc(var(--spacing-base) * 3);
+        --spacing-4x: calc(var(--spacing-base) * 4);
+        --spacing-5x: calc(var(--spacing-base) * 5);
+        --spacing-6x: calc(var(--spacing-base) * 6);
+
+        /* Animation */
+        --transition-default: 240ms;
     }
 
     /* GLOBAL STYLES */
@@ -84,15 +120,24 @@ const GlobalStyles = createGlobalStyle`
     html,
     body {
         font-family: var(--font-sans);
+        background: var(--color-bg);
     }
 
     a {
-        color: #0070f3;
-        text-decoration: none;
+        color: var(--color-gray-900);
+        text-decoration-color: var(--color-gray-300);
+        text-decoration-thickness: 1.25px;
+        text-underline-offset: 2.4px;
+        transition: all var(--transition-default);
     }
 
     a:hover {
-        text-decoration: underline;
+        color: var(--color-accent);
+        text-decoration-color: var(--color-accent);
+    }
+
+    ::selection {
+        background-color: var(--color-accent-300);
     }
 
     img {

@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import MaxWidthWrapper from '../components/MaxWidthWrapper'
-import Nav from '../components/Nav'
 import styled from 'styled-components'
 import Link from 'next/link'
 import { getSortedPostsData } from '../utils/blog'
@@ -20,19 +19,18 @@ export default function Home({allPostsData}) {
   return (
     <MaxWidthWrapper home>
       <Head>
-        <title>Charlsy’s Site</title>
-        <meta name="description" content="Charlsy’s personal website" />
+        <title>Charlsy Yang</title>
+        <meta name="description" content="Charlsy’s Personal Website" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <PageContent>
-        <GridWrapper>
+      <GridWrapper>
           <Header>
             <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
             <p>He leads a life that straddles two worlds—a tangible one of shaping 
               forms and an ethereal one of tending thoughts.</p>
           </Header>
         </GridWrapper>
-        {/* <Nav/> */}
+      <MainContent>
         <GridWrapper>
           <Blog>
             <SectionTitle>Blog</SectionTitle>
@@ -48,6 +46,12 @@ export default function Home({allPostsData}) {
                       </BlogItem>
                     
                 ))}
+                <AllBlog>
+                  <Link href='/blog'>
+                      <a>All writings</a>
+                  </Link>
+                  <span>→</span>
+                </AllBlog>
             </BlogList>
           </Blog>
           <Now>
@@ -78,28 +82,22 @@ export default function Home({allPostsData}) {
             </ContactList>
           </Contact>
         </GridWrapper>
-      </PageContent>
+      </MainContent>
     </MaxWidthWrapper>
   )
 }
 
-const PageContent = styled.main`
-  font-family: var(--font-sans);
-
-  & * {
-    font-family: inherit;
-  }
-`
-
-const Header = styled.div`
+const Header = styled.header`
   margin-top: 12rem;
   margin-bottom: 13rem;
   grid-column: 8 / -1;
   
   & p {
-    font-weight: 400;
-    font-size: 1.5rem;
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-xl);
     line-height: 1.3;
+    color: var(--color-gray-900);
   }
 
   & p+p {
@@ -107,22 +105,33 @@ const Header = styled.div`
   }
 `
 
+const MainContent = styled.main`
+  font-family: var(--font-sans);
+
+  & * {
+    font-family: inherit;
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-m);
+  }
+`
+
 const Ampersand = styled.span`
   font-family: var(--ampersand-stack);
   font-size: 25px;
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
 `
 
 const Blog = styled.section`
   grid-column: 3 / 8;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
 `
 
 const SectionTitle = styled.h2`
   grid-column: 1 / 2;
+  font-weight: var(--font-weight-normal);
+  color: var(--color-gray-600);
 `
 
 const BlogList = styled.ul`
@@ -135,21 +144,39 @@ const BlogList = styled.ul`
 const BlogItem = styled.li`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  gap: var(--spacing-s);
+`
+
+const AllBlog = styled.div`
+  display: flex;
+  gap: var(--spacing-1x);
+  margin-top: var(--spacing-5x);
+
+  & span {
+    color: var(--color-gray-900);
+  }
 `
 
 const StyledDate = styled.p`
+  color: var(--color-gray-600);
 `
 
 const Now = styled.section`
   grid-column: 8 / -1;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
+  grid-column-gap: 20px;
+  grid-row-gap: var(--spacing-6x);
 `
 
 const NowContent = styled.div`
   grid-column: 2 / -1;
+
+  & p {
+    color: var(--color-gray-900);
+    line-height: 1.5;
+  }
 
   & p+p {
     text-indent: 2.5rem;
@@ -161,12 +188,20 @@ const Reading = styled.div`
 `
 
 const ReadingLabel = styled.p`
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 1px;
+  text-transform: lowercase;
+  font-variant: small-caps;
+  color: var(--color-gray-300);
+  margin-bottom: var(--spacing-1x);
 `
 
 const BookTitle = styled.p`
+  color: var(--color-gray-900);
 `
 
 const Author = styled.p`
+  color: var(--color-gray-600);
 `
 
 const Contact = styled.section`
@@ -178,16 +213,19 @@ const Contact = styled.section`
 `
 
 const ContactList = styled.div`
+  grid-column: 2 / -1;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--spacing-4x);
 `
 
 const ContactItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  gap: var(--spacing-s);
 `
 
 const ContactItemLabel = styled.p`
+  color: var(--color-gray-300);
 `
