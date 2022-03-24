@@ -24,7 +24,7 @@ export default function Home({allPostsData}) {
         <meta name="description" content="Charlsy’s personal website" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
+      <PageContent>
         <GridWrapper>
           <Header>
             <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
@@ -78,22 +78,31 @@ export default function Home({allPostsData}) {
             </ContactList>
           </Contact>
         </GridWrapper>
-      </main>
+      </PageContent>
     </MaxWidthWrapper>
   )
 }
+
+const PageContent = styled.main`
+  font-family: var(--font-sans);
+
+  & * {
+    font-family: inherit;
+  }
+`
 
 const Header = styled.div`
   margin-top: 12rem;
   margin-bottom: 13rem;
   grid-column: 8 / -1;
-
+  
   & p {
+    font-weight: 400;
     font-size: 1.5rem;
     line-height: 1.3;
   }
 
-  & p:not(:first-of-type) {
+  & p+p {
     text-indent: 2.5rem;
   }
 `
@@ -142,7 +151,7 @@ const Now = styled.section`
 const NowContent = styled.div`
   grid-column: 2 / -1;
 
-  & p:not(:first-of-type) {
+  & p+p {
     text-indent: 2.5rem;
   }
 `

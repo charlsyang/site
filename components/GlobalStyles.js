@@ -45,7 +45,12 @@ const GlobalStyles = createGlobalStyle`
         border-spacing: 0;
     }
 
-
+    @font-face {
+        font-family: 'Diatype';
+        font-weight: 100 700;
+        font-display: swap;
+        src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
+    }  
     /* DESIGN TOKENS */
 
     html {
@@ -54,15 +59,14 @@ const GlobalStyles = createGlobalStyle`
         
         --fallback-sans: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
             Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-        
         --fallback-serif: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, 
             Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
-        
         --ampersand-stack: Baskerville, Apple Garamond, Iowan Old Style, Athelas, Palatino, 
             Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, 
             Segoe UI Emoji, Segoe UI Symbol;
 
-        
+        --font-sans: 'Diatype', var(--fallback-sans);
+        --font-serif: 'Newsreader', var(--fallback-serif);
     }
 
     /* GLOBAL STYLES */
@@ -79,13 +83,7 @@ const GlobalStyles = createGlobalStyle`
 
     html,
     body {
-        /* padding: 0;
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
-            Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-        line-height: 1.6;
-        font-size: 18px; */
-
+        font-family: var(--font-sans);
     }
 
     a {
