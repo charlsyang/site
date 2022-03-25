@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getSortedPostsData } from '../utils/blog'
 import Date from '../components/Date'
 import GridWrapper from '../components/GridWrapper'
+import Footer from '../components/Footer'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
@@ -23,14 +24,14 @@ export default function Home({allPostsData}) {
         <meta name="description" content="Charlsy’s Personal Website" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <GridWrapper>
-          <Header>
+      <MainContent>
+        <GridWrapper>
+          <Intro>
             <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
             <p>He leads a life that straddles two worlds—a tangible one of shaping 
               forms and an ethereal one of tending thoughts.</p>
-          </Header>
+          </Intro>
         </GridWrapper>
-      <MainContent>
         <GridWrapper>
           <Blog>
             <SectionTitle>Blog</SectionTitle>
@@ -83,17 +84,28 @@ export default function Home({allPostsData}) {
           </Contact>
         </GridWrapper>
       </MainContent>
+      <Footer/>
     </MaxWidthWrapper>
   )
 }
 
-const Header = styled.header`
+const MainContent = styled.main`
+  font-family: var(--font-sans);
   margin-top: 12rem;
+  margin-bottom: 12rem;
+
+  & * {
+    font-family: inherit;
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-m);
+  }
+`
+
+const Intro = styled.header`
   margin-bottom: 13rem;
   grid-column: 8 / -1;
   
   & p {
-    font-family: var(--font-sans);
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     line-height: 1.3;
@@ -102,16 +114,6 @@ const Header = styled.header`
 
   & p+p {
     text-indent: 2.5rem;
-  }
-`
-
-const MainContent = styled.main`
-  font-family: var(--font-sans);
-
-  & * {
-    font-family: inherit;
-    font-weight: var(--font-weight-normal);
-    font-size: var(--font-size-m);
   }
 `
 

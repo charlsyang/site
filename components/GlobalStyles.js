@@ -88,7 +88,6 @@ const GlobalStyles = createGlobalStyle`
         --color-accent-300: hsla(var(--color-accent-hsl) / .3);
         --color-gray-900: hsla(0 0% 100% / 0.9);
         --color-gray-600: hsla(0 0% 100% / 0.6);
-        --color-gray-400: hsla(0 0% 100% / 0.4);
         --color-gray-300: hsla(0 0% 100% / 0.3);
 
         /* Spacing */
