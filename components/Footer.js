@@ -17,8 +17,7 @@ const Footer = () => {
 
 
 const FooterWrapper = styled.footer`
-    padding-top: var(--spacing-3x);
-    padding-bottom: var(--spacing-3x);
+    height: var(--footer-height);
     position: relative;
     max-width: min(100%, calc(1200px + 40px * 2));
     margin-left: auto;
@@ -48,6 +47,8 @@ const Divider = styled.div`
 const FooterContent = styled.div`
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    height: 100%;
 `
 
 const Footnote = styled.p`

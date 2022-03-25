@@ -24,7 +24,7 @@ export default function Home({allPostsData}) {
         <meta name="description" content="Charlsy’s Personal Website" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <MainWrapper>
+      <MaxWidthWrapper>
         <MainContent>
           <GridWrapper>
             <Intro>
@@ -59,10 +59,10 @@ export default function Home({allPostsData}) {
             <Now>
               <SectionTitle>Now</SectionTitle>
               <NowContent>
-                <p>Proactively safeguarding my time for only the enterprises that I deem worthwhile:</p>
+                <p>Proactively guarding my time for only the enterprises that I deem worthwhile:</p>
                 <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
-                <p>Reading extensively and consistently, taking on intellectually challenging text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
-                <p>Spending intentional efforts on nurturing friendships, writing letters, scheduling calls— doing things the long, hard, stupid way.</p>
+                <p>Reading extensively and consistently, taking on intellectually stimulating text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
+                <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things the long, hard, stupid way.</p>
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
@@ -85,20 +85,18 @@ export default function Home({allPostsData}) {
             </Contact>
           </GridWrapper>
         </MainContent>
-      </MainWrapper>
+      </MaxWidthWrapper>
       <Footer/>
     </>
   )
 }
 
-const MainWrapper = styled(MaxWidthWrapper)`
-  min-height: calc(100vh - 72px);
-`
 
 const MainContent = styled.main`
   font-family: var(--font-sans);
   padding-top: 10rem;
   padding-bottom: 5rem;
+  min-height: calc(100vh - var(--footer-height));
 
   & * {
     font-family: inherit;
