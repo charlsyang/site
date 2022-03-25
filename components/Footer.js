@@ -18,8 +18,13 @@ const Footer = () => {
 
 const FooterWrapper = styled.footer`
     padding-top: var(--spacing-3x);
-    padding-bottom: var(--spacing-4x);
+    padding-bottom: var(--spacing-3x);
     position: relative;
+    max-width: min(100%, calc(1200px + 40px * 2));
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 40px;
+    padding-right: 40px;
 `
 
 const Divider = styled.div`

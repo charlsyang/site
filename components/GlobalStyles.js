@@ -120,6 +120,7 @@ const GlobalStyles = createGlobalStyle`
     body {
         font-family: var(--font-sans);
         background: var(--color-bg);
+        min-height: 100%;
     }
 
     a {

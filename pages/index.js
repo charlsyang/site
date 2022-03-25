@@ -18,81 +18,87 @@ export async function getStaticProps() {
 
 export default function Home({allPostsData}) {
   return (
-    <MaxWidthWrapper home>
+    <>
       <Head>
         <title>Charlsy Yang</title>
         <meta name="description" content="Charlsy’s Personal Website" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <MainContent>
-        <GridWrapper>
-          <Intro>
-            <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
-            <p>He leads a life that straddles two worlds—a tangible one of shaping 
-              forms and an ethereal one of tending thoughts.</p>
-          </Intro>
-        </GridWrapper>
-        <GridWrapper>
-          <Blog>
-            <SectionTitle>Blog</SectionTitle>
-            <BlogList>
-                {allPostsData.map( ({ slug, date, title }) => (
-                      <BlogItem key={slug}>
-                          <Link href={`/blog/${slug}`}>
-                            <a>{title}</a>
-                          </Link>
-                          <StyledDate>
-                            <Date dateString={date}></Date>
-                          </StyledDate>
-                      </BlogItem>
-                    
-                ))}
-                <AllBlog>
-                  <Link href='/blog'>
-                      <a>All writings</a>
-                  </Link>
-                  <span>→</span>
-                </AllBlog>
-            </BlogList>
-          </Blog>
-          <Now>
-            <SectionTitle>Now</SectionTitle>
-            <NowContent>
-              <p>Proactively safeguarding my time for only the enterprises that I deem worthwhile:</p>
-              <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
-              <p>Reading extensively and consistently, taking on intellectually challenging text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
-              <p>Spending intentional efforts on nurturing friendships, writing letters, scheduling calls— doing things the long, hard, stupid way.</p>
-            </NowContent>
-            <Reading>
-              <ReadingLabel>Reading</ReadingLabel>
-              <BookTitle>Understanding Comics</BookTitle>
-              <Author>Scott Mcloud</Author>
-            </Reading>
-          </Now>
-          <Contact>
-            <SectionTitle>Say hi</SectionTitle>
-            <ContactList>
-              <ContactItem>
-                <ContactItemLabel>email</ContactItemLabel>
-                <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
-              </ContactItem>
-              <ContactItem>
-                <ContactItemLabel>twitter</ContactItemLabel>
-                <a href="https://twitter.com/imcharlsy">@imcharlsy</a>
-              </ContactItem>
-            </ContactList>
-          </Contact>
-        </GridWrapper>
-      </MainContent>
+      <MainWrapper>
+        <MainContent>
+          <GridWrapper>
+            <Intro>
+              <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
+              <p>He leads a life that straddles two worlds—a tangible one of shaping 
+                forms and an ethereal one of tending thoughts.</p>
+            </Intro>
+          </GridWrapper>
+          <GridWrapper>
+            <Blog>
+              <SectionTitle>Blog</SectionTitle>
+              <BlogList>
+                  {allPostsData.map( ({ slug, date, title }) => (
+                        <BlogItem key={slug}>
+                            <Link href={`/blog/${slug}`}>
+                              <a>{title}</a>
+                            </Link>
+                            <StyledDate>
+                              <Date dateString={date}></Date>
+                            </StyledDate>
+                        </BlogItem>
+                      
+                  ))}
+                  <AllBlog>
+                    <Link href='/blog'>
+                        <a>All writings</a>
+                    </Link>
+                    <span>→</span>
+                  </AllBlog>
+              </BlogList>
+            </Blog>
+            <Now>
+              <SectionTitle>Now</SectionTitle>
+              <NowContent>
+                <p>Proactively safeguarding my time for only the enterprises that I deem worthwhile:</p>
+                <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
+                <p>Reading extensively and consistently, taking on intellectually challenging text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
+                <p>Spending intentional efforts on nurturing friendships, writing letters, scheduling calls— doing things the long, hard, stupid way.</p>
+              </NowContent>
+              <Reading>
+                <ReadingLabel>Reading</ReadingLabel>
+                <BookTitle>Understanding Comics</BookTitle>
+                <Author>Scott Mcloud</Author>
+              </Reading>
+            </Now>
+            <Contact>
+              <SectionTitle>Say hi</SectionTitle>
+              <ContactList>
+                <ContactItem>
+                  <ContactItemLabel>email</ContactItemLabel>
+                  <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
+                </ContactItem>
+                <ContactItem>
+                  <ContactItemLabel>twitter</ContactItemLabel>
+                  <a href="https://twitter.com/imcharlsy">@imcharlsy</a>
+                </ContactItem>
+              </ContactList>
+            </Contact>
+          </GridWrapper>
+        </MainContent>
+      </MainWrapper>
       <Footer/>
-    </MaxWidthWrapper>
+    </>
   )
 }
 
+const MainWrapper = styled(MaxWidthWrapper)`
+  min-height: calc(100vh - 72px);
+`
+
 const MainContent = styled.main`
   font-family: var(--font-sans);
-  margin-top: 12rem;
-  margin-bottom: 12rem;
+  padding-top: 10rem;
+  padding-bottom: 5rem;
 
   & * {
     font-family: inherit;
