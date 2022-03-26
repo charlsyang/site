@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 const Article = styled.article`
-    margin-top: 10rem;
+    margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
     color: var(--color-gray-900);
     width: 58ch;

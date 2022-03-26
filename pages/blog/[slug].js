@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import styled from 'styled-components'
 import { getAllPostSlugs, getPostData } from '../../utils/blog'
 import { getMDXComponent } from "mdx-bundler/client"
@@ -34,6 +35,11 @@ export default function BlogPost({ code, frontmatter }) {
             <Head>
                 <title>{frontmatter.title}</title>
             </Head>
+            <Link href='/'>
+                <BackButton>
+                   <LeftArrow>←</LeftArrow><BackText> Back</BackText>
+                </BackButton>
+            </Link>
             <Main>
                 <Article>
                     <h1>{frontmatter.title}</h1>
@@ -51,4 +57,39 @@ const Main = styled.main`
     justify-content: center;
     align-items: flex-start;
     min-height: calc(100vh - var(--footer-height));
+`
+
+const BackButton = styled.a`
+    position: sticky;
+    top: var(--spacing-5x);
+    left: var(--spacing-6x);
+    height: var(--back-button-height);
+    width: 6rem;
+    display: flex;
+    align-items: center;
+    color: var(--color-gray-600);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--color-gray-900);
+    }
+
+    &:hover span:last-of-type {
+        display: revert;
+        transform: translateX(var(--spacing-1x));
+        opacity: revert;
+    }
+`
+
+const LeftArrow = styled.span`
+    font-weight: 320;
+    font-size: var(--font-size-xl);
+`
+
+const BackText = styled.span`
+    font-family: var(--font-sans);
+    font-size: var(--font-size-m);
+    margin-top: 2px;
+    opacity: 0%;
+    transition: transform 250ms, opacity 250ms;
 `

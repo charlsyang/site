@@ -37,9 +37,9 @@ const Divider = styled.div`
     background-image: linear-gradient(
         90deg,
         var(--mauve1) 0%,
-        var(--mauve3) 10%,
-        var(--mauve3) 50%,
-        var(--mauve3) 90%,
+        var(--mauve4) 10%,
+        var(--mauve4) 50%,
+        var(--mauve4) 90%,
         var(--mauve1) 100%
     );
 

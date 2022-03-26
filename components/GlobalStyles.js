@@ -136,6 +136,7 @@ const GlobalStyles = createGlobalStyle`
         --spacing-6x: calc(var(--spacing-base) * 6);
 
         --footer-height: calc(var(--spacing-base) * 7);
+        --back-button-height: var(--spacing-6x);
 
         /* Animation */
         --transition-default: 240ms;
