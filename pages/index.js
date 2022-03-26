@@ -6,6 +6,7 @@ import { getSortedPostsData } from '../utils/blog'
 import Date from '../components/Date'
 import GridWrapper from '../components/GridWrapper'
 import Footer from '../components/Footer'
+import CustomLink from '../components/CustomLink'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
@@ -49,9 +50,7 @@ export default function Home({allPostsData}) {
                       
                   ))}
                   <AllBlog>
-                    <Link href='/blog'>
-                        <a>All writings</a>
-                    </Link>
+                    <CustomLink href='/blog'>All writings</CustomLink>
                     <span>→</span>
                   </AllBlog>
               </BlogList>
@@ -62,7 +61,7 @@ export default function Home({allPostsData}) {
                 <p>Proactively guarding my time for only the enterprises that I deem worthwhile:</p>
                 <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
                 <p>Reading extensively and consistently, taking on intellectually stimulating text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
-                <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things the long, hard, stupid way.</p>
+                <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things <CustomLink href='https://www.youtube.com/watch?v=WjSOZI90PmE'>the long, hard, stupid way.</CustomLink></p>
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
@@ -79,7 +78,7 @@ export default function Home({allPostsData}) {
                 </ContactItem>
                 <ContactItem>
                   <ContactItemLabel>twitter</ContactItemLabel>
-                  <a href="https://twitter.com/imcharlsy">@imcharlsy</a>
+                  <CustomLink href="https://twitter.com/imcharlsy">@imcharlsy</CustomLink>
                 </ContactItem>
               </ContactList>
             </Contact>
@@ -117,7 +116,7 @@ const Intro = styled.header`
   }
 
   & p+p {
-    text-indent: 2.5rem;
+    text-indent: 2em;
   }
 `
 
@@ -131,6 +130,7 @@ const Ampersand = styled.span`
 const Blog = styled.section`
   grid-column: 3 / 8;
   display: grid;
+  grid-column-gap: 20px;
   grid-template-columns: repeat(5, 1fr);
 `
 
@@ -185,7 +185,7 @@ const NowContent = styled.div`
   }
 
   & p+p {
-    text-indent: 2.5rem;
+    text-indent: 1.5em;
   }
 `
 

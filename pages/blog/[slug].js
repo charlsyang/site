@@ -4,7 +4,10 @@ import { getAllPostSlugs, getPostData } from '../../utils/blog'
 import { getMDXComponent } from "mdx-bundler/client"
 import { useMemo } from "react"
 import MaxWidthWrapper from '../../components/MaxWidthWrapper'
+import Article from '../../components/Article'
 import Date from '../../components/Date'
+import Footer from '../../components/Footer'
+import CustomLink from '../../components/CustomLink'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -31,52 +34,21 @@ export default function BlogPost({ code, frontmatter }) {
             <Head>
                 <title>{frontmatter.title}</title>
             </Head>
-            <BlogMeta>
-                <Title>{frontmatter.title}</Title>
-                <PublishedDate>
+            <Main>
+                <Article>
+                    <h1>{frontmatter.title}</h1>
                     <Date dateString={frontmatter.date} />
-                </PublishedDate>
-            </BlogMeta>
-            <Article>
-                <Component/>
-            </Article>
+                    <Component components={{a: CustomLink}}/>
+                </Article>
+            </Main>
+            <Footer/>
         </MaxWidthWrapper>
     )
 }
 
-const BlogMeta = styled.header`
-    margin-top: 4rem;
-    margin-bottom: 3rem;
-`
-
-const Title = styled.h1`
-    font-size: 1.5rem;
-    margin-bottom: .5rem;
-    color: var(--color-gray-900);
-`
-
-const PublishedDate = styled.p`
-    color: var(--color-gray-600);
-`
-
-const Article = styled.article`
-    margin-bottom: 240px;
-    color: var(--color-gray-900);
-
-    & h2 {
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    & p {
-        margin-bottom: .5rem;
-    }
-
-    & ol, ul {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        list-style: disc;
-        margin-left: 1rem;
-    }
+const Main = styled.main`
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - var(--footer-height));
 `

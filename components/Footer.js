@@ -33,13 +33,14 @@ const Divider = styled.div`
     top: 0;
     left: 50%;
     transform: translate(-50%, 0);
+    
     background-image: linear-gradient(
         90deg,
-        hsla(0 0% 100% / 0%) 0%,
-        hsla(0 0% 100% / 10%) 10%,
-        hsla(0 0% 100% / 10%) 50%,
-        hsla(0 0% 100% / 10%) 90%,
-        hsla(0 0% 100% / 0%) 100%
+        var(--mauve1) 0%,
+        var(--mauve3) 10%,
+        var(--mauve3) 50%,
+        var(--mauve3) 90%,
+        var(--mauve1) 100%
     );
 
 `

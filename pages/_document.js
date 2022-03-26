@@ -30,15 +30,26 @@ class MyDocument extends Document {
 
   render() {
     return (
-      <Html>
+      <Html lang="en">
         <Head>
-          <link
-            href="https://fonts.googleapis.com/css2?family=Newsreader&display=swap"
-            rel="stylesheet"
-          />
+          <link rel="stylesheet" href="https://use.typekit.net/pkd8qub.css"/>
           <link
             rel="preload"
             href="public/fonts/ABCDiatypeVariable.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="public/fonts/Newsreader.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="public/fonts/Newsreader-Italic.woff2"
             as="font"
             type="font/woff2"
             crossOrigin="anonymous"
