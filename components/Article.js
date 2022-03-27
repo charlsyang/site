@@ -5,7 +5,11 @@ const Article = styled.article`
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
     color: var(--color-gray-900);
-    width: min(100%, 58ch);
+    width: 58ch;
+
+    @media ${QUERIES.laptopAndBelow} {
+        width: 50ch;
+    }
 
     & * {
         font-family: var(--font-sans);
@@ -37,7 +41,7 @@ const Article = styled.article`
 
         @media ${QUERIES.laptopAndBelow} {
             font-size: var(--font-size-s);
-            margin-bottom: 3rem;
+            margin-bottom: 3.5rem;
         }
     }
 

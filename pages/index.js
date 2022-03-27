@@ -19,6 +19,13 @@ export async function getStaticProps() {
 }
 
 export default function Home({allPostsData}) {
+  let latestPostData;
+  if (allPostsData.length > 5) {
+    latestPostData = allPostsData.slice(0, 5)
+  } else {
+    latestPostData = allPostsData
+  };
+
   return (
     <>
       <Head>
@@ -39,7 +46,7 @@ export default function Home({allPostsData}) {
             <Blog>
               <SectionTitle>Blog</SectionTitle>
               <BlogList>
-                  {allPostsData.map( ({ slug, date, title }) => (
+                  {latestPostData.map( ({ slug, date, title }) => (
                         <BlogItem key={slug}>
                             <Link href={`/blog/${slug}`}>
                               <a>{title}</a>

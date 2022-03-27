@@ -21,8 +21,15 @@ export function getSortedPostsData() {
         ...matterResult.data
       }
     }) // [{id: 'pre-rendering', title: '...', date: '...'}, {id: 'ssg-ssr', title: '...', date: '...'}]
-  
-    return allPostsData.sort(({ date: a }, { date: b }) => {
+    
+    const publishedPostsData = [];
+    for (const postData of allPostsData){
+      if (postData.isPublished === true) {
+        publishedPostsData.push(postData)
+      };
+    }
+
+    return publishedPostsData.sort(({ date: a }, { date: b }) => {
         if (a < b) {
             return 1
         } else if (a > b) {
