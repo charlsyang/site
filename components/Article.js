@@ -100,7 +100,6 @@ const Article = styled.article`
         color: var(--color-article-body);
         line-height: 1.5;
         margin-bottom: 1rem;
-        overflow-wrap: break-word;
         hyphens: auto;
     }
 

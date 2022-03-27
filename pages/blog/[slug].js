@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import Head from '../../components/Head'
 import styled from 'styled-components'
 import { getAllPostSlugs, getPostData } from '../../utils/blog'
 import { getMDXComponent } from "mdx-bundler/client"
@@ -33,9 +33,9 @@ export default function BlogPost({ code, frontmatter }) {
 
     return (
         <>
-            <Head>
-                <title>{frontmatter.title}</title>
-            </Head>
+            <Head 
+                title={frontmatter.title}
+            />
             <MaxWidthWrapper>
                 <Back href='/blog' text='Blog'/>
                 <Main>

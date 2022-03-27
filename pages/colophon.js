@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import Head from '../components/Head'
 import MaxWidthWrapper from '../components/MaxWidthWrapper'
 import styled from 'styled-components'
 import Footer from '../components/Footer'
@@ -9,9 +9,9 @@ import CustomLink from '../components/CustomLink'
 export default function Colophon() {
     return (
         <>
-            <Head>
-                <title>Colophon</title>
-            </Head>
+            <Head 
+                title="Colophon"
+            />
             <MaxWidthWrapper>
                 <Main>
                     <ContentWrapper>

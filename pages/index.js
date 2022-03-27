@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import Head from '../components/Head'
 import MaxWidthWrapper from '../components/MaxWidthWrapper'
 import styled from 'styled-components'
 import Link from 'next/link'
@@ -29,11 +29,10 @@ export default function Home({allPostsData}) {
 
   return (
     <>
-      <Head>
-        <title>Charlsy Yang</title>
-        <meta name="description" content="Charlsy’s Personal Website" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <Head 
+        title="Charlsy Yang"
+        description="Charlsy’s personal site"
+      />
       <MaxWidthWrapper>
         <MainContent>
           <GridWrapper>
@@ -257,6 +256,7 @@ const NowContent = styled.div`
   & p {
     color: var(--color-gray-900);
     line-height: 1.5;
+    hyphens: auto;
   }
 
   & p+p {
