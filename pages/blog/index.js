@@ -3,6 +3,10 @@ import Head from 'next/head'
 import styled from 'styled-components'
 import Link from 'next/link'
 import { getSortedPostsData } from '../../utils/blog'
+import Footer from '../../components/Footer'
+import Date from '../../components/Date'
+import BackButton from '../../components/BackButton'
+import { QUERIES } from '../../utils/constants'
 
 export async function getStaticProps() {
     const allPostsData = getSortedPostsData();
@@ -15,34 +19,95 @@ export async function getStaticProps() {
 
 const BlogIndex = ({ allPostsData }) => {
     return (
-        <MaxWidthWrapper>
+        <>
             <Head>
                 <title>Blog</title>
             </Head>
-            <main>
-                <PageHead>Blog</PageHead>
-            </main>
-            <ul>
-                {allPostsData.map( ({ slug, date, title }) => (
-                    <ListItem key={slug}>
-                        <Link href={`/blog/${slug}`}>
-                            <a>{title}</a>
-                        </Link>
-                        <p>{date}</p>
-                    </ListItem>
-                ))}
-            </ul>
-        </MaxWidthWrapper>
+            <MaxWidthWrapper>
+                <Back href='/' text='Home'/>
+                <Main>
+                    <Content>
+                        <PageHead>Blog</PageHead>
+                        <BlogList>
+                            {allPostsData.map( ({ slug, date, title }) => (
+                                <BlogItem key={slug}>
+                                    <Link href={`/blog/${slug}`}>
+                                        <a>{title}</a>
+                                    </Link>
+                                    <StyledDate>
+                                        <Date dateString={date}></Date>
+                                    </StyledDate>
+                                </BlogItem>
+                            ))}
+                        </BlogList>
+                    </Content>
+                </Main>
+            </MaxWidthWrapper>
+            <Footer/>
+        </>
     )
 }
 
-const PageHead = styled.h1`
-    font-size: 1.25rem;
-    margin: 3rem 0;
+const Main = styled.main`
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
+    
+    & * {
+        font-family: var(--font-sans);
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-m);
+
+        @media ${QUERIES.tabletAndBelow} {
+        font-size: var(--font-size-s);
+        }
+    }
+    
+    @media ${QUERIES.tabletAndBelow} {
+        min-height: calc(100vh - var(--footer-height));
+    }
 `
 
-const ListItem = styled.li`
-    margin: 0 0 1.25rem 0;
+const Back = styled(BackButton)`
+    position: sticky;
+    top: var(--spacing-5x);
+    left: var(--spacing-6x);
+`
+
+const Content = styled.div`
+    width: min(30rem, 100%);
+    margin-top: calc(10rem - var(--back-button-height));
+    margin-bottom: 10rem;
+`
+
+const PageHead = styled.h1`
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-gray-900);
+    margin-bottom: var(--spacing-6x);
+
+    @media ${QUERIES.tabletAndBelow} {
+        font-size: var(--font-size-m);
+        margin-bottom: var(--spacing-4x);
+    }
+`
+const BlogList = styled.ul`
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3x);
+    grid-column: 2 / -1;
+`
+
+const BlogItem = styled.li`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-s);
+`
+
+const StyledDate = styled.p`
+  color: var(--color-gray-600);
 `
 
 export default BlogIndex;
