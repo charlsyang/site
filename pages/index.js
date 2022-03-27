@@ -7,6 +7,7 @@ import Date from '../components/Date'
 import GridWrapper from '../components/GridWrapper'
 import Footer from '../components/Footer'
 import CustomLink from '../components/CustomLink'
+import { QUERIES } from '../utils/constants'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
@@ -31,7 +32,7 @@ export default function Home({allPostsData}) {
             <Intro>
               <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
               <p>He leads a life that straddles two worlds—a tangible one of shaping 
-                forms and an ethereal one of tending thoughts.</p>
+                forms and an ethereal one of tending&nbsp;thoughts.</p>
             </Intro>
           </GridWrapper>
           <GridWrapper>
@@ -101,18 +102,37 @@ const MainContent = styled.main`
     font-family: inherit;
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-m);
+
+    @media ${QUERIES.tabletAndBelow} {
+      font-size: var(--font-size-s);
+    }
   }
 `
 
 const Intro = styled.header`
   margin-bottom: 13rem;
   grid-column: 8 / -1;
+
+  @media ${QUERIES.tabletAndBelow} {
+      grid-column: 7 / -1;
+      margin-bottom: 8rem;
+  }
+
+  @media ${QUERIES.phoneAndBelow} {
+      grid-column: 1 / -1;
+      margin-bottom: 6rem;
+  }
+  
   
   & p {
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     line-height: 1.3;
     color: var(--color-gray-900);
+
+    @media ${QUERIES.tabletAndBelow} {
+      font-size: var(--font-size-l);
+    }
   }
 
   & p+p {
@@ -125,6 +145,10 @@ const Ampersand = styled.span`
   font-size: 25px;
   font-style: italic;
   font-weight: var(--font-weight-normal);
+
+  @media ${QUERIES.tabletAndBelow} {
+      font-size: var(--font-size-l);
+    }
 `
 
 const Blog = styled.section`
@@ -132,18 +156,34 @@ const Blog = styled.section`
   display: grid;
   grid-column-gap: 20px;
   grid-template-columns: repeat(5, 1fr);
+
+  @media ${QUERIES.tabletAndBelow} {
+    grid-column: 1 / 7;
+  }
+
+  @media ${QUERIES.phoneAndBelow} {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3x);
+  }
 `
 
 const SectionTitle = styled.h2`
   grid-column: 1 / 2;
   font-weight: var(--font-weight-normal);
   color: var(--color-gray-600);
+
+  @media ${QUERIES.phoneAndBelow} {
+    padding-bottom: var(--spacing-1x);
+    border-bottom: 1px solid var(--color-divider);
+  }
 `
 
 const BlogList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--spacing-3x);
   grid-column: 2 / -1;
 `
 
@@ -162,6 +202,10 @@ const AllBlog = styled.div`
   & span {
     color: var(--color-gray-900);
   }
+
+  @media ${QUERIES.phoneAndBelow} {
+    margin-top: var(--spacing-2x);
+  }
 `
 
 const StyledDate = styled.p`
@@ -174,6 +218,19 @@ const Now = styled.section`
   grid-template-columns: repeat(5, 1fr);
   grid-column-gap: 20px;
   grid-row-gap: var(--spacing-6x);
+
+  @media ${QUERIES.tabletAndBelow} {
+    grid-column: 7 / -1;
+    grid-row-gap: var(--spacing-4x);
+  }
+  
+  @media ${QUERIES.phoneAndBelow} {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3x);
+    margin-top: var(--spacing-6x);
+  }
 `
 
 const NowContent = styled.div`
@@ -215,7 +272,18 @@ const Contact = styled.section`
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
-  margin-top: 3rem;
+  margin-top: var(--spacing-6x);
+
+  @media ${QUERIES.tabletAndBelow} {
+    grid-column: 7 / -1;
+  }
+  
+  @media ${QUERIES.phoneAndBelow} {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3x);
+  }
 `
 
 const ContactList = styled.div`
@@ -223,6 +291,10 @@ const ContactList = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4x);
+
+  @media ${QUERIES.tabletAndBelow} {
+    gap: var(--spacing-3x);
+  }
 `
 
 const ContactItem = styled.div`

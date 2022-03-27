@@ -31,24 +31,26 @@ export default function BlogPost({ code, frontmatter }) {
     const Component = useMemo(() => getMDXComponent(code), [code]);
 
     return (
-        <MaxWidthWrapper>
+        <>
             <Head>
                 <title>{frontmatter.title}</title>
             </Head>
-            <Link href='/'>
-                <BackButton>
-                   <LeftArrow>←</LeftArrow><BackText> Back</BackText>
-                </BackButton>
-            </Link>
-            <Main>
-                <Article>
-                    <h1>{frontmatter.title}</h1>
-                    <Date dateString={frontmatter.date} />
-                    <Component components={{a: CustomLink}}/>
-                </Article>
-            </Main>
+            <MaxWidthWrapper>
+                <Link href='/'>
+                    <BackButton>
+                    <LeftArrow>←</LeftArrow><BackText> Back</BackText>
+                    </BackButton>
+                </Link>
+                <Main>
+                    <Article>
+                        <h1>{frontmatter.title}</h1>
+                        <Date dateString={frontmatter.date} />
+                        <Component components={{a: CustomLink}}/>
+                    </Article>
+                </Main>
+            </MaxWidthWrapper>
             <Footer/>
-        </MaxWidthWrapper>
+        </>
     )
 }
 
@@ -56,7 +58,7 @@ const Main = styled.main`
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: calc(100vh - var(--footer-height));
+    min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
 `
 
 const BackButton = styled.a`

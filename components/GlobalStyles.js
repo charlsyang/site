@@ -121,8 +121,7 @@ const GlobalStyles = createGlobalStyle`
         --color-gray-600: var(--mauve10);
         --color-gray-300: var(--mauve8);
         --color-article-body: hsl(256, 5.5%, 72%);
-
-        
+        --color-divider: var(--mauve4);
  
 
         /* Spacing */

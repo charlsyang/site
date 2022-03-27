@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Link from 'next/link';
+import { QUERIES } from '../utils/constants'
 
 const Footer = () => {
     return (
@@ -24,11 +25,16 @@ const FooterWrapper = styled.footer`
     margin-right: auto;
     padding-left: 40px;
     padding-right: 40px;
+
+    @media ${QUERIES.phoneAndBelow} {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
 `
 
 const Divider = styled.div`
     height: 1px;
-    width: 90vw;
+    width: 100vw;
     position: absolute;
     top: 0;
     left: 50%;
@@ -36,13 +42,23 @@ const Divider = styled.div`
     
     background-image: linear-gradient(
         90deg,
-        var(--mauve1) 0%,
-        var(--mauve4) 10%,
-        var(--mauve4) 50%,
-        var(--mauve4) 90%,
-        var(--mauve1) 100%
+        var(--color-bg) 0%,
+        var(--color-divider) 25%,
+        var(--color-divider) 50%,
+        var(--color-divider) 75%,
+        var(--color-bg) 100%
     );
 
+    @media ${QUERIES.laptopAndBelow} {
+        background-image: linear-gradient(
+            90deg,
+            var(--color-bg) 0%,
+            var(--color-divider) 10%,
+            var(--color-divider) 50%,
+            var(--color-divider) 90%,
+            var(--color-bg) 100%
+        );
+    }
 `
 
 const FooterContent = styled.div`
