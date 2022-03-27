@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { getAllPostSlugs, getPostData } from '../../utils/blog'
 import { getMDXComponent } from "mdx-bundler/client"
 import { useMemo } from "react"
+import { QUERIES } from '../../utils/constants'
 import MaxWidthWrapper from '../../components/MaxWidthWrapper'
 import Article from '../../components/Article'
 import Date from '../../components/Date'
@@ -59,6 +60,10 @@ const Main = styled.main`
     justify-content: center;
     align-items: flex-start;
     min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
+
+    @media ${QUERIES.phoneAndBelow} {
+        min-height: calc(100vh - var(--footer-height));
+    }
 `
 
 const BackButton = styled.a`
@@ -80,6 +85,14 @@ const BackButton = styled.a`
         display: revert;
         transform: translateX(var(--spacing-1x));
         opacity: revert;
+    }
+
+    @media ${QUERIES.tabletAndBelow} {
+        left: var(--spacing-5x);
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        display: none;
     }
 `
 

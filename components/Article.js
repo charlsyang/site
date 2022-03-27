@@ -1,15 +1,20 @@
 import styled from 'styled-components';
+import { QUERIES } from '../utils/constants';
 
 const Article = styled.article`
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
     color: var(--color-gray-900);
-    width: 58ch;
+    width: min(100%, 58ch);
 
     & * {
         font-family: var(--font-sans);
         font-size: var(--font-size-l);
         color:  var(--color-article-body);
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-m);
+        }
     }
 
     & h1 {
@@ -17,6 +22,10 @@ const Article = styled.article`
         font-weight: var(--font-weight-bold);
         color: var(--color-gray-900);
         margin-bottom: var(--spacing-s);
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-m);
+        }
     }
 
     & time {
@@ -25,6 +34,11 @@ const Article = styled.article`
         color: var(--color-gray-600);
         display: block;
         margin-bottom: 4rem;
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-s);
+            margin-bottom: 3rem;
+        }
     }
 
     & h2 {
@@ -32,10 +46,19 @@ const Article = styled.article`
         font-weight: var(--font-weight-bold);
         color: var(--color-gray-900);
         margin-bottom: 1.25rem;
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-s);
+            margin-bottom: 1rem;
+        }
     }
 
     & p+h2 {
         margin-top: 2.5rem;
+
+        @media ${QUERIES.laptopAndBelow} {
+            margin-top: 2rem;
+        }
     }
 
     & h3 {
@@ -44,6 +67,12 @@ const Article = styled.article`
         color: var(--color-gray-600);
         margin-top: 2rem;
         margin-bottom: 1rem;
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-s);
+            margin-top: 1.75rem;
+            margin-bottom: 0.75rem;   
+        }
     }
 
     & h4 {
@@ -54,11 +83,16 @@ const Article = styled.article`
         font-style: italic;
         margin-top: 1.5rem;
         margin-bottom: 0.25rem;
+
+        @media ${QUERIES.laptopAndBelow} {
+            font-size: var(--font-size-s);
+            margin-top: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
     }
 
     & > p {
         font-family: var(--font-serif);
-        font-size: var(--font-size-l);
         color: var(--color-article-body);
         line-height: 1.5;
         margin-bottom: 1rem;
@@ -84,14 +118,14 @@ const Article = styled.article`
         flex-direction: column;
         gap: 0.5rem;
         list-style: disc;
-        margin-left: 1rem;
+        margin-left: 1.75rem;
     }
 
     & li {
         font-family: var(--font-serif);
     }
 
-    & blockquote p:first-of-type::before {
+    /* & blockquote p:first-of-type::before {
         content: '“';
         font-family: var(--font-serif);
         color: var(--color-gray-300);
@@ -100,7 +134,7 @@ const Article = styled.article`
         margin-top: 0.2em;
         margin-right: 0.2em;
         font-size: 3em;
-    }
+    } */
 
     & blockquote p {
         font-family: var(--font-serif);
