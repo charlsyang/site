@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import Link from 'next/link'
 import styled from 'styled-components'
 import { getAllPostSlugs, getPostData } from '../../utils/blog'
 import { getMDXComponent } from "mdx-bundler/client"
@@ -10,6 +9,7 @@ import Article from '../../components/Article'
 import Date from '../../components/Date'
 import Footer from '../../components/Footer'
 import CustomLink from '../../components/CustomLink'
+import BackButton from '../../components/BackButton'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -37,11 +37,7 @@ export default function BlogPost({ code, frontmatter }) {
                 <title>{frontmatter.title}</title>
             </Head>
             <MaxWidthWrapper>
-                <Link href='/'>
-                    <BackButton>
-                    <LeftArrow>←</LeftArrow><BackText> Back</BackText>
-                    </BackButton>
-                </Link>
+                <Back href='/'/>
                 <Main>
                     <Article>
                         <h1>{frontmatter.title}</h1>
@@ -61,50 +57,13 @@ const Main = styled.main`
     align-items: flex-start;
     min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
 
-    @media ${QUERIES.phoneAndBelow} {
+    @media ${QUERIES.tabletAndBelow} {
         min-height: calc(100vh - var(--footer-height));
     }
 `
 
-const BackButton = styled.a`
+const Back = styled(BackButton)`
     position: sticky;
     top: var(--spacing-5x);
     left: var(--spacing-6x);
-    height: var(--back-button-height);
-    width: 6rem;
-    display: flex;
-    align-items: center;
-    color: var(--color-gray-600);
-    cursor: pointer;
-
-    &:hover {
-        color: var(--color-gray-900);
-    }
-
-    &:hover span:last-of-type {
-        display: revert;
-        transform: translateX(var(--spacing-1x));
-        opacity: revert;
-    }
-
-    @media ${QUERIES.tabletAndBelow} {
-        left: var(--spacing-5x);
-    }
-
-    @media ${QUERIES.phoneAndBelow} {
-        display: none;
-    }
-`
-
-const LeftArrow = styled.span`
-    font-weight: 320;
-    font-size: var(--font-size-xl);
-`
-
-const BackText = styled.span`
-    font-family: var(--font-sans);
-    font-size: var(--font-size-m);
-    margin-top: 2px;
-    opacity: 0%;
-    transition: transform 250ms, opacity 250ms;
 `
