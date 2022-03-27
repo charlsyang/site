@@ -1,14 +1,16 @@
 import Link from 'next/link'
 import styled from 'styled-components'
 import { QUERIES } from '../utils/constants'
+import { ArrowLeft } from 'react-feather'
 
 const BackButton = (props) => {
     const href = props.href;
+    const text = props.text;
 
     return (
-        <Link href={href}>
+        <Link href={href} >
             <Back {...props}>
-                <LeftArrow>←</LeftArrow><BackText> Back</BackText>
+                <ArrowLeft size={20}/> <BackText>{text}</BackText>
             </Back>
         </Link>
     )
@@ -33,6 +35,7 @@ const Back = styled.a`
         display: revert;
         transform: translateX(var(--spacing-1x));
         opacity: revert;
+        transition: transform var(--transition-fast), opacity var(--transition-fast);
     }
 
     @media ${QUERIES.tabletAndBelow} {
@@ -40,17 +43,12 @@ const Back = styled.a`
     }
 `
 
-const LeftArrow = styled.span`
-    font-weight: 320;
-    font-size: var(--font-size-xl);
-`
-
 const BackText = styled.span`
     font-family: var(--font-sans);
     font-size: var(--font-size-m);
     margin-top: 2px;
     opacity: 0%;
-    transition: transform 250ms, opacity 250ms;
+    transition: transform var(--transition-default), opacity var(--transition-default);
 
     @media ${QUERIES.laptopAndBelow} {
         font-size: var(--font-size-m);

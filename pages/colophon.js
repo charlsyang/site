@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import Footer from '../components/Footer'
 import { QUERIES } from '../utils/constants'
 import BackButton from '../components/BackButton'
+import CustomLink from '../components/CustomLink'
 
 export default function Colophon() {
     return (
@@ -16,8 +17,22 @@ export default function Colophon() {
                     <ContentWrapper>
                         <Title>Colophon</Title>
                         <Content>
-                            <p>Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of “de Finibus Bonorum et Malorum” (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.</p>
-                            <Back href='/'/>
+                            <p>
+                                Given the nature of a one-man team, the site is designed—inevitably—part 
+                                in <CustomLink href='https://www.figma.com/'>Figma</CustomLink>, part in <CustomLink href='https://code.visualstudio.com/'>VS Code</CustomLink>. 
+                                The type is set in <CustomLink href='https://abcdinamo.com/typefaces/diatype'>Diatype</CustomLink> from
+                                 Dinamo and <CustomLink href='https://fonts.adobe.com/fonts/freight-text'>Freight Text</CustomLink> by Joshua Darden.
+                            </p>
+                            <p>
+                                Technology-wise the site is built with <CustomLink href='https://nextjs.org/'>Next.js</CustomLink>, 
+                                furnished with <CustomLink href='https://styled-components.com/'>Styled Components</CustomLink>, and 
+                                deployed with <CustomLink href='https://vercel.com/'>Vercel</CustomLink>. You can poke at my lame code <CustomLink href='https://github.com/charlsyang/site'>on Github</CustomLink>.
+                            </p>
+                            <p>
+                                Thanks for visiting. Among myriads of other sites having you on mine is nothing 
+                                less than a pleasure. Have a good one.
+                            </p>
+                            <Back href='/' text='Home'/>
                         </Content>
                     </ContentWrapper>
                 </Main>
@@ -83,6 +98,14 @@ const Content = styled.div`
 
     & p+p {
         text-indent: 1.5em;
+    }
+
+    & p > a {
+        color: var(--color-gray-600);
+    }
+
+    & p > a:hover {
+        color: var(--color-accent);
     }
 `
 

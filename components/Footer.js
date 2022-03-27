@@ -78,6 +78,7 @@ const Ampersand = styled.span`
   font-family: var(--ampersand-stack);
   font-style: italic;
   font-weight: var(--font-weight-normal);
+  padding-right: 1px;
 `
 
 const Colophon = styled.a`

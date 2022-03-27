@@ -8,6 +8,7 @@ import GridWrapper from '../components/GridWrapper'
 import Footer from '../components/Footer'
 import CustomLink from '../components/CustomLink'
 import { QUERIES } from '../utils/constants'
+import { ArrowRight } from 'react-feather'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
@@ -55,12 +56,12 @@ export default function Home({allPostsData}) {
                               <Date dateString={date}></Date>
                             </StyledDate>
                         </BlogItem>
-                      
                   ))}
-                  <AllBlog>
-                    <CustomLink href='/blog'>All writings</CustomLink>
-                    <span>→</span>
-                  </AllBlog>
+                  <Link href='/blog'>
+                    <AllBlog>
+                        All posts<ArrowRight size={16}/>
+                    </AllBlog>
+                  </Link>
               </BlogList>
             </Blog>
             <Now>
@@ -152,6 +153,7 @@ const Ampersand = styled.span`
   font-size: 25px;
   font-style: italic;
   font-weight: var(--font-weight-normal);
+  padding-right: 1px;
 
   @media ${QUERIES.tabletAndBelow} {
       font-size: var(--font-size-l);
@@ -201,13 +203,22 @@ const BlogItem = styled.li`
   gap: var(--spacing-s);
 `
 
-const AllBlog = styled.div`
+const AllBlog = styled.a`
+  height: var(--back-button-height);
+  margin-top: var(--spacing-3x);
   display: flex;
-  gap: var(--spacing-1x);
-  margin-top: var(--spacing-5x);
+  align-items: center;
+  gap: var(--spacing-s);
+  color: var(--color-gray-900);
+  cursor: pointer;
+  
+  & svg {
+    transition: transform var(--transition-default);
+  }
 
-  & span {
-    color: var(--color-gray-900);
+  &:hover svg {
+    transform: translateX(var(--spacing-s));
+    transition: transform var(--transition-fast);
   }
 
   @media ${QUERIES.phoneAndBelow} {

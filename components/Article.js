@@ -7,7 +7,7 @@ const Article = styled.article`
     color: var(--color-gray-900);
     width: 58ch;
 
-    @media ${QUERIES.laptopAndBelow} {
+    @media ${QUERIES.tabletAndBelow} {
         width: 50ch;
     }
 
@@ -16,7 +16,7 @@ const Article = styled.article`
         font-size: var(--font-size-l);
         color:  var(--color-article-body);
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-m);
         }
     }
@@ -27,7 +27,7 @@ const Article = styled.article`
         color: var(--color-gray-900);
         margin-bottom: var(--spacing-s);
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-m);
         }
     }
@@ -39,7 +39,7 @@ const Article = styled.article`
         display: block;
         margin-bottom: 4rem;
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-s);
             margin-bottom: 3.5rem;
         }
@@ -51,7 +51,7 @@ const Article = styled.article`
         color: var(--color-gray-900);
         margin-bottom: 1.25rem;
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-s);
             margin-bottom: 1rem;
         }
@@ -60,7 +60,7 @@ const Article = styled.article`
     & p+h2 {
         margin-top: 2.5rem;
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             margin-top: 2rem;
         }
     }
@@ -72,7 +72,7 @@ const Article = styled.article`
         margin-top: 2rem;
         margin-bottom: 1rem;
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-s);
             margin-top: 1.75rem;
             margin-bottom: 0.75rem;   
@@ -88,7 +88,7 @@ const Article = styled.article`
         margin-top: 1.5rem;
         margin-bottom: 0.25rem;
 
-        @media ${QUERIES.laptopAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-s);
             margin-top: 1.25rem;
             margin-bottom: 0.25rem;

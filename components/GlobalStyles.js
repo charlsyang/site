@@ -138,7 +138,10 @@ const GlobalStyles = createGlobalStyle`
         --back-button-height: var(--spacing-6x);
 
         /* Animation */
+        --transition-fast: 160ms;
         --transition-default: 240ms;
+        --transition-slow: 320ms;
+
     }
 
     /* GLOBAL STYLES */
@@ -165,12 +168,14 @@ const GlobalStyles = createGlobalStyle`
         text-decoration-color: var(--color-gray-300);
         text-decoration-thickness: 1.25px;
         text-underline-offset: 2.4px;
+        text-decoration-skip-ink: auto;        
         transition: all var(--transition-default);
     }
 
     a:hover {
         color: var(--color-accent);
         text-decoration-color: var(--color-accent);
+        transition: all var(--transition-fast);
     }
 
     ::selection {
