@@ -9,6 +9,7 @@ import Article from '../../components/Article'
 import Date from '../../components/Date'
 import Footer from '../../components/Footer'
 import CustomLink from '../../components/CustomLink'
+import CustomImg from '../../components/CustomImg'
 import BackButton from '../../components/BackButton'
 
 export async function getStaticProps({ params }) {
@@ -42,7 +43,7 @@ export default function BlogPost({ code, frontmatter }) {
                     <Article>
                         <h1>{frontmatter.title}</h1>
                         <Date dateString={frontmatter.date} />
-                        <Component components={{a: CustomLink}}/>
+                        <Component components={{a: CustomLink, img: CustomImg}}/>
                     </Article>
                 </Main>
             </MaxWidthWrapper>

@@ -49,20 +49,18 @@ const Article = styled.article`
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-bold);
         color: var(--color-gray-900);
+        margin-top: 2.5rem;
         margin-bottom: 1.25rem;
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-s);
+            margin-top: 2rem;
             margin-bottom: 1rem;
         }
     }
 
-    & p+h2 {
-        margin-top: 2.5rem;
-
-        @media ${QUERIES.tabletAndBelow} {
-            margin-top: 2rem;
-        }
+    & time+h2 {
+        margin-top: 0;
     }
 
     & h3 {
@@ -116,16 +114,42 @@ const Article = styled.article`
         font-family: inherit;
     }
 
+    & strong {
+        font-family: inherit;
+        font-weight: var(--font-weight-bold);
+    }
+
     & ol, ul {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        list-style: disc;
-        margin-left: 1.75rem;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     & li {
         font-family: var(--font-serif);
+        position: relative;
+        /* padding-left: 16px; */
+    }
+
+    /* & ul > li::marker {
+        content: '–';
+    } */
+
+    & ul > li::before {
+        content: "*";
+        position: absolute;
+        left: -20px;
+        top: 2px;
+        width: 8px;
+        color: var(--color-gray-600);
+        font-family: var(--font-serif);
+        font-size: var(--font-size-xl);
+    }
+
+    & h2+figure, h3+figure, h4+figure {  
+        margin-top: var(--spacing-4x); // trim top margin for images after headings
     }
 
     /* & blockquote p:first-of-type::before {

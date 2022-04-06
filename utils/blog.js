@@ -3,6 +3,7 @@ import path from 'path'
 import matter from 'gray-matter'
 import { bundleMDX } from 'mdx-bundler'
 import remarkGfm from 'remark-gfm'
+import remarkUnwrapImages from 'remark-unwrap-images'
 
 const postsDirectory = path.join(process.cwd(), 'blog')
 
@@ -75,7 +76,7 @@ export async function getPostData(slug) {
     const { code, frontmatter } = await bundleMDX({
       source: fileContents,
       xdmOptions(options) {
-        options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm]        
+        options.remarkPlugins = [...(options.remarkPlugins ?? []), remarkGfm, remarkUnwrapImages]        
         return options;
       },
     });
