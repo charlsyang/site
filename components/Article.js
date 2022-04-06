@@ -120,40 +120,37 @@ const Article = styled.article`
     }
 
     & ol, ul {
+        --bullet-width: 8px;
+        --bullet-gap: 16px;
+        --bullet-indent: calc(var(--bullet-width) + var(--bullet-gap));
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        margin-left: 1.5rem;
+        margin-left: var(--bullet-indent);
         margin-bottom: 1rem;
 
         @media ${QUERIES.tabletAndBelow} {
-            margin-left: 1.2rem;
+            --bullet-gap: 12px;
         }
     }
 
     & li {
         font-family: var(--font-serif);
         position: relative;
-        /* padding-left: 16px; */
     }
-
-    /* & ul > li::marker {
-        content: '–';
-    } */
 
     & ul > li::before {
         content: "*";
         position: absolute;
-        left: -20px;
+        left: calc(var(--bullet-indent) * -1);
         top: 2px;
-        width: 8px;
+        width: var(--bullet-width);
         color: var(--color-gray-600);
         font-family: var(--font-serif);
         font-size: var(--font-size-xl);
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-l);
-            left: -16px;
         }
     }
 
