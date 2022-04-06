@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { QUERIES } from '../utils/constants';
 
 function CustomImg(props) {
     if (props.title !== undefined) {
@@ -21,8 +22,8 @@ export default CustomImg;
 
 
 const Figure = styled.figure`
-  margin-top: var(--spacing-6x);
-  margin-bottom: var(--spacing-6x);
+  margin-top: var(--spacing-4x);
+  margin-bottom: var(--spacing-4x);
 `
 
 const FigCaption = styled.figcaption`
@@ -31,6 +32,11 @@ const FigCaption = styled.figcaption`
   font-weight: var(--font-weight-normal);
   color: var(--color-gray-600);
   margin-top: var(--spacing-2x);
+
+  @media ${QUERIES.tabletAndBelow} {
+    font-size: var(--font-size-s);
+    margin-top: var(--spacing-1x);
+  }
 `
 
 

@@ -125,6 +125,10 @@ const Article = styled.article`
         gap: 0.5rem;
         margin-left: 1.5rem;
         margin-bottom: 1rem;
+
+        @media ${QUERIES.tabletAndBelow} {
+            margin-left: 1.2rem;
+        }
     }
 
     & li {
@@ -146,10 +150,15 @@ const Article = styled.article`
         color: var(--color-gray-600);
         font-family: var(--font-serif);
         font-size: var(--font-size-xl);
+
+        @media ${QUERIES.tabletAndBelow} {
+            font-size: var(--font-size-l);
+            left: -16px;
+        }
     }
 
     & h2+figure, h3+figure, h4+figure {  
-        margin-top: var(--spacing-4x); // trim top margin for images after headings
+        margin-top: var(--spacing-3x); // trim top margin for images after headings
     }
 
     /* & blockquote p:first-of-type::before {
