@@ -73,7 +73,7 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://mitpress.mit.edu/books/changing-minds'>Understanding Comics</CustomLink>
+                <CustomLink href='https://mitpress.mit.edu/books/changing-minds'>Changing Minds</CustomLink>
                 <Author>Andrea diSessa</Author>
               </Reading>
             </Now>
