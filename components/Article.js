@@ -106,7 +106,7 @@ const Article = styled.article`
         color: inherit;
     }
 
-    & a:hover {
+    & a:hover, a:hover * {
         color: var(--color-accent);
     }
 
