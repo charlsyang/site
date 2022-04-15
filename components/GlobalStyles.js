@@ -79,6 +79,7 @@ const GlobalStyles = createGlobalStyle`
             Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
         --fallback-serif: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, 
             Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+        --fallback-mono: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
         --ampersand-stack: Baskerville, Apple Garamond, Iowan Old Style, Athelas, Palatino, 
             Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, 
             Segoe UI Emoji, Segoe UI Symbol;

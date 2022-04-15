@@ -183,6 +183,14 @@ const Article = styled.article`
     & blockquote p:last-of-type {
         margin-bottom: 2rem;
     }
+
+    & code {
+        font-family: var(--fallback-mono);
+        font-size: var(--font-size-xs);
+        padding: 2px 4px;
+        background-color: var(--mauve6);
+        border-radius: 3px;
+    }
 `
 
 export default Article;
