@@ -134,7 +134,7 @@ const Article = styled.article`
         }
     }
 
-    & li * {
+    & li {
         font-family: var(--font-serif);
         position: relative;
     }
@@ -226,7 +226,7 @@ const Article = styled.article`
     & .footnotes {
         display: none;
     }
-    
+
     & .footnotes::before {
         content: "* * *";
         color: var(--color-gray-600);
