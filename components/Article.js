@@ -5,7 +5,7 @@ const Article = styled.article`
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
     color: var(--color-gray-900);
-    width: 58ch;
+    width: 60ch;
 
     @media ${QUERIES.tabletAndBelow} {
         width: 50ch;
@@ -119,7 +119,7 @@ const Article = styled.article`
         font-weight: var(--font-weight-bold);
     }
 
-    & ol, ul {
+    & ul {
         --bullet-width: 8px;
         --bullet-gap: 16px;
         --bullet-indent: calc(var(--bullet-width) + var(--bullet-gap));
@@ -134,7 +134,7 @@ const Article = styled.article`
         }
     }
 
-    & li {
+    & li * {
         font-family: var(--font-serif);
         position: relative;
     }
@@ -152,6 +152,18 @@ const Article = styled.article`
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-l);
         }
+    }
+
+    & ol {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        list-style-type: decimal;
+    }
+
+    & ol li::marker {
+        font-family: var(--font-serif);
     }
 
     & h2+figure, h3+figure, h4+figure {  
@@ -190,6 +202,54 @@ const Article = styled.article`
         padding: 2px 4px;
         background-color: var(--mauve6);
         border-radius: 3px;
+    }
+
+    & sup a {
+        font-family: var(--font-sans);
+        font-size: 12px;
+        font-weight: var(--font-weight-medium);
+        text-decoration: none;
+        position: relative;
+        top: -0.4em;
+        padding-left: 2px;
+    }
+
+    & sup a::before {
+        content: "[";
+        font-feature-settings: 'sups';
+    } 
+
+    & sup a::after {
+        content: "]";
+    } 
+
+    & .footnotes {
+        display: none;
+    }
+    
+    & .footnotes::before {
+        content: "* * *";
+        color: var(--color-gray-600);
+        display: block;
+        text-align: center;
+        letter-spacing: .5em;
+        margin-bottom: var(--spacing-3x);
+    }
+
+    & .data-footnote-backref {
+        font-family: var(--font-sans);
+        font-size: var(--font-size-m);
+        text-decoration: none;
+        position: relative;
+        top: 2px;
+    }
+
+    & .footnotes {
+        margin-top: 80px;
+    }
+
+    & #footnote-label {
+        display: none;
     }
 `
 
