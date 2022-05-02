@@ -248,11 +248,11 @@ const Article = styled.article`
     }
 
     & .data-footnote-backref {
-        font-family: var(--font-sans);
-        font-size: var(--font-size-m);
+        font-family: var(--fallback-mono);
+        /* font-size: var(--font-size-m); */
         text-decoration: none;
         position: relative;
-        top: 2px;
+        top: 1px;
     }
 
     & .footnotes {
