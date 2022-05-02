@@ -21,6 +21,8 @@ const Article = styled.article`
         }
     }
 
+    // Headings
+
     & h1 {
         font-size: var(--font-size-l);
         font-weight: var(--font-weight-bold);
@@ -60,7 +62,7 @@ const Article = styled.article`
     }
 
     & time+h2 {
-        margin-top: 0;
+        margin-top: 0;  // Remove top margin if article starts with H2
     }
 
     & h3 {
@@ -93,6 +95,8 @@ const Article = styled.article`
         }
     }
 
+    // Paragraph
+
     & > p {
         font-family: var(--font-serif);
         color: var(--color-article-body);
@@ -119,6 +123,13 @@ const Article = styled.article`
         font-weight: var(--font-weight-bold);
     }
 
+   // List
+
+   & li, li * {
+        font-family: var(--font-serif);
+        position: relative;
+    }
+
     & ul {
         --bullet-width: 8px;
         --bullet-gap: 16px;
@@ -134,19 +145,14 @@ const Article = styled.article`
         }
     }
 
-    & li {
-        font-family: var(--font-serif);
-        position: relative;
-    }
-
     & ul > li::before {
         content: "*";
         position: absolute;
         left: calc(var(--bullet-indent) * -1);
-        top: 2px;
+        top: 4px;
         width: var(--bullet-width);
         color: var(--color-gray-600);
-        font-family: var(--font-serif);
+        font-family: var(--font-sans);
         font-size: var(--font-size-xl);
 
         @media ${QUERIES.tabletAndBelow} {
@@ -160,26 +166,29 @@ const Article = styled.article`
         gap: 0.5rem;
         margin-bottom: 1rem;
         list-style-type: decimal;
+        padding-left: var(--spacing-4x);
     }
 
     & ol li::marker {
-        font-family: var(--font-serif);
+        font-family: var(--font-sans);
+        font-size: var(--font-size-s);
+        color: var(--color-gray-600);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -1px;
+
+        @media ${QUERIES.tabletAndBelow} {
+            font-size: var(--font-size-xs);
+            padding-left: var(--spacing-3x);
+        }
     }
+
+    // Image
 
     & h2+figure, h3+figure, h4+figure {  
         margin-top: var(--spacing-3x); // trim top margin for images after headings
     }
 
-    /* & blockquote p:first-of-type::before {
-        content: '“';
-        font-family: var(--font-serif);
-        color: var(--color-gray-300);
-        float: left;
-        line-height: 30%;
-        margin-top: 0.2em;
-        margin-right: 0.2em;
-        font-size: 3em;
-    } */
+    // Blockquote
 
     & blockquote p {
         font-family: var(--font-serif);
@@ -196,6 +205,8 @@ const Article = styled.article`
         margin-bottom: 2rem;
     }
 
+    // Inline code
+
     & code {
         font-family: var(--fallback-mono);
         font-size: var(--font-size-xs);
@@ -203,6 +214,8 @@ const Article = styled.article`
         background-color: var(--mauve6);
         border-radius: 3px;
     }
+
+    // Superscript
 
     & sup a {
         font-family: var(--font-sans);
@@ -223,9 +236,7 @@ const Article = styled.article`
         content: "]";
     } 
 
-    & .footnotes {
-        display: none;
-    }
+    // Footnotes 
 
     & .footnotes::before {
         content: "* * *";
