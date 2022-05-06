@@ -30,11 +30,44 @@ This book is a treatise on the theory of ethics, very popular during the Renaiss
 
 It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.
 
-Unordered bulleted lists will look like this:
+Unordered lists will look like this:
 
 - You can run, but there’s no guarantee
 - The door can close as soon as you are about to board
 - You are not doomed to miss the train
+
+Ordered lists will look like this:
+
+1. You can run, but there’s no guarantee
+2. The door can close as soon as you are about to board
+3. You are not doomed to miss the train
+
+Inlince code look like `this`, while code block looks like this:
+
+``` js
+export default function FirstPost() {
+  return (
+    <>
+      <Head>
+        <title>First Post</title>
+      </Head>
+      <Script
+        src="https://connect.facebook.net/en_US/sdk.js"
+        strategy="lazyOnload"
+        onLoad={() =>
+          console.log(`script loaded correctly, window.FB has been populated`)
+        }
+      />
+      <h1>First Post</h1>
+      <h2>
+        <Link href="/">
+          <a>Back to home</a>
+        </Link>
+      </h2>
+    </>
+  );
+}
+```
 
 
 [^1]: This is a footnote for belief.

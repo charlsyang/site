@@ -103,6 +103,7 @@ const Article = styled.article`
         line-height: 1.5;
         margin-bottom: 1rem;
         hyphens: auto;
+        hanging-punctuation: first;
     }
 
     & a {
@@ -207,7 +208,7 @@ const Article = styled.article`
 
     // Inline code
 
-    & code {
+    & p > code {
         font-family: var(--fallback-mono);
         font-size: var(--font-size-xs);
         padding: 2px 4px;
