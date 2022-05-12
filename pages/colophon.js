@@ -57,10 +57,6 @@ const ContentWrapper = styled.div`
     align-items: baseline;
     margin-bottom: 12vh;
 
-    @media ${QUERIES.tabletAndBelow} {
-        margin-bottom: 20vh;
-    }
-
     @media ${QUERIES.phoneAndBelow} {
         flex-direction: column;
         gap: var(--spacing-3x);

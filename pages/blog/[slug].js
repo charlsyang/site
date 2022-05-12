@@ -67,4 +67,9 @@ const Back = styled(BackButton)`
     position: sticky;
     top: var(--spacing-5x);
     left: var(--spacing-6x);
+
+    @media ${QUERIES.phoneAndBelow} {
+        position: relative;
+        left: 0;
+    }
 `

@@ -37,10 +37,6 @@ const Back = styled.a`
         opacity: revert;
         transition: transform var(--transition-fast), opacity var(--transition-fast);
     }
-
-    @media ${QUERIES.tabletAndBelow} {
-        display: none;
-    }
 `
 
 const BackText = styled.span`
@@ -52,6 +48,10 @@ const BackText = styled.span`
 
     @media ${QUERIES.laptopAndBelow} {
         font-size: var(--font-size-m);
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        font-size: var(--font-size-s);
     }
 `
 
