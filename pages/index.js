@@ -148,7 +148,7 @@ const Intro = styled.header`
 `
 
 const Ampersand = styled.span`
-  font-family: var(--ampersand-stack);
+  font-family: var(--font-ampersand);
   font-size: 25px;
   font-style: italic;
   font-weight: var(--font-weight-normal);

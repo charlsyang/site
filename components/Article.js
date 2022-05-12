@@ -209,7 +209,7 @@ const Article = styled.article`
     // Inline code
 
     & p > code {
-        font-family: var(--fallback-mono);
+        font-family: var(--font-mono);
         font-size: var(--font-size-xs);
         padding: 2px 4px;
         background-color: var(--mauve6);
@@ -249,7 +249,7 @@ const Article = styled.article`
     }
 
     & .data-footnote-backref {
-        font-family: var(--fallback-mono);
+        font-family: var(--font-mono);
         text-decoration: none;
         position: relative;
         top: 1px;

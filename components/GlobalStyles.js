@@ -1,4 +1,5 @@
 import { createGlobalStyle } from 'styled-components';
+import { FAMILIES, WEIGHTS, THEME, DARKTHEME } from '../utils/constants';
 
 const GlobalStyles = createGlobalStyle`
     /* http://meyerweb.com/eric/tools/css/reset/
@@ -52,22 +53,6 @@ const GlobalStyles = createGlobalStyle`
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
     }  
 
-    @font-face {
-        font-family: 'Newsreader';
-        font-style: normal;
-        font-weight: 200 800;
-        font-display: swap;
-        src: url(/fonts/Newsreader.woff2) format('woff2');
-    } 
-
-    @font-face {
-        font-family: 'Newsreader';
-        font-style: italic;
-        font-weight: 200 800;
-        font-display: swap;
-        src: url(/fonts/Newsreader-Italic.woff2) format('woff2');
-    } 
-
 
     /* DESIGN TOKENS */
 
@@ -75,21 +60,10 @@ const GlobalStyles = createGlobalStyle`
 
         /* Typography */
         
-        --fallback-sans: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
-            Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-        --fallback-serif: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, 
-            Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
-        --fallback-mono: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
-        --ampersand-stack: Baskerville, Apple Garamond, Iowan Old Style, Athelas, Palatino, 
-            Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, 
-            Segoe UI Emoji, Segoe UI Symbol;
-
-        --font-sans: 'Diatype', var(--fallback-sans);
-        --font-serif: freight-text-pro, 'Newsreader', var(--fallback-serif);
-        
-        --font-weight-normal: 360;
-        --font-weight-medium: 460;
-        --font-weight-bold: 560;
+        --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
+        --font-serif: freight-text-pro, ${FAMILIES.fallbackSerif};
+        --font-mono: ${FAMILIES.fallbackMono};
+        --font-ampersand: ${FAMILIES.ampersand};
 
         --font-size-base: 16;
         --font-size-xs: calc(14 / var(--font-size-base) * 1rem);
@@ -98,34 +72,8 @@ const GlobalStyles = createGlobalStyle`
         --font-size-l: calc(20 / var(--font-size-base) * 1rem);
         --font-size-xl: calc(24 / var(--font-size-base) * 1rem);
 
-        /* Color */
-
-        --mauve1: hsl(246, 6.0%, 9.0%); /* From Radix color */
-        --mauve2: hsl(240, 5.1%, 11.6%);
-        --mauve3: hsl(241, 5.0%, 14.3%);
-        --mauve4: hsl(242, 4.9%, 16.5%);
-        --mauve5: hsl(243, 4.9%, 18.8%);
-        --mauve6: hsl(244, 4.9%, 21.5%);
-        --mauve7: hsl(245, 4.9%, 25.4%);
-        --mauve8: hsl(247, 4.8%, 32.5%);
-        --mauve9: hsl(252, 4.0%, 45.2%);
-        --mauve10: hsl(247, 3.4%, 50.7%);
-        --mauve11: hsl(253, 4.0%, 63.7%);
-        --mauve12: hsl(256, 6.0%, 93.2%);
-
-        --color-bg: var(--mauve1);
-        --color-accent-hsl: 240 95% 76%;
-        --color-accent: hsla(var(--color-accent-hsl) / 1);
-        --color-accent-500: hsla(var(--color-accent-hsl) / .5);
-        --color-accent-300: hsla(var(--color-accent-hsl) / .3);
-        --color-gray-900: var(--mauve12);
-        --color-gray-600: var(--mauve10);
-        --color-gray-300: var(--mauve8);
-        --color-article-body: hsl(256, 5.5%, 72%);
-        --color-divider: var(--mauve4);
- 
-
         /* Spacing */
+
         --spacing-base: 8px;
         --spacing-s: calc(var(--spacing-base) / 2);
         --spacing-1x: var(--spacing-base);
@@ -139,6 +87,7 @@ const GlobalStyles = createGlobalStyle`
         --back-button-height: var(--spacing-6x);
 
         /* Animation */
+
         --transition-fast: 160ms;
         --transition-default: 240ms;
         --transition-slow: 320ms;
@@ -162,12 +111,42 @@ const GlobalStyles = createGlobalStyle`
         font-family: var(--font-sans);
         background: var(--color-bg);
         min-height: 100%;
+        --color-accent-hsl: 240 95% 76%;
+        --color-accent: hsla(var(--color-accent-hsl) / 1);
+        --color-accent-500: hsla(var(--color-accent-hsl) / .5);
+        --color-accent-300: hsla(var(--color-accent-hsl) / .3);
+    }
+
+    :root {
+        --color-bg: ${THEME.colors.mauve1};
+        --color-gray-900: ${THEME.colors.mauve12};
+        --color-gray-600: ${THEME.colors.mauve11};
+        --color-gray-300: ${THEME.colors.mauve9};
+        --color-article-body: ${DARKTHEME.colors.mauve7};
+        --color-link-underline: ${THEME.colors.mauve8};
+        --color-divider: ${THEME.colors.mauve4};
+        --font-weight-normal: ${THEME.weights.normal};
+        --font-weight-medium: ${THEME.weights.medium};
+        --font-weight-bold: ${THEME.weights.bold};
+    }
+
+    [data-theme='dark'] {
+        --color-bg: ${DARKTHEME.colors.mauve1};
+        --color-gray-900: ${DARKTHEME.colors.mauve12};
+        --color-gray-600: ${DARKTHEME.colors.mauve10};
+        --color-gray-300: ${DARKTHEME.colors.mauve8};
+        --color-article-body: ${DARKTHEME.colors.mauve11};
+        --color-link-underline: var(--color-gray-300);
+        --color-divider: ${DARKTHEME.colors.mauve4};
+        --font-weight-normal: ${DARKTHEME.weights.normal};
+        --font-weight-medium: ${DARKTHEME.weights.medium};
+        --font-weight-bold: ${DARKTHEME.weights.bold};
     }
 
     a {
         color: var(--color-gray-900);
-        text-decoration-color: var(--color-gray-300);
-        text-decoration-thickness: 1.25px;
+        text-decoration-color: var(--color-link-underline);
+        text-decoration-thickness: 1.5px;
         text-underline-offset: 2.4px;
         text-decoration-skip-ink: auto;        
         transition: all var(--transition-default);
