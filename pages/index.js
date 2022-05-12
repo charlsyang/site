@@ -117,7 +117,7 @@ const MainContent = styled.main`
 `
 
 const Intro = styled.header`
-  margin-bottom: 13rem;
+  margin-bottom: 10rem;
   grid-column: 8 / -1;
 
   @media ${QUERIES.tabletAndBelow} {

@@ -80,7 +80,7 @@ const Content = styled.div`
         font-family: var(--font-sans);
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-m);
-        color: var(--color-gray-600);
+        color: var(--color-article-body);
         max-width: 40ch;
 
         @media ${QUERIES.tabletAndBelow} {
@@ -97,7 +97,8 @@ const Content = styled.div`
     }
 
     & p > a {
-        color: var(--color-gray-600);
+        /* color: var(--color-gray-600); */
+        color: var(--color-article-body);
     }
 
     & p > a:hover {
