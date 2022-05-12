@@ -73,8 +73,8 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://www.amazon.com/Leisure-Basis-Culture-Josef-Pieper/dp/1586172565'>Leisure: The Basis of Culture</CustomLink>
-                <Author>Josef Pieper</Author>
+                <CustomLink href='https://www.ways-of-seeing.com/'>Ways of Seeing</CustomLink>
+                <Author>John Berger</Author>
               </Reading>
             </Now>
             <Contact>
