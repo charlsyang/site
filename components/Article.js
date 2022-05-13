@@ -262,6 +262,13 @@ const Article = styled.article`
     & #footnote-label {
         display: none;
     }
+
+    // Divider
+
+    & hr {
+        border-top: .5px solid var(--color-divider);
+        margin-bottom: var(--spacing-5x);
+    }
 `
 
 export default Article;

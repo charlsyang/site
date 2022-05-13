@@ -22,8 +22,7 @@ export default CustomImg;
 
 
 const Figure = styled.figure`
-  margin-top: var(--spacing-4x);
-  margin-bottom: var(--spacing-4x);
+  margin: var(--spacing-4x) 0;
 `
 
 const FigCaption = styled.figcaption`
