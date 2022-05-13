@@ -266,7 +266,8 @@ const Article = styled.article`
     // Divider
 
     & hr {
-        border-top: .5px solid var(--color-divider);
+        border: none;
+        border-top: 1.5px solid var(--color-divider);
         margin-bottom: var(--spacing-5x);
     }
 `
