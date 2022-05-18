@@ -73,8 +73,8 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://www.ways-of-seeing.com/'>Ways of Seeing</CustomLink>
-                <Author>John Berger</Author>
+                <CustomLink href='https://www.penguinrandomhouse.com/books/320919/how-buildings-learn-by-stewart-brand/'>How Buildings Learn</CustomLink>
+                <Author>Stewart Brand</Author>
               </Reading>
             </Now>
             <Contact>
