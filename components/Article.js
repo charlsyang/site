@@ -97,7 +97,7 @@ const Article = styled.article`
 
     // Paragraph
 
-    & > p {
+    & p {
         font-family: var(--font-serif);
         color: var(--color-article-body);
         line-height: 1.5;
