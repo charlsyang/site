@@ -195,6 +195,7 @@ const Article = styled.article`
         font-family: var(--font-serif);
         font-style: italic;
         margin-top: 2rem;
+        margin-bottom: 0;
     }
 
     & blockquote p+p {
