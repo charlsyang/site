@@ -271,6 +271,18 @@ const Article = styled.article`
         border-top: 1.5px solid var(--color-divider);
         margin-bottom: var(--spacing-5x);
     }
+
+    // Table
+    & table {
+        width: 100%;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    & th, td {
+        padding: 4px;
+        font-family: var(--font-serif);
+    }
 `
 
 export default Article;
