@@ -73,8 +73,8 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://hyphenpress.co.uk/products/books/978-0-907259-16-9'>What is a Designer</CustomLink>
-                <Author>Norman Potter</Author>
+                <CustomLink href='https://www.lars-mueller-publishers.com/are-we-human'>Are We Human?</CustomLink>
+                <Author>Beatriz Colomina & Mark Wigley</Author>
               </Reading>
             </Now>
             <Contact>
