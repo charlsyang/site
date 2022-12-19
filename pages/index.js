@@ -73,8 +73,8 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://www.lars-mueller-publishers.com/are-we-human'>Are We Human?</CustomLink>
-                <Author>Beatriz Colomina & Mark Wigley</Author>
+                <CustomLink href='https://www.amazon.com/World-Technology-Massey-Lectures-Revised/dp/088784636X'>The Real World of Technology</CustomLink>
+                <Author>Ursula Franklin</Author>
               </Reading>
             </Now>
             <Contact>
