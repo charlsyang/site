@@ -21,7 +21,7 @@ export default function Colophon() {
                                 Given the nature of a one-man team, the site is designed—inevitably—part 
                                 in <CustomLink href='https://www.figma.com/'>Figma</CustomLink>, part in <CustomLink href='https://code.visualstudio.com/'>VS Code</CustomLink>. 
                                 The type is set in <CustomLink href='https://abcdinamo.com/typefaces/diatype'>Diatype</CustomLink> from
-                                 Dinamo and <CustomLink href='https://fonts.adobe.com/fonts/freight-text'>Freight Text</CustomLink> by Joshua Darden.
+                                 Dinamo and <CustomLink href='https://www.productiontype.com/family/newsreader'>Newsreader</CustomLink> by Hugues Gentile.
                             </p>
                             <p>
                                 Technology-wise the site is built with <CustomLink href='https://nextjs.org/'>Next.js</CustomLink>, 

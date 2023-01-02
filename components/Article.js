@@ -13,11 +13,11 @@ const Article = styled.article`
 
     & * {
         font-family: var(--font-sans);
-        font-size: var(--font-size-l);
+        font-size: var(--font-size-m);
         color:  var(--color-article-body);
 
         @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-m);
+            font-size: var(--font-size-s);
         }
     }
 
@@ -82,7 +82,7 @@ const Article = styled.article`
     & h4 {
         font-family: var(--font-serif);
         font-size: var(--font-size-m);
-        font-weight: 500;
+        font-weight: var(--font-weight-medium);
         color: var(--color-gray-900);
         font-style: italic;
         margin-top: 1.5rem;
@@ -99,8 +99,7 @@ const Article = styled.article`
 
     & p {
         font-family: var(--font-serif);
-        color: var(--color-article-body);
-        line-height: 1.5;
+        line-height: 1.6;
         margin-bottom: 1rem;
         hyphens: auto;
         hanging-punctuation: first;

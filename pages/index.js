@@ -73,8 +73,8 @@ export default function Home({allPostsData}) {
               </NowContent>
               <Reading>
                 <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://www.amazon.com/World-Technology-Massey-Lectures-Revised/dp/088784636X'>The Real World of Technology</CustomLink>
-                <Author>Ursula Franklin</Author>
+                <CustomLink href='https://www.amazon.com/Relational-Being-Beyond-Self-Community/dp/019984626X'>Relational Being</CustomLink>
+                <Author>Kenneth J. Gergen</Author>
               </Reading>
             </Now>
             <Contact>

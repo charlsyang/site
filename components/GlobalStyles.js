@@ -61,7 +61,7 @@ const GlobalStyles = createGlobalStyle`
         /* Typography */
         
         --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
-        --font-serif: freight-text-pro, ${FAMILIES.fallbackSerif};
+        --font-serif: Newsreader, ${FAMILIES.fallbackSerif};
         --font-mono: ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
