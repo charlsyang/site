@@ -51,7 +51,23 @@ const GlobalStyles = createGlobalStyle`
         font-weight: 100 700;
         font-display: swap;
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
-    }  
+    }
+    
+    @font-face {
+        font-family: 'Newsreader';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/fonts/Newsreader.woff2) format('woff2');
+    }
+    
+    @font-face {
+        font-family: 'Newsreader';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/fonts/Newsreader-Italic.woff2) format('woff2');
+    }
 
 
     /* DESIGN TOKENS */
@@ -61,7 +77,7 @@ const GlobalStyles = createGlobalStyle`
         /* Typography */
         
         --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
-        --font-serif: Newsreader, ${FAMILIES.fallbackSerif};
+        --font-serif: 'Newsreader', ${FAMILIES.fallbackSerif};
         --font-mono: ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
