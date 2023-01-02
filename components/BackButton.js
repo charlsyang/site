@@ -8,12 +8,12 @@ const BackButton = (props) => {
     const text = props.text;
 
     return (
-        <Link href={href} >
+        <Link href={href} legacyBehavior>
             <Back {...props}>
                 <ArrowLeft size={20}/> <BackText>{text}</BackText>
             </Back>
         </Link>
-    )
+    );
 }
 
 export default BackButton;

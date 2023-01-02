@@ -48,8 +48,8 @@ export function getAllPostSlugs() {
             params: {
                 slug: fileName.replace(/\.mdx$/, '')
             }
-        }
-    })
+        };
+    });
 }
 
 export async function getPostData(slug) {

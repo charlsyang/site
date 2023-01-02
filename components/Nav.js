@@ -5,13 +5,13 @@ const Nav = () => {
     return (
         <NavWrapper>
             <Link href='/blog'>
-                <a>Blog</a>
+                Blog
             </Link>
             <Link href='/about'>
-                <a>About</a>
+                About
             </Link>
         </NavWrapper>
-    )
+    );
 }
 
 const NavWrapper = styled.div`

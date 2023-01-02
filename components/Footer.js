@@ -8,12 +8,12 @@ const Footer = () => {
             <Divider/>
             <FooterContent>
                 <Footnote>© 2022 · Design <Ampersand>&</Ampersand> built in Seattle</Footnote>
-                <Link href='/colophon'>
+                <Link href='/colophon' legacyBehavior>
                     <Colophon>Colophon</Colophon>
                 </Link>
             </FooterContent>
         </FooterWrapper>
-    )
+    );
 }
 
 

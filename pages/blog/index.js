@@ -18,34 +18,32 @@ export async function getStaticProps() {
 }
 
 const BlogIndex = ({ allPostsData }) => {
-    return (
-        <>
-            <Head>
-                <title>Blog</title>
-            </Head>
-            <MaxWidthWrapper>
-                <Back href='/' text='Home'/>
-                <Main>
-                    <Content>
-                        <PageHead>Blog</PageHead>
-                        <BlogList>
-                            {allPostsData.map( ({ slug, date, title }) => (
-                                <BlogItem key={slug}>
-                                    <Link href={`/blog/${slug}`}>
-                                        <a>{title}</a>
-                                    </Link>
-                                    <StyledDate>
-                                        <Date dateString={date}></Date>
-                                    </StyledDate>
-                                </BlogItem>
-                            ))}
-                        </BlogList>
-                    </Content>
-                </Main>
-            </MaxWidthWrapper>
-            <Footer/>
-        </>
-    )
+    return <>
+        <Head>
+            <title>Blog</title>
+        </Head>
+        <MaxWidthWrapper>
+            <Back href='/' text='Home'/>
+            <Main>
+                <Content>
+                    <PageHead>Blog</PageHead>
+                    <BlogList>
+                        {allPostsData.map( ({ slug, date, title }) => (
+                            <BlogItem key={slug}>
+                                <Link href={`/blog/${slug}`}>
+                                    {title}
+                                </Link>
+                                <StyledDate>
+                                    <Date dateString={date}></Date>
+                                </StyledDate>
+                            </BlogItem>
+                        ))}
+                    </BlogList>
+                </Content>
+            </Main>
+        </MaxWidthWrapper>
+        <Footer/>
+    </>;
 }
 
 const Main = styled.main`

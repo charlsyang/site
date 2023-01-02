@@ -27,75 +27,73 @@ export default function Home({allPostsData}) {
     latestPostData = allPostsData
   };
 
-  return (
-    <>
-      <Head 
-        title="Charlsy Yang"
-        description="Charlsy’s personal site"
-      />
-      <MaxWidthWrapper>
-        <MainContent>
-          <GridWrapper>
-            <Intro>
-              <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
-              <p>He leads a life that straddles two worlds—a tangible one of shaping 
-                forms and an ethereal one of tending&nbsp;thoughts.</p>
-            </Intro>
-          </GridWrapper>
-          <GridWrapper>
-            <Blog>
-              <SectionTitle>Blog</SectionTitle>
-              <BlogList>
-                  {latestPostData.map( ({ slug, date, title }) => (
-                        <BlogItem key={slug}>
-                            <Link href={`/blog/${slug}`}>
-                              <a>{title}</a>
-                            </Link>
-                            <StyledDate>
-                              <Date dateString={date}></Date>
-                            </StyledDate>
-                        </BlogItem>
-                  ))}
-                  <Link href='/blog'>
-                    <AllBlog>
-                        All posts<ArrowRight size={16}/>
-                    </AllBlog>
-                  </Link>
-              </BlogList>
-            </Blog>
-            <Now>
-              <SectionTitle>Now</SectionTitle>
-              <NowContent>
-                <p>Proactively guarding my time for only the enterprises that I deem worthwhile:</p>
-                <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
-                <p>Reading extensively and consistently, taking on intellectually stimulating text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
-                <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things <CustomLink href='https://www.youtube.com/watch?v=WjSOZI90PmE'>the long, hard, stupid way.</CustomLink></p>
-              </NowContent>
-              <Reading>
-                <ReadingLabel>Reading</ReadingLabel>
-                <CustomLink href='https://www.amazon.com/Relational-Being-Beyond-Self-Community/dp/019984626X'>Relational Being</CustomLink>
-                <Author>Kenneth J. Gergen</Author>
-              </Reading>
-            </Now>
-            <Contact>
-              <SectionTitle>Say hi</SectionTitle>
-              <ContactList>
-                <ContactItem>
-                  <ContactItemLabel>email</ContactItemLabel>
-                  <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
-                </ContactItem>
-                <ContactItem>
-                  <ContactItemLabel>twitter</ContactItemLabel>
-                  <CustomLink href="https://twitter.com/imcharlsy">@imcharlsy</CustomLink>
-                </ContactItem>
-              </ContactList>
-            </Contact>
-          </GridWrapper>
-        </MainContent>
-      </MaxWidthWrapper>
-      <Footer/>
-    </>
-  )
+  return <>
+    <Head 
+      title="Charlsy Yang"
+      description="Charlsy’s personal site"
+    />
+    <MaxWidthWrapper>
+      <MainContent>
+        <GridWrapper>
+          <Intro>
+            <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
+            <p>He leads a life that straddles two worlds—a tangible one of shaping 
+              forms and an ethereal one of tending&nbsp;thoughts.</p>
+          </Intro>
+        </GridWrapper>
+        <GridWrapper>
+          <Blog>
+            <SectionTitle>Blog</SectionTitle>
+            <BlogList>
+                {latestPostData.map( ({ slug, date, title }) => (
+                      <BlogItem key={slug}>
+                          <Link href={`/blog/${slug}`}>
+                            {title}
+                          </Link>
+                          <StyledDate>
+                            <Date dateString={date}></Date>
+                          </StyledDate>
+                      </BlogItem>
+                ))}
+                <Link href='/blog' legacyBehavior>
+                  <AllBlog>
+                      All posts<ArrowRight size={16}/>
+                  </AllBlog>
+                </Link>
+            </BlogList>
+          </Blog>
+          <Now>
+            <SectionTitle>Now</SectionTitle>
+            <NowContent>
+              <p>Proactively guarding my time for only the enterprises that I deem worthwhile:</p>
+              <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
+              <p>Reading extensively and consistently, taking on intellectually stimulating text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
+              <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things <CustomLink href='https://www.youtube.com/watch?v=WjSOZI90PmE'>the long, hard, stupid way.</CustomLink></p>
+            </NowContent>
+            <Reading>
+              <ReadingLabel>Reading</ReadingLabel>
+              <CustomLink href='https://www.amazon.com/Relational-Being-Beyond-Self-Community/dp/019984626X'>Relational Being</CustomLink>
+              <Author>Kenneth J. Gergen</Author>
+            </Reading>
+          </Now>
+          <Contact>
+            <SectionTitle>Say hi</SectionTitle>
+            <ContactList>
+              <ContactItem>
+                <ContactItemLabel>email</ContactItemLabel>
+                <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
+              </ContactItem>
+              <ContactItem>
+                <ContactItemLabel>twitter</ContactItemLabel>
+                <CustomLink href="https://twitter.com/imcharlsy">@imcharlsy</CustomLink>
+              </ContactItem>
+            </ContactList>
+          </Contact>
+        </GridWrapper>
+      </MainContent>
+    </MaxWidthWrapper>
+    <Footer/>
+  </>;
 }
 
 
