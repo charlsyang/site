@@ -14,11 +14,7 @@ const Article = styled.article`
     & * {
         font-family: var(--font-sans);
         font-size: var(--font-size-m);
-        color:  var(--color-article-body);
-
-        @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-s);
-        }
+        color:  var(--color-article-body);        
     }
 
     // Headings

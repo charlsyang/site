@@ -53,22 +53,6 @@ const GlobalStyles = createGlobalStyle`
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
     }
     
-    @font-face {
-        font-family: 'Newsreader';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url(/fonts/Newsreader.woff2) format('woff2');
-    }
-    
-    @font-face {
-        font-family: 'Newsreader';
-        font-style: italic;
-        font-weight: 400;
-        font-display: swap;
-        src: url(/fonts/Newsreader-Italic.woff2) format('woff2');
-    }
-
 
     /* DESIGN TOKENS */
 
