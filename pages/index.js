@@ -9,6 +9,7 @@ import Footer from '../components/Footer'
 import CustomLink from '../components/CustomLink'
 import { QUERIES } from '../utils/constants'
 import { ArrowRight } from 'react-feather'
+import Balancer from 'react-wrap-balancer'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
@@ -36,9 +37,9 @@ export default function Home({allPostsData}) {
       <MainContent>
         <GridWrapper>
           <Intro>
-            <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
-            <p>He leads a life that straddles two worlds—a tangible one of shaping 
-              forms and an ethereal one of tending&nbsp;thoughts.</p>
+              <StyledBalancer>Charlsy designs <Ampersand>&</Ampersand> writes. </StyledBalancer>
+              <StyledBalancer>He leads a life that straddles two worlds—a tangible one of shaping 
+              forms and an ethereal one of tending&nbsp;thoughts.</StyledBalancer>
           </Intro>
         </GridWrapper>
         <GridWrapper>
@@ -129,7 +130,7 @@ const Intro = styled.header`
   }
   
   
-  & p {
+  /* & p {
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     line-height: 1.3;
@@ -142,7 +143,22 @@ const Intro = styled.header`
 
   & p+p {
     text-indent: 2em;
+  } */
+
+  & span:nth-of-type(2) {
+    text-indent: 2em;
   }
+`
+
+const StyledBalancer = styled(Balancer)`
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-xl);
+    line-height: 1.3;
+    color: var(--color-gray-900);
+
+    @media ${QUERIES.tabletAndBelow} {
+      font-size: var(--font-size-l);
+    }
 `
 
 const Ampersand = styled.span`
