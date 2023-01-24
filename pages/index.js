@@ -93,7 +93,6 @@ export default function Home({allPostsData}) {
         </GridWrapper>
       </MainContent>
     </MaxWidthWrapper>
-    <Footer/>
   </>;
 }
 
@@ -305,7 +304,7 @@ const Contact = styled.section`
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
-  margin-top: var(--spacing-6x);
+  margin-top: 5rem;
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 7 / -1;

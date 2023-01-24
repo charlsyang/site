@@ -42,7 +42,6 @@ const BlogIndex = ({ allPostsData }) => {
                 </Content>
             </Main>
         </MaxWidthWrapper>
-        <Footer/>
     </>;
 }
 
