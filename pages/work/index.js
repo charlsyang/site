@@ -15,32 +15,37 @@ export default function WorkIndex() {
             <MaxWidthWrapper>
                 <GridWrapper>
                     <Main>
-                        <Headline>Charlsy designs visual and interactive experience for products and brands.</Headline>
+                        <Headline>
+                            <p>Charlsy designs visual and interactive experience for products and brands.</p>
+                            <p>He previously designed at Rubrik, IDEO, Tide, and NIO.</p>
+                        </Headline>
                         <h2>Projects</h2>
-                        <Link href='/work/test-project'>Test Project</Link>   
+                        <Link href='/work/aura'>Enliven the Aura</Link>   
                     </Main>
                 </GridWrapper>
             </MaxWidthWrapper>
-            <Footer/>
         </>
     )
 }
 
 const Main = styled.main`
-    grid-column: 8 / -1;
+    grid-column: 7 / -1;
     min-height: calc(100vh - var(--footer-height));
 `
 
-const Headline = styled.p`
+const Headline = styled.div`
     font-size: var(--font-size-xl);
     line-height: 1.3;
     color: var(--color-gray-900);
-    text-indent: 2em;
     margin-top: 10rem;
     margin-bottom: 5rem;
 
     @media ${QUERIES.tabletAndBelow} {
       font-size: var(--font-size-l);
+    }
+
+    & p+p {
+        text-indent: 2em;
     }
 `
 
