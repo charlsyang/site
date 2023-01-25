@@ -6,10 +6,10 @@ import { useMemo } from "react"
 import { QUERIES } from '../../utils/constants'
 import MaxWidthWrapper from '../../components/MaxWidthWrapper'
 import CaseStudy from '../../components/CaseStudy'
-import Footer from '../../components/Footer'
 import CustomLink from '../../components/CustomLink'
 import CustomImg from '../../components/CustomImg'
 import ProjectHead from '../../components/ProjectHead'
+import HeroMock from '../../components/HeroMock'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -46,7 +46,7 @@ export default function ProjectPost({ code, frontmatter }) {
                         contribution={frontmatter.contribution}
                     />
                     <CaseStudy>
-                        <Component components={{a: CustomLink, img: CustomImg}}/>
+                        <Component components={{a: CustomLink, img: CustomImg, HeroMock}}/>
                     </CaseStudy>
                 </Main>
             </MaxWidthWrapper>

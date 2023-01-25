@@ -41,7 +41,7 @@ export default function ProjectHead(props) {
 }
 
 const Header = styled.header`
-    margin: 120px 0;
+    margin-top: 120px;
 `
 
 const PlaceholderPattern = styled(Image)`
