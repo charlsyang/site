@@ -15,13 +15,24 @@ export default function ProjectHead(props) {
                 </Heading>
                 <Timeline>
                     <SmallHead>Timeline</SmallHead>
-                    <p>{props.timeline}</p>
+                    <p>{props.timeline[0]}</p>
+                    <p>{props.timeline[1]}</p>
                 </Timeline>
                 <Team>
                     <SmallHead>Team</SmallHead>
+                    <ul>
+                        {props.team.map((member) => {
+                            return <li>{member}</li>;
+                        })}
+                    </ul>
                 </Team>
                 <Contribution>
                     <SmallHead>Contribution</SmallHead>
+                    <ul>
+                        {props.contribution.map((contribution) => {
+                            return <li>{contribution}</li>;
+                        })}
+                    </ul>
                 </Contribution>
             </Metadata>
         </GridWrapper>

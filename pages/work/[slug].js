@@ -42,6 +42,8 @@ export default function ProjectPost({ code, frontmatter }) {
                         title={frontmatter.title}
                         subtitle={frontmatter.subtitle}
                         timeline={frontmatter.timeline}
+                        team={frontmatter.team}
+                        contribution={frontmatter.contribution}
                     />
                     <CaseStudy>
                         <Component components={{a: CustomLink, img: CustomImg}}/>

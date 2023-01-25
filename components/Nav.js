@@ -1,10 +1,15 @@
 import styled from 'styled-components'
 import Link from 'next/link'
 import GridWrapper from './GridWrapper';
+import Favicon from '../public/favicon.svg'
+import Image from 'next/image';
 
 const Nav = () => {
     return (
         <NavWrapper>
+            <Link href='/'>
+                <Image src={Favicon}></Image>
+            </Link>
             <NavLinks>
                 <Link href='/work'>Work</Link>
                 <Link href='/blog'>Blog</Link>
@@ -27,6 +32,12 @@ const NavLinks = styled.nav`
 
     & a {
         font-size: var(--font-size-m);
+        color: var(--color-gray-600);
+        text-decoration: none;
+    }
+
+    & a:hover {
+        color: var(--color-gray-900);
     }
 `
 
