@@ -10,6 +10,7 @@ import CustomLink from '../../components/CustomLink'
 import CustomImg from '../../components/CustomImg'
 import ProjectHead from '../../components/ProjectHead'
 import HeroMock from '../../components/HeroMock'
+import MediaGroup from '../../components/MediaGroup'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -46,7 +47,11 @@ export default function ProjectPost({ code, frontmatter }) {
                         contribution={frontmatter.contribution}
                     />
                     <CaseStudy>
-                        <Component components={{a: CustomLink, img: CustomImg, HeroMock}}/>
+                        <Component components={{
+                            a: CustomLink, 
+                            HeroMock,
+                            MediaGroup
+                        }}/>
                     </CaseStudy>
                 </Main>
             </MaxWidthWrapper>
