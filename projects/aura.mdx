@@ -16,10 +16,19 @@ Over the summer of 2022, I worked as a Product Design Intern at Rubrik’s Desig
 
 When I joined the project, we already had a branding direction set for the website (moodboards below are credited to Binan Zhang). We have a working landing page designed by another designer. 
 
-<MediaGroup content= {[
+<MediaStack>
+
+<MediaRow content= {[
     {type: 'image', source: '/project_aura/moodboard-1.png', caption: 'Glowing, soft, usage of light and layers to create visual depth.'}, 
     {type: 'image', source: '/project_aura/moodboard-2.png', caption: 'A “System” look that has more craft feeling.'}
 ]} />
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/color-palette.png', caption: 'Color palette'}, 
+    {type: 'image', source: '/project_aura/site-ia.png', caption: 'The page’s information architecture'}
+]} />
+
+</MediaStack>
 
 I was only originally tasked with improving the interaction design on the landing page. However, I see an opportunity to elevate the visual design as well and took the initiative to do design exploration.
 
@@ -28,6 +37,9 @@ I was only originally tasked with improving the interaction design on the landin
 
 I took the concept of “system” even further and extend the dividers into an explicit grid that encapsulates the content. I explored different versions: an edge-to-edge closed grid, an open grid, as well as something in-between. The team was in favor of a closed grid.
 
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/layout.png'}
+]} single='true'/>
 
 ## Typography
 ### Pairing a lean and modern type duo
@@ -36,22 +48,47 @@ Open Sans Condensed was originally used for the headline. As its optical size is
 
 Serendipitously, I stumbled across two typefaces that, albeit from different foundries, pairs perfectly with each other.
 
-[img1] Greed, a sans serif from Displaay Type, has the same narrow proportions as Open Sans Condensed but with much more elegant curves and more contrast in x-height and stroke width. 
+<MediaStack>
 
-[img2] MD System by Rutherford Craze, a grotesque that I’ve been itching to use, stands nicely next to Greed due to its lean and compact form. And boy, isn’t the name also a perfect match?
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/type-greed.png', caption: 'Greed, a sans serif from Displaay Type, has the same narrow proportions as Open Sans Condensed but with much more elegant curves and more contrast in x-height and stroke width.'}, 
+    {type: 'image', source: '/project_aura/type-md-system.png', caption: 'MD System by Rutherford Craze, a grotesque that I’ve been itching to use, stands nicely next to Greed due to its lean and compact form. And boy, isn’t the name also a perfect match?'}
+]} />
 
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/type-hierarchy.png'}
+]} />
+
+</MediaStack>
 
 ## Illustration
 ### Art directing illustration style with high fidelity samples
 
 Together with the team, I also helped refine the art direction for our illustrations. I developed a series of vector illustrations that helped the team clarify the content as well as the specific qualities we wanted, such as colors, line textures, and dimensions. The final illustrations below are done by our illustrator Alex.
 
+<MediaStack>
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/illo.png'}
+]} />
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/illo-alex-component.png'},
+    {type: 'image', source: '/project_aura/illo-alex-foundation.png'},
+    {type: 'image', source: '/project_aura/illo-alex-pattern.png'}
+]} />
+
+</MediaStack>
+
 ## Interaction
 ### Prototyping cursor interactions with the real material (i.e. code)
 
 The gradient as an embodiment of “Aura” is at the heart of the site’s visual language. To render the gradient more lively, I explored the idea of incorporating a cursor interaction: the gradient will slowly and subtly follow users’ cursor when they move around on the page.
 
-[img]
+<MediaRow content= {[
+    {type: 'image', flex: '1', source: '/project_aura/codepen.png'},
+    {type: 'video', flex: '2', source: '/project_aura/cursor-gradient.mp4'}
+]} single='true'/>
 
 I leveraged CSS and JavaScript to prototype different versions of the interaction so that the team was able to play around with them and understand how each of them felt. In this way, I was not only able to convey the vision in a vivid way, but also help close the gap between design and development and ease the hand-off process later on.
 
@@ -60,10 +97,28 @@ I leveraged CSS and JavaScript to prototype different versions of the interactio
 
 I also worked on multiple micro-interactions to make the site feel alive. 
 
+<MediaStack>
+
+<MediaRow content= {[
+    {type: 'video', source: '/project_aura/dropdown.mp4'},
+    {type: 'video', source: '/project_aura/btn.mp4'},
+    {type: 'video', source: '/project_aura/pattern-hover.mp4'}
+]} />
+
+<MediaRow content= {[
+    {type: 'video', source: '/project_aura/section-1.mp4'}
+]} />
+
+</MediaStack>
+
 ## Teaser
 ### However, we took a pivot…
 
 The project underwent a significant change in direction after stakeholders review. Below is a glimpse at the new design direction. Interested in how I navigated the challenge? Hit me up for a deep dive of the project.
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_aura/teaser.png'}
+]} single='true'/>
  
 
 

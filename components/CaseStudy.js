@@ -12,8 +12,6 @@ const CaseStudy = styled.article`
 
     & * {
         font-family: var(--font-sans);
-        font-size: var(--font-size-m);
-        color:  var(--color-article-body);        
     }
 
     // Headings
@@ -24,7 +22,7 @@ const CaseStudy = styled.article`
         color: var(--color-gray-600);
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-top: 2.5rem;
+        margin-top: clamp(2rem, 10vw, 11rem);
         margin-bottom: var(--spacing-1x);
 
         @media ${QUERIES.tabletAndBelow} {
@@ -59,6 +57,9 @@ const CaseStudy = styled.article`
     // Paragraph
 
     & p {
+        font-size: var(--font-size-m);
+        font-weight: var(--font-weight-normal);
+        color: var(--color-article-body);       
         line-height: 1.6;
         hyphens: auto;
         hanging-punctuation: first;

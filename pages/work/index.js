@@ -17,7 +17,7 @@ export default function WorkIndex() {
                     <Main>
                         <Headline>
                             <p>Charlsy designs visual and interactive experience for products and brands.</p>
-                            <p>He previously designed at Rubrik, IDEO, Tide, and NIO.</p>
+                            <p>He will graduate in June 2023 and is looking for full-time product design roles. Previously he worked at Rubrik, IDEO, Tide, and NIO.</p>
                         </Headline>
                         <h2>Projects</h2>
                         <Link href='/work/aura'>Enliven the Aura</Link>   

@@ -7,10 +7,10 @@ import { QUERIES } from '../../utils/constants'
 import MaxWidthWrapper from '../../components/MaxWidthWrapper'
 import CaseStudy from '../../components/CaseStudy'
 import CustomLink from '../../components/CustomLink'
-import CustomImg from '../../components/CustomImg'
 import ProjectHead from '../../components/ProjectHead'
 import HeroMock from '../../components/HeroMock'
-import MediaGroup from '../../components/MediaGroup'
+import MediaRow from '../../components/MediaRow'
+import MediaStack from '../../components/MediaStack'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -50,7 +50,8 @@ export default function ProjectPost({ code, frontmatter }) {
                         <Component components={{
                             a: CustomLink, 
                             HeroMock,
-                            MediaGroup
+                            MediaRow,
+                            MediaStack
                         }}/>
                     </CaseStudy>
                 </Main>
