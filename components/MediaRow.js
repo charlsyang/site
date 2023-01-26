@@ -30,6 +30,7 @@ const MediaRowWrapper = styled.div`
 
     & img, video {
         width: 100%;
+        display: block;
     }
 `
 
