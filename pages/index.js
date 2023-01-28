@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { getSortedPostsData } from '../utils/blog'
 import Date from '../components/Date'
 import GridWrapper from '../components/GridWrapper'
-import Footer from '../components/Footer'
 import CustomLink from '../components/CustomLink'
 import { QUERIES } from '../utils/constants'
 import { ArrowRight } from 'react-feather'
@@ -37,7 +36,7 @@ export default function Home({allPostsData}) {
       <MainContent>
         <GridWrapper>
           <Intro>
-              <p>Charlsy designs <Ampersand>&</Ampersand> writes. </p>
+              <p>Charlsy <CustomLink href='/work'>designs</CustomLink> <Ampersand>&</Ampersand> <CustomLink href='/blog'>writes</CustomLink>. </p>
               <p>He leads a life that straddles two worlds—a tangible one of shaping 
               forms and an ethereal one of tending&nbsp;thoughts.</p>
           </Intro>
@@ -116,7 +115,8 @@ const MainContent = styled.main`
 
 const Intro = styled.header`
   margin-bottom: 10rem;
-  grid-column: 8 / -1;
+  grid-column: 7 / -1;
+  max-width: 45ch;
 
   @media ${QUERIES.tabletAndBelow} {
       grid-column: 7 / -1;
@@ -142,6 +142,10 @@ const Intro = styled.header`
 
   & p+p {
     text-indent: 2em;
+  }
+
+  & a {
+    font-size: inherit;
   }
 `
 /* & span:nth-of-type(2) {
@@ -174,9 +178,9 @@ const Ampersand = styled.span`
 `
 
 const Blog = styled.section`
-  grid-column: 3 / 8;
+  grid-column: 1 / 6;
   display: grid;
-  grid-column-gap: 20px;
+  grid-column-gap: 24px;
   grid-template-columns: repeat(5, 1fr);
 
   @media ${QUERIES.tabletAndBelow} {
@@ -244,10 +248,10 @@ const StyledDate = styled.p`
 `
 
 const Now = styled.section`
-  grid-column: 8 / -1;
+  grid-column: 7 / -2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-column-gap: 20px;
+  grid-column-gap: 24px;
   grid-row-gap: var(--spacing-6x);
 
   @media ${QUERIES.tabletAndBelow} {
@@ -300,7 +304,7 @@ const Author = styled.p`
 `
 
 const Contact = styled.section`
-  grid-column: 8 / -1;
+  grid-column: 7 / -2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
