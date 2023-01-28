@@ -7,6 +7,7 @@ import Footer from '../../components/Footer'
 import Date from '../../components/Date'
 import BackButton from '../../components/BackButton'
 import { QUERIES } from '../../utils/constants'
+import GridWrapper from '../../components/GridWrapper'
 
 export async function getStaticProps() {
     const allPostsData = getSortedPostsData();
@@ -23,7 +24,6 @@ const BlogIndex = ({ allPostsData }) => {
             <title>Blog</title>
         </Head>
         <MaxWidthWrapper>
-            <Back href='/' text='Home'/>
             <Main>
                 <Content>
                     <PageHead>Blog</PageHead>
@@ -45,10 +45,10 @@ const BlogIndex = ({ allPostsData }) => {
     </>;
 }
 
-const Main = styled.main`
-    display: flex;
+const Main = styled(GridWrapper)`
+    /* display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: flex-start; */
     min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
     
     & * {
@@ -78,6 +78,7 @@ const Back = styled(BackButton)`
 `
 
 const Content = styled.div`
+    grid-column: 7 / -1;
     width: min(30rem, 100%);
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;

@@ -201,7 +201,9 @@ const TdRole = styled.td`
 
 const ReadCV = styled.div`
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding-right: 12px;
 `
 
 const SectionHeading = styled.h2`
