@@ -6,7 +6,7 @@ function MyApp({ Component, pageProps }) {
     return (
         <Layout>
             <GlobalStyles />
-            <ThemeProvider>
+            <ThemeProvider forcedTheme={Component.theme || null}>
                 <Component {...pageProps} />
             </ThemeProvider>
         </Layout>

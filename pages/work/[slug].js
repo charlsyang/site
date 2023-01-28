@@ -16,7 +16,7 @@ export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
     return {
         props: {
-            ...postData
+            ...postData // slug, frontmatter, code
         }
     }
 }
@@ -28,6 +28,8 @@ export async function getStaticPaths() {
     fallback: false
   }
 }
+
+ProjectPost.theme = 'dark'
 
 export default function ProjectPost({ code, frontmatter }) {
     const Component = useMemo(() => getMDXComponent(code), [code]);
