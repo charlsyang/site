@@ -7,7 +7,7 @@ import remarkUnwrapImages from 'remark-unwrap-images'
 
 const postsDirectory = path.join(process.cwd(), 'projects')
 
-export function getSortedPostsData() {
+export function getPublishedPostsData() {
     const fileNames = fs.readdirSync(postsDirectory)
     const allPostsData = fileNames.map(fileName => {    
       const slug = fileName.replace(/\.mdx$/, '') 
@@ -21,7 +21,7 @@ export function getSortedPostsData() {
         slug, 
         ...matterResult.data
       }
-    }) // [{id: 'pre-rendering', title: '...', date: '...'}, {id: 'ssg-ssr', title: '...', date: '...'}]
+    }) // [{slug: 'pre-rendering', title: '...', date: '...'}, {slug: 'ssg-ssr', title: '...', date: '...'}]
     
     const publishedPostsData = [];
     for (const postData of allPostsData){
@@ -30,15 +30,14 @@ export function getSortedPostsData() {
       };
     }
 
-    return publishedPostsData.sort(({ date: a }, { date: b }) => {
-        if (a < b) {
-            return 1
-        } else if (a > b) {
-            return -1
-        } else {
-            return 0
-        }
-    })
+    const sortedPostsData =
+      [].concat(
+        publishedPostsData.filter(project => project.slug == "aura"),
+        publishedPostsData.filter(project => project.slug == "role"),
+        publishedPostsData.filter(project => project.slug == "aps")
+      )
+
+    return sortedPostsData
 }
 
 export function getAllPostSlugs() {

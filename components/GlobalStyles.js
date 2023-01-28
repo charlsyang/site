@@ -62,7 +62,7 @@ const GlobalStyles = createGlobalStyle`
         
         --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
         --font-serif: 'Newsreader', ${FAMILIES.fallbackSerif};
-        --font-mono: ${FAMILIES.fallbackMono};
+        --font-mono: 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
         --font-size-base: 16;
