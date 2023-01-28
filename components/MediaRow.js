@@ -3,18 +3,18 @@ import styled from 'styled-components';
 export default function MediaRow({content, single}) {
     return (
 		<MediaRowWrapper isSingle={single}>
-			{content.map((item) => {
+			{content.map((item, index) => {
 					if (item.type == 'image' && item.caption !== undefined) {
 						return (
-                            <Figure>
+                            <Figure key = {index}>
                                 <img src={item.source} draggable='false'/>
                                 <FigCaption>{item.caption}</FigCaption>
                             </Figure>
                         );
 					} else if (item.type == 'image') {
-                        return <Figure><img src={item.source} draggable='false'/></Figure>
+                        return <Figure key = {index}><img src={item.source} draggable='false'/></Figure>
                     } else if (item.type == 'video') {
-						return <Video><video src={item.source} autoPlay loop muted draggable='false'/></Video>;
+						return <Video key = {index}><video src={item.source} autoPlay loop muted draggable='false'/></Video>;
 					}
 			})}
 		</MediaRowWrapper>

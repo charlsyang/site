@@ -21,16 +21,16 @@ export default function ProjectHead(props) {
                 <Team>
                     <SmallHead>Team</SmallHead>
                     <ul>
-                        {props.team.map((member) => {
-                            return <li>{member}</li>;
+                        {props.team.map((member, index) => {
+                            return <li key = {index}>{member}</li>;
                         })}
                     </ul>
                 </Team>
                 <Contribution>
                     <SmallHead>Contribution</SmallHead>
                     <ul>
-                        {props.contribution.map((contribution) => {
-                            return <li>{contribution}</li>;
+                        {props.contribution.map((contribution, index) => {
+                            return <li key = {index}>{contribution}</li>;
                         })}
                     </ul>
                 </Contribution>

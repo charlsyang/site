@@ -44,6 +44,7 @@ export default function WorkIndex({ allPostsData }) {
                         <Experience>
                             <TableTitle>Experience</TableTitle>
                             <Table>
+                                <tbody>  {/* Added to avoid hydration failed error (caused by Next.js) */}
                                 <TableRow>
                                     <TdYear>2022</TdYear>   
                                     <TdCompany>Rubrik</TdCompany>
@@ -64,6 +65,7 @@ export default function WorkIndex({ allPostsData }) {
                                     <TdCompany>NIO</TdCompany>
                                     <TdRole>UI/UX Design Intern</TdRole>
                                 </TableRow>
+                                </tbody>
                             </Table>
                             <CustomLink href='https://read.cv/charlsy'>
                                 <ReadCV>
@@ -76,8 +78,9 @@ export default function WorkIndex({ allPostsData }) {
                 </GridWrapper>
                 <SectionHeading>Selected Projects</SectionHeading>
                 <ProjectGrid>
-                    {allPostsData.map((project) => (
+                    {allPostsData.map((project, index) => (
                         <ProjectCard
+                            key = {index}
                             slug = {project.slug}
                             title = {project.title}
                             subtitle = {project.subtitle}
