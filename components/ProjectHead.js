@@ -62,7 +62,7 @@ const Heading = styled.div`
 `
 
 const Title = styled.h1`
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-l);
     font-weight: var(--font-weight-medium);
     color: var(--color-gray-900);
     line-height: 1.25;

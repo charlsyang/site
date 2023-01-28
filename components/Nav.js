@@ -19,7 +19,7 @@ const Nav = () => {
 }
 
 const NavWrapper = styled(GridWrapper)`
-    padding-top: 40px;
+    padding-top: var(--spacing-3x);
     margin-left: auto;
     margin-right: auto;
     max-width: 1200px;
@@ -31,7 +31,7 @@ const NavLinks = styled.nav`
     gap: var(--spacing-4x);
 
     & a {
-        font-size: var(--font-size-m);
+        font-size: var(--font-size-s);
         color: var(--color-gray-600);
         text-decoration: none;
     }
