@@ -7,7 +7,7 @@ export default function ProjectHead(props) {
     return (
         <Header>
         <GridWrapper>
-            <PlaceholderPattern src={PlaceholderImg}/> 
+            {/* <PlaceholderPattern src={PlaceholderImg}/>  */}
             <Metadata>
                 <Heading>
                     <Title>{props.title}</Title>
@@ -41,8 +41,8 @@ export default function ProjectHead(props) {
 }
 
 const Header = styled.header`
-    margin-top: 120px;
-    /* margin-bottom: 40px; */
+    margin-top: 200px;
+    margin-bottom: 72px;
 `
 
 const PlaceholderPattern = styled(Image)`

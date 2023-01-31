@@ -29,7 +29,7 @@ export async function getStaticPaths() {
   }
 }
 
-ProjectPost.theme = 'dark'
+// ProjectPost.theme = 'dark'
 
 export default function ProjectPost({ code, frontmatter }) {
     const Component = useMemo(() => getMDXComponent(code), [code]);

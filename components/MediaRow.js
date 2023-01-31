@@ -1,18 +1,18 @@
 import styled from 'styled-components';
 
-export default function MediaRow({content, single}) {
+export default function MediaRow({content, single, bg}) {
     return (
 		<MediaRowWrapper isSingle={single}>
 			{content.map((item, index) => {
 					if (item.type == 'image' && item.caption !== undefined) {
 						return (
                             <Figure key = {index}>
-                                <Img src={item.source} draggable='false'/>
+                                <Img src={item.source} bg={bg} draggable='false'/>
                                 <FigCaption>{item.caption}</FigCaption>
                             </Figure>
                         );
 					} else if (item.type == 'image') {
-                        return <Figure key = {index}><Img src={item.source} draggable='false'/></Figure>
+                        return <Figure key = {index}><Img src={item.source} bg={bg} draggable='false'/></Figure>
                     } else if (item.type == 'video') {
 						return <Video key = {index}><video src={item.source} autoPlay loop muted draggable='false'/></Video>;
 					}
@@ -26,7 +26,7 @@ const MediaRowWrapper = styled.div`
     max-width: 1200px;
 	display: flex;
 	gap: 24px;
-    margin: ${props => props.isSingle ? '80px 0' : '0' }; 
+    margin: ${props => props.isSingle ? '60px 0 120px 0' : '0' };
 
     & img, video {
         width: 100%;
@@ -39,7 +39,7 @@ const Figure = styled.figure`
 `
 
 const Img = styled.img`
-    background-color: var(--color-block);
+    background-color: ${props => props.bg ? 'var(--color-block)' : 'none' };
 `
 
 const FigCaption = styled.figcaption`
