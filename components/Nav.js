@@ -3,18 +3,21 @@ import Link from 'next/link'
 import GridWrapper from './GridWrapper';
 import Favicon from '../public/favicon.svg'
 import Image from 'next/image';
+import MaxWidthWrapper from './MaxWidthWrapper';
 
 const Nav = () => {
     return (
+        <MaxWidthWrapper>
         <NavWrapper>
             <Link href='/'>
-                <Image src={Favicon}></Image>
+                <Image src={Favicon} width={20}></Image>
             </Link>
             <NavLinks>
                 <Link href='/work'>Work</Link>
                 <Link href='/blog'>Blog</Link>
             </NavLinks>
         </NavWrapper>
+        </MaxWidthWrapper>
     );
 }
 
