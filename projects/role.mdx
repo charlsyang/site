@@ -2,10 +2,10 @@
 title: 'Better Role Creation'
 subtitle: 'Leveling up the role creation flow for Rubrik’s data security SaaS platform'
 type: ['Enterprise SaaS', 'UX', 'Research']
-cover: '/project_aura/cover.png'
+cover: '/project_role/cover.png'
 timeline: ['September–December', 'Fall 2022']
 team: ['Barsa, Senior Designer', 'Catherine, Researcher']
-contribution: ['Visual design', 'Interaction design', 'Motion design']
+contribution: ['UX and Wireframing', 'UI Design']
 isPublished: true
 ---
 
@@ -33,7 +33,7 @@ The solution was straightforward: a preview button that opens a tray showing a h
 <MediaRow content= {[
     {type: 'image', source: '/project_role/p1-card.png'},
     {type: 'image', source: '/project_role/p1-preview.png'}
-]} single='true'/>
+]} single='true' bg='true'/>
 
 
 ## Problem II
@@ -52,8 +52,8 @@ Therefore, there are two states of these “permission cards”: filled and empt
 Originally, the empty state didn’t make clear to users that there are three buckets of permissions awaiting to be filled. To provide better visual cues, I altered the appearance, leveraged copy text, and made call to action more pronounced to convey a sense of “undone”.
 
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p2-s1-before.png'},
-    {type: 'image', source: '/project_role/p2-s1-after.png'}
+    {type: 'image', source: '/project_role/p2-s1-before.png', caption: 'Before'},
+    {type: 'image', source: '/project_role/p2-s1-after.png', caption: 'After'}
 ]} single='true'/>
 
 
@@ -63,12 +63,12 @@ While the original card design exposed detailed information up front, it’s not
 
 <MediaStack>
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p2-s2-before.png'},
-    {type: 'image', source: '/project_role/p2-s2-after.png'}
+    {type: 'image', source: '/project_role/p2-s2-before.png', caption: 'Before'},
+    {type: 'image', source: '/project_role/p2-s2-after.png', caption: 'After'}
 ]}/>
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p2-s2-details.png'}
-]}/>
+    {type: 'image', source: '/project_role/p2-s2-details.png', caption: '“View Details” opens a side tray that shows more granular information.'}
+]} bg='true'/>
 </MediaStack>
 
 
@@ -77,12 +77,12 @@ While the original card design exposed detailed information up front, it’s not
 There was a severe usability issue for permission cards: when users click the “Clear” button, previous configuration will be cleared without any form of confirmation. Other than the obvious solution to add a confirm modal, I also hid the “Clear”  button in the three-dots overflow menu as it’s an infrequent action—an assumption later validated by research.
 
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p2-s3-clear.png'},
-    {type: 'image', source: '/project_role/p2-s3-modal.png'}
-]} single='true'/>
+    {type: 'image', source: '/project_role/p2-s3-clear.png', caption: 'Hide “Clear Configuration” by default'},
+    {type: 'image', source: '/project_role/p2-s3-modal.png', caption: 'Confirmation modal'}
+]} single='true' bg='true'/>
 
 ## Problem III
-### Previous research revealed that it’s hard to discover the chip row
+### Previous research revealed that users consistently ignored the chip rows in the table 
 
 Out of three types of permissions, “Data Management” is the most complex. Generally, users need to first select the data sources (what does the role have access to) and then the permissions to these data sources (what does the role can do with them—view, edit, etc.).
 
@@ -98,24 +98,24 @@ When users select data sources by object type, they need to configure permission
 To solve the discoverability issue, I leveraged the table pattern’s expanded row component in our design system. In this way, I made it clear that there are more granular selections user can configure for each object type. The visual change in layout is also more drastic that should get user’s attention.
 
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p3-s1-before.png'},
-    {type: 'image', source: '/project_role/p3-s1-after.png'}
+    {type: 'image', source: '/project_role/p3-s1-before.png', caption: 'Before: chip row'},
+    {type: 'image', source: '/project_role/p3-s1-after.png', caption: 'After: expanded row'}
 ]} single='true'/>
 
 #### Solution 2: Breaking the flow into 2 steps—one thing at a time
 
-Another cause of the issue, I figured, was intermingling the selection of data sources and the edition of permissions into one step. It was therefore unclear what users need to do, when the modal title says “selecting object types” but editing permissions is also included. As a result, I decided to break the flow into two steps with one thing at a time. 
+Another cause of the issue, I figured, was intermingling the selection of data sources and the editing of permissions into one step. It was therefore unclear what users need to do, when the modal title says “selecting objects” but editing permissions is also included. As a result, I decided to break the flow into two steps with one thing at a time. 
 
 <MediaStack>
 
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p3-s2-before.png'},
-    {type: 'image', source: '/project_role/p3-s2-after.png'}
+    {type: 'image', source: '/project_role/p3-s2-before.png', caption: 'Before: selecting data source and editing permission in one step'},
+    {type: 'image', source: '/project_role/p3-s2-after.png', caption: 'After: separate editing permission into another step'}
 ]}/>
 <MediaRow content= {[
-    {type: 'image', source: '/project_role/p3-s2-step1.png'},
-    {type: 'image', source: '/project_role/p3-s2-step2.png'}
-]}/>
+    {type: 'image', source: '/project_role/p3-s2-step1.png', caption: 'Step 1: select objects'},
+    {type: 'image', source: '/project_role/p3-s2-step2.png', caption: 'Step 2: configure permissions'}
+]} bg='true'/>
 
 </MediaStack>
 
