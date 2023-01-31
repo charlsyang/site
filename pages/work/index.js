@@ -18,7 +18,7 @@ export async function getStaticProps() {
     }
 }
 
-WorkIndex.theme = 'dark'
+// WorkIndex.theme = 'dark'
 
 export default function WorkIndex({ allPostsData }) {
     return (
@@ -76,19 +76,21 @@ export default function WorkIndex({ allPostsData }) {
                         </Experience>
                     </Intro>
                 </GridWrapper>
-                <SectionHeading>Selected Projects</SectionHeading>
-                <ProjectGrid>
-                    {allPostsData.map((project, index) => (
-                        <ProjectCard
-                            key = {index}
-                            slug = {project.slug}
-                            title = {project.title}
-                            subtitle = {project.subtitle}
-                            type = {project.type}
-                            cover = {project.cover}
-                        />
-                    ))}
-                </ProjectGrid>
+                <Projects>
+                    <SectionHeading>Selected Projects</SectionHeading>
+                    <ProjectGrid>
+                        {allPostsData.map((project, index) => (
+                            <ProjectCard
+                                key = {index}
+                                slug = {project.slug}
+                                title = {project.title}
+                                subtitle = {project.subtitle}
+                                type = {project.type}
+                                cover = {project.cover}
+                            />
+                        ))}
+                    </ProjectGrid>
+                </Projects>
             </MaxWidthWrapper>
         </>
     )
@@ -129,13 +131,13 @@ const Button = styled.button`
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 6px 6px 6px 24px;
+    padding: 6px 6px 6px 20px;
     border-radius: 6px;
-    border: 1px solid var(--color-gray-300);
+    border: 1px solid var(--color-gray-100);
     cursor: pointer;
-    background-color: #1E1E21;
+    background-color: var(--color-block);
     margin-bottom: var(--spacing-6x);
-    color: var(--color-gray-600);
+    color: var(--color-article-body);
     transition: all var(--transition-slow);
 
     & p {
@@ -145,8 +147,14 @@ const Button = styled.button`
 
     &:hover {
         color: var(--color-gray-900);
-        border: 1px solid var(--color-gray-600);
+        /* background-color: var(--color-divider); */
+        border: 1px solid var(--color-link-underline);
         transition: all var(--transition-default);
+
+        & div {
+            color: var(--color-gray-900);
+            transition: all var(--transition-default);
+        }
     }
 `
 
@@ -155,8 +163,9 @@ const ButtonIcon = styled.div`
     align-items: center;
     justify-content: center;
     padding: 6px;
-    background-color: var(--color-divider);
     border-radius: 3px;
+    color: var(--color-gray-600);
+    transition: all var(--transition-slow);
 `
 
 const Experience = styled.section`
@@ -207,6 +216,10 @@ const ReadCV = styled.div`
     align-items: center;
     justify-content: space-between;
     padding-right: 12px;
+`
+
+const Projects = styled.section`
+    margin-bottom: 10rem;
 `
 
 const SectionHeading = styled.h2`

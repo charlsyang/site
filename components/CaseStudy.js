@@ -54,13 +54,23 @@ const CaseStudy = styled.article`
         }
     }
 
+    & h4 {
+        font-size: var(--font-size-m);
+        font-weight: var(--font-weight-normal);
+        color: var(--color-gray-600);
+        width: 49%;
+        margin-left: 51%;
+        margin-top: 2rem;
+        margin-bottom: var(--spacing-1x);
+    }
+
     // Paragraph
 
     & p {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-normal);
         color: var(--color-article-body);       
-        line-height: 1.6;
+        line-height: 1.5;
         hyphens: auto;
         hanging-punctuation: first;
         width: 49%;
@@ -76,6 +86,7 @@ const CaseStudy = styled.article`
 
     & p:first-of-type {  // Project summary
         font-size: var(--font-size-l);
+        line-height: 1.4;
         margin-bottom: 10rem;
     }
 

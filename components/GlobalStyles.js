@@ -122,9 +122,11 @@ const GlobalStyles = createGlobalStyle`
         --color-gray-900: ${THEME.colors.mauve12};
         --color-gray-600: ${THEME.colors.mauve11};
         --color-gray-300: ${THEME.colors.mauve9};
+        --color-gray-100: ${THEME.colors.mauve6};
         --color-article-body: ${DARKTHEME.colors.mauve7};
         --color-link-underline: ${THEME.colors.mauve8};
         --color-divider: ${THEME.colors.mauve4};
+        --color-block: ${THEME.colors.mauve3};
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
         --font-weight-bold: ${THEME.weights.bold};
@@ -135,9 +137,11 @@ const GlobalStyles = createGlobalStyle`
         --color-gray-900: ${DARKTHEME.colors.mauve12};
         --color-gray-600: ${DARKTHEME.colors.mauve10};
         --color-gray-300: ${DARKTHEME.colors.mauve8};
+        --color-gray-100: ${DARKTHEME.colors.mauve6};
         --color-article-body: ${DARKTHEME.colors.mauve11};
         --color-link-underline: var(--color-gray-300);
         --color-divider: ${DARKTHEME.colors.mauve4};
+        --color-block: ${DARKTHEME.colors.mauve2};
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};
         --font-weight-bold: ${DARKTHEME.weights.bold};

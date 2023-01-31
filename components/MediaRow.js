@@ -7,12 +7,12 @@ export default function MediaRow({content, single}) {
 					if (item.type == 'image' && item.caption !== undefined) {
 						return (
                             <Figure key = {index}>
-                                <img src={item.source} draggable='false'/>
+                                <Img src={item.source} draggable='false'/>
                                 <FigCaption>{item.caption}</FigCaption>
                             </Figure>
                         );
 					} else if (item.type == 'image') {
-                        return <Figure key = {index}><img src={item.source} draggable='false'/></Figure>
+                        return <Figure key = {index}><Img src={item.source} draggable='false'/></Figure>
                     } else if (item.type == 'video') {
 						return <Video key = {index}><video src={item.source} autoPlay loop muted draggable='false'/></Video>;
 					}
@@ -36,6 +36,10 @@ const MediaRowWrapper = styled.div`
 
 const Figure = styled.figure`
     flex: 1;
+`
+
+const Img = styled.img`
+    background-color: var(--color-block);
 `
 
 const FigCaption = styled.figcaption`

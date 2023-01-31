@@ -4,7 +4,7 @@ import Image from 'next/image'
 export default function HeroMock({type, source}) {
     if (type == 'video') {
         return (
-            <HeroMockWrapper>
+            <HeroMockWrapper type={type}>
                 <VideoMock autoPlay loop muted draggable='false'>
                     <source src={source}/>
                 </VideoMock>
@@ -13,7 +13,7 @@ export default function HeroMock({type, source}) {
     } else if (type == 'image') {
         return (
             <HeroMockWrapper>
-                <Image src={source} draggable='false'/>
+                <img src={source} draggable='false'/>
             </HeroMockWrapper>
         )
     }
@@ -21,10 +21,10 @@ export default function HeroMock({type, source}) {
 
 
 const HeroMockWrapper = styled.div`
-    padding: 64px 72px;
+    padding: ${props => props.type == 'video' ? '64px 72px' : '0' };
     margin: 40px 0 72px 0;
-    background-color: var(--color-divider);
-`
+    background-color: var(--color-block);
+    `
 
 const VideoMock = styled.video`
     border-radius: 8px;

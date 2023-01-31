@@ -42,10 +42,12 @@ export default function ProjectHead(props) {
 
 const Header = styled.header`
     margin-top: 120px;
+    /* margin-bottom: 40px; */
 `
 
 const PlaceholderPattern = styled(Image)`
      grid-column: 1 / 7;
+     
 `
 
 const Metadata = styled.div`
