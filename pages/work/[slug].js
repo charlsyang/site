@@ -1,6 +1,6 @@
 import Head from '../../components/Head'
 import styled from 'styled-components'
-import { getAllPostSlugs, getPostData } from '../../utils/work'
+import { getAllPostSlugs, getPostData, getPublishedPostsData } from '../../utils/work'
 import { getMDXComponent } from "mdx-bundler/client"
 import { useMemo } from "react"
 import { QUERIES } from '../../utils/constants'
@@ -12,12 +12,16 @@ import HeroMock from '../../components/HeroMock'
 import MediaRow from '../../components/MediaRow'
 import MediaStack from '../../components/MediaStack'
 import Contact from '../../components/Contact'
+import NextProject from '../../components/NextProject'
+
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
+    const allPostsData = getPublishedPostsData();
     return {
         props: {
-            ...postData // slug, frontmatter, code
+            ...postData,  // slug, frontmatter, code
+            allPostsData
         }
     }
 }
@@ -30,9 +34,9 @@ export async function getStaticPaths() {
   }
 }
 
-ProjectPost.theme = 'dark'
+// ProjectPost.theme = 'dark'
 
-export default function ProjectPost({ code, frontmatter, slug }) {
+export default function ProjectPost({ allPostsData, code, frontmatter, slug }) {
     const Component = useMemo(() => getMDXComponent(code), [code]);
 
     return (
@@ -58,6 +62,10 @@ export default function ProjectPost({ code, frontmatter, slug }) {
                             Contact
                         }}/>
                     </CaseStudy>
+                    <NextProject
+                        allPostsData={allPostsData}
+                        currentProjectSlug={slug}
+                    />
                 </Main>
             </MaxWidthWrapper>
         </>

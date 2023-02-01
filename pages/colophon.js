@@ -37,7 +37,6 @@ export default function Colophon() {
                     </ContentWrapper>
                 </Main>
             </MaxWidthWrapper>
-            <Footer/>
         </>
     )
 }
