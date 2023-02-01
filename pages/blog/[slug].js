@@ -47,7 +47,6 @@ export default function BlogPost({ code, frontmatter }) {
                     </Article>
                 </Main>
             </MaxWidthWrapper>
-            <Footer/>
         </>
     )
 }
