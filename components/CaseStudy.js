@@ -66,7 +66,7 @@ const CaseStudy = styled.article`
 
     // Paragraph
 
-    & p {
+    & > p {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-normal);
         color: var(--color-article-body);       
@@ -84,7 +84,7 @@ const CaseStudy = styled.article`
         }
     }
 
-    & p:first-of-type {  // Project summary
+    & > p:first-of-type {  // Project summary
         font-size: var(--font-size-l);
         line-height: 1.4;
         margin-bottom: 10rem;

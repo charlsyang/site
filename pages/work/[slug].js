@@ -11,6 +11,7 @@ import ProjectHead from '../../components/ProjectHead'
 import HeroMock from '../../components/HeroMock'
 import MediaRow from '../../components/MediaRow'
 import MediaStack from '../../components/MediaStack'
+import Contact from '../../components/Contact'
 
 export async function getStaticProps({ params }) {
     const postData = await getPostData(params.slug)
@@ -29,9 +30,9 @@ export async function getStaticPaths() {
   }
 }
 
-// ProjectPost.theme = 'dark'
+ProjectPost.theme = 'dark'
 
-export default function ProjectPost({ code, frontmatter }) {
+export default function ProjectPost({ code, frontmatter, slug }) {
     const Component = useMemo(() => getMDXComponent(code), [code]);
 
     return (
@@ -53,7 +54,8 @@ export default function ProjectPost({ code, frontmatter }) {
                             a: CustomLink, 
                             HeroMock,
                             MediaRow,
-                            MediaStack
+                            MediaStack,
+                            Contact
                         }}/>
                     </CaseStudy>
                 </Main>

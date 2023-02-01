@@ -8,6 +8,7 @@ import { getPublishedPostsData } from '../../utils/work'
 import ProjectCard from '../../components/ProjectCard'
 import { ArrowUpRight } from 'react-feather'
 import CustomLink from '../../components/CustomLink'
+import Contact from '../../components/Contact'
 
 export async function getStaticProps() {
     const allPostsData = getPublishedPostsData();
@@ -91,6 +92,7 @@ export default function WorkIndex({ allPostsData }) {
                         ))}
                     </ProjectGrid>
                 </Projects>
+                <Contact>Interested in working with me?</Contact>
             </MaxWidthWrapper>
         </>
     )
