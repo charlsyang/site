@@ -145,7 +145,6 @@ const Article = styled.article`
         content: "*";
         position: absolute;
         left: calc(var(--bullet-indent) * -1);
-        top: 4px;
         width: var(--bullet-width);
         color: var(--color-gray-600);
         font-family: var(--font-sans);
