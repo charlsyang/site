@@ -72,8 +72,8 @@ export default function Home({allPostsData}) {
             </NowContent>
             <Reading>
               <ReadingLabel>Reading</ReadingLabel>
-              <CustomLink href='https://www.amazon.com/Relational-Being-Beyond-Self-Community/dp/019984626X'>Relational Being</CustomLink>
-              <Author>Kenneth J. Gergen</Author>
+              <CustomLink href='https://www.amazon.com/End-Education-Redefining-Value-School/dp/0679750312'>The End of Education</CustomLink>
+              <Author>Neil Postman</Author>
             </Reading>
           </Now>
           <Contact>
