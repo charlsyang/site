@@ -19,7 +19,7 @@ export async function getStaticProps() {
     }
 }
 
-WorkIndex.theme = 'dark'
+// WorkIndex.theme = 'dark'
 
 export default function WorkIndex({ allPostsData }) {
     return (
