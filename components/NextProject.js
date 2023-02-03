@@ -15,7 +15,7 @@ export default function NextProject({allPostsData, currentProjectSlug}) {
 
     return (
         <NextProjectWrapper>
-            <Heading>More Projects</Heading>
+            <Heading>Up Next</Heading>
             <NextProjectList>
                 <ProjectCard
                     slug = {nextProject.slug}

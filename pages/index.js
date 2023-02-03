@@ -211,6 +211,7 @@ const BlogList = styled.ul`
   flex-direction: column;
   gap: var(--spacing-3x);
   grid-column: 2 / -1;
+  align-items: flex-start;
 `
 
 const BlogItem = styled.li`
