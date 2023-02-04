@@ -43,7 +43,7 @@ export default function Gallery() {
                 <Image src={SmartHome} draggable='false'></Image>
                 <Image src={SimCard} draggable='false'></Image>
                 <Image src={Timeline} draggable='false'></Image>
-                <Image src={Care} draggable='false'></Image>
+                {/* <Image src={Care} draggable='false'></Image> */}
             </Column>
         </GalleryWrapper>
     )
