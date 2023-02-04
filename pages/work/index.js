@@ -108,7 +108,7 @@ export default function WorkIndex({ allPostsData }) {
                     </GridWrapper>
                     <Gallery/>
                 </Visuals>
-                <Contact>If you are looking for a junior designer to join your team, or simply interested in learning more about my work—</Contact>
+                <Contact>If you are looking for a designer to join your team, or simply interested in learning more about my work—</Contact>
             </MaxWidthWrapper>
         </>
     )
