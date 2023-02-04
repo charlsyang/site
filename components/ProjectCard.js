@@ -22,7 +22,6 @@ const Card = styled.li`
     
     padding: var(--hover-area);
     margin: calc(-1 * var(--hover-area));
-    /* border-radius: 4px; */
     list-style-type: none;
     transition: background-color var(--transition-slow);
 

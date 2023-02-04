@@ -42,7 +42,7 @@ export default function ProjectPost({ allPostsData, code, frontmatter, slug }) {
     return (
         <>
             <Head 
-                title={frontmatter.title}
+                title={frontmatter.title + ' – Charlsy Yang'}
             />
             <MaxWidthWrapper>
                 <Main>

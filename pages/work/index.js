@@ -9,6 +9,7 @@ import ProjectCard from '../../components/ProjectCard'
 import { ArrowUpRight } from 'react-feather'
 import CustomLink from '../../components/CustomLink'
 import Contact from '../../components/Contact'
+import Gallery from '../../components/Gallery'
 
 export async function getStaticProps() {
     const allPostsData = getPublishedPostsData();
@@ -25,7 +26,7 @@ export default function WorkIndex({ allPostsData }) {
     return (
         <>
             <Head>
-                <title>Work</title>
+                <title>Work – Charlsy Yang</title>
             </Head>
             <MaxWidthWrapper>
                 <GridWrapper>
@@ -92,7 +93,22 @@ export default function WorkIndex({ allPostsData }) {
                         ))}
                     </ProjectGrid>
                 </Projects>
-                <Contact>Interested in working with me?</Contact>
+                <Visuals>
+                    <GridWrapper>
+                        <SectionHeading>Visuals</SectionHeading>
+                        <ReDream>
+                            <Link href='https://youtu.be/ZVy1wVqHpH4'>
+                                <video src='/visuals/redream-teaser.mp4' autoPlay loop muted draggable='false'/>
+                                <MediaTitle>
+                                    <p>ReDream: App Concept</p>
+                                    <ArrowUpRight size={16}/>
+                                </MediaTitle>
+                            </Link>
+                        </ReDream>
+                    </GridWrapper>
+                    <Gallery/>
+                </Visuals>
+                <Contact>If you are looking for a junior designer to join your team, or simply interested in learning more about my work—</Contact>
             </MaxWidthWrapper>
         </>
     )
@@ -101,7 +117,7 @@ export default function WorkIndex({ allPostsData }) {
 const Intro = styled.section`
     grid-column: 7 / -1;
     max-width: 28em;
-    margin-bottom: 72px;
+    margin-bottom: 6rem;
 
     & a {
         text-decoration: none;
@@ -236,4 +252,30 @@ const ProjectGrid = styled.ul`
     /* grid-template-rows: repeat(2, 1fr); */
     column-gap: 24px;
     row-gap: 48px;
+`
+
+const Visuals = styled.section`
+    border-top: 1px solid var(--color-divider);
+    padding-top: var(--spacing-2x);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3x);
+`
+
+const ReDream = styled.div`
+    grid-column: 5 / -1;
+
+    & video {
+        width: 100%;
+    }
+`
+
+const MediaTitle = styled.div`
+    display: flex;
+    gap: var(--spacing-s);
+    align-items: center;
+
+    & svg {
+        color: var(--color-gray-600);
+    }
 `
