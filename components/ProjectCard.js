@@ -29,6 +29,10 @@ const Card = styled.li`
         text-decoration: none;
     }
 
+    & img {
+        height: auto;
+    }
+
     &:hover {
         background-color: var(--color-divider);
         transition: background-color var(--transition-default);
