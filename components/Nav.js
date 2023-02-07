@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import Link from 'next/link'
 import GridWrapper from './GridWrapper';
-import Favicon from '../public/favicon.svg'
+import Fleuron from '../public/favicon.svg'
 import Image from 'next/image';
 import MaxWidthWrapper from './MaxWidthWrapper';
 
@@ -9,9 +9,11 @@ const Nav = () => {
     return (
         <MaxWidthWrapper>
         <NavWrapper>
-            <Link href='/'>
-                <Image src={Favicon} width={20}></Image>
-            </Link>
+            <Home>
+                <Link href='/'>
+                    <StyledFleuron/>
+                </Link>
+            </Home>
             <NavLinks>
                 <Link href='/work'>Work</Link>
                 <Link href='/blog'>Blog</Link>
@@ -26,6 +28,28 @@ const NavWrapper = styled(GridWrapper)`
     margin-left: auto;
     margin-right: auto;
     max-width: 1200px;
+`
+
+const Home = styled.div`
+    max-width: 24px;
+`
+
+const StyledFleuron = styled(Fleuron)`
+    display: block;
+    transform: scale(0.9);
+    & path {
+        fill: var(--color-gray-600);
+        transition: var(--transition-slow);
+    }
+
+    &:hover {
+        & path {
+            fill: var(--color-gray-900);
+            transition: var(--transition-default);
+        }
+    }
+
+    
 `
 
 const NavLinks = styled.nav`
@@ -43,5 +67,7 @@ const NavLinks = styled.nav`
         color: var(--color-gray-900);
     }
 `
+
+
 
 export default Nav;
