@@ -60,8 +60,8 @@ const CaseStudy = styled.article`
         color: var(--color-gray-600);
         width: 49%;
         margin-left: 51%;
-        margin-top: 2rem;
-        margin-bottom: var(--spacing-1x);
+        margin-top: 4rem;
+        margin-bottom: var(--spacing-2x);
     }
 
     // Paragraph

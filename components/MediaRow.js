@@ -26,7 +26,7 @@ const MediaRowWrapper = styled.div`
     max-width: 1200px;
 	display: flex;
 	gap: 24px;
-    margin: ${props => props.isSingle ? '60px 0 120px 0' : '0' };
+    margin: ${props => props.isSingle ? '4rem 0' : '0' };
 
     & img, video {
         width: 100%;

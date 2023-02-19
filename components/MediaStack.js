@@ -12,5 +12,5 @@ const MediaStackWrapper = styled.div`
     display: flex;
     flex-direction: column;
     gap: var(--spacing-3x);
-    margin: 40px 0 80px 0;
+    margin: 4rem 0;
 `
