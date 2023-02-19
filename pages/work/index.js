@@ -79,7 +79,7 @@ export default function WorkIndex({ allPostsData }) {
                     </Intro>
                 </GridWrapper>
                 <Projects>
-                    <SectionHeading>Selected Projects</SectionHeading>
+                    <SectionHeading>Projects</SectionHeading>
                     <ProjectGrid>
                         {allPostsData.map((project, index) => (
                             <ProjectCard
@@ -93,9 +93,9 @@ export default function WorkIndex({ allPostsData }) {
                         ))}
                     </ProjectGrid>
                 </Projects>
-                <Visuals>
+                <Craft>
                     <GridWrapper>
-                        <SectionHeading>Visuals</SectionHeading>
+                        <SectionHeading>Craft</SectionHeading>
                         <ReDream>
                             <Link href='https://youtu.be/ZVy1wVqHpH4'>
                                 <video src='/visuals/redream-teaser.mp4' autoPlay loop muted draggable='false'/>
@@ -107,7 +107,7 @@ export default function WorkIndex({ allPostsData }) {
                         </ReDream>
                     </GridWrapper>
                     <Gallery/>
-                </Visuals>
+                </Craft>
                 <Contact>If you are looking for a designer to join your team, or simply interested in learning more about my work—</Contact>
             </MaxWidthWrapper>
         </>
@@ -238,6 +238,8 @@ const ReadCV = styled.div`
 
 const Projects = styled.section`
     margin-bottom: 10rem;
+    border-top: 1px solid var(--color-divider);
+    padding-top: var(--spacing-2x);
 `
 
 const SectionHeading = styled.h2`
@@ -249,12 +251,23 @@ const SectionHeading = styled.h2`
 const ProjectGrid = styled.ul`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    /* grid-template-rows: repeat(2, 1fr); */
+    align-items: start;
     column-gap: 24px;
-    row-gap: 48px;
+    row-gap: 120px;
+    margin-top: calc(-1 * var(--spacing-6x));
+
+    & li:first-of-type {
+        grid-column: 1 / -1;
+        margin-left: 25%;
+    }
+
+    /* & li:last-of-type {
+        grid-column: 1 / -1;
+        margin-right: 25%;
+    } */
 `
 
-const Visuals = styled.section`
+const Craft = styled.section`
     border-top: 1px solid var(--color-divider);
     padding-top: var(--spacing-2x);
     display: flex;

@@ -1,12 +1,11 @@
 import styled from 'styled-components'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function ProjectCard({ slug, title, subtitle, type, cover }) {
     return (
         <Card>
             <Link href = {`/work/${slug}`}>
-                <Image src={cover} width={588} height={419}/>
+                <img src={cover}/>
                 <Heading>
                     <Title>{title}</Title>
                     {'—' + subtitle} 
@@ -45,7 +44,7 @@ const Heading = styled.h3`
     color: var(--color-gray-600);
     line-height: 1.3;
     margin: var(--spacing-1x) 0;
-    max-width: 30rem;
+    width: 80%;
 `
 
 const Title = styled.span`
