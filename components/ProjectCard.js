@@ -17,12 +17,13 @@ export default function ProjectCard({ slug, title, subtitle, type, cover }) {
 }
 
 const Card = styled.li`
-    --hover-area: 12px;
+    --hover-area: 8px;
     
     padding: var(--hover-area);
     margin: calc(-1 * var(--hover-area));
     list-style-type: none;
     transition: background-color var(--transition-slow);
+    border-radius: 4px;
 
     & a {
         text-decoration: none;

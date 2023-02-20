@@ -33,50 +33,49 @@ export default function WorkIndex({ allPostsData }) {
                     <Intro>
                         <Headline>
                             <p>Charlsy designs visual and interactive experience for products and brands.</p>
-                            <p>He graduates in June 2023 and is looking for full-time product design roles.</p>
+                            <p>He cares deeply about quality and holds craftsmanship dear to heart.</p>
                         </Headline>
-                        <CustomLink href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>
-                            <Button>
-                                <p>Charlsy as a designer</p>
-                                <ButtonIcon>
-                                    <ArrowUpRight size={16}/>
-                                </ButtonIcon>
-                            </Button>
-                        </CustomLink>
-                        <Experience>
-                            <TableTitle>Experience</TableTitle>
-                            <Table>
-                                <tbody>  {/* Added to avoid hydration failed error (caused by Next.js) */}
-                                <TableRow>
-                                    <TdYear>2022</TdYear>   
-                                    <TdCompany>Rubrik</TdCompany>
-                                    <TdRole>Product Design Intern</TdRole>
-                                </TableRow>
-                                <TableRow>
-                                    <TdYear>2021</TdYear>   
-                                    <TdCompany>IDEO</TdCompany>
-                                    <TdRole>Interaction Design Intern</TdRole>
-                                </TableRow>
-                                <TableRow>
-                                    <TdYear>2020</TdYear>   
-                                    <TdCompany>Tide</TdCompany>
-                                    <TdRole>Product Design Intern</TdRole>
-                                </TableRow>
-                                <TableRow>
-                                    <TdYear>2019</TdYear>   
-                                    <TdCompany>NIO</TdCompany>
-                                    <TdRole>UI/UX Design Intern</TdRole>
-                                </TableRow>
-                                </tbody>
-                            </Table>
-                            <CustomLink href='https://read.cv/charlsy'>
-                                <ReadCV>
-                                    <p>read.cv</p>
-                                    <ArrowUpRight size = {16}/>
-                                </ReadCV>
-                            </CustomLink>
-                        </Experience>
+                        <Callout>
+                            <p>Charlsy will graduate soon in June 2023 and is looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
+                        </Callout>
                     </Intro>
+                    <ContactLinks>
+                        <div>
+                            <p>Email</p>
+                            <Link href='mailto:hi@charlsy.me'>hi@charlsy.me</Link>
+                        </div>
+                        <div>
+                            <p>Resume</p>
+                            <Link href='https://read.cv/charlsy'>read.cv/charlsy</Link>
+                        </div>
+                    </ContactLinks>
+                    <Experience>
+                        <TableTitle>Experience</TableTitle>
+                        <Table>
+                            <tbody>  {/* Added to avoid hydration failed error (caused by Next.js) */}
+                            <TableRow>
+                                <TdYear>2022</TdYear>   
+                                <TdCompany>Rubrik</TdCompany>
+                                <TdRole>Product Design Intern</TdRole>
+                            </TableRow>
+                            <TableRow>
+                                <TdYear>2021</TdYear>   
+                                <TdCompany>IDEO</TdCompany>
+                                <TdRole>Interaction Design Intern</TdRole>
+                            </TableRow>
+                            <TableRow>
+                                <TdYear>2020</TdYear>   
+                                <TdCompany>Tide</TdCompany>
+                                <TdRole>Product Design Intern</TdRole>
+                            </TableRow>
+                            <TableRow>
+                                <TdYear>2019</TdYear>   
+                                <TdCompany>NIO</TdCompany>
+                                <TdRole>UI/UX Design Intern</TdRole>
+                            </TableRow>
+                            </tbody>
+                        </Table>
+                    </Experience>
                 </GridWrapper>
                 <Projects>
                     <SectionHeading>Projects</SectionHeading>
@@ -116,17 +115,12 @@ export default function WorkIndex({ allPostsData }) {
 
 const Intro = styled.section`
     grid-column: 7 / -1;
-    max-width: 28em;
-    margin-bottom: 6rem;
-
-    & a {
-        text-decoration: none;
-    }
+    padding-top: 10rem;
+    max-width: 33rem;
 `
 
 
 const Headline = styled.div`    
-    margin-top: 10rem;
     margin-bottom: var(--spacing-3x);
 
     @media ${QUERIES.tabletAndBelow} {
@@ -134,7 +128,8 @@ const Headline = styled.div`
     }
 
     & p {
-        font-size: var(--font-size-l);
+        font-weight: var(--font-weight-normal);
+        font-size: var(--font-size-xl);
         line-height: 1.3;
         color: var(--color-gray-900);
     }
@@ -144,54 +139,38 @@ const Headline = styled.div`
     }
 `
 
-const Button = styled.button`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 6px 6px 6px 20px;
+const Callout = styled.div`
+    padding: 16px 24px 14px 24px;
     border-radius: 6px;
     border: 1px solid var(--color-gray-100);
-    cursor: pointer;
     background-color: var(--color-block);
-    margin-bottom: var(--spacing-6x);
+    margin-bottom: calc(var(--spacing-1x) * 8);
     color: var(--color-article-body);
-    transition: all var(--transition-slow);
 
     & p {
-        font-size: var(--font-size-s);
-        font-weight: var(--font-weight-normal);
-    }
-
-    &:hover {
-        color: var(--color-gray-900);
-        /* background-color: var(--color-divider); */
-        border: 1px solid var(--color-link-underline);
-        transition: all var(--transition-default);
-
-        & div {
-            color: var(--color-gray-900);
-            transition: all var(--transition-default);
-        }
+        line-height: 1.3;
     }
 `
 
-const ButtonIcon = styled.div`
+const ContactLinks = styled.div`
+    grid-column: 7 /9;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    border-radius: 3px;
-    color: var(--color-gray-600);
-    transition: all var(--transition-slow);
+    flex-direction: column;
+    gap: var(--spacing-3x);
+
+    & p {
+        color: var(--color-gray-600);
+    }
 `
 
 const Experience = styled.section`
     display: flex;
     flex-direction: column;
+    grid-column: -5 / -1;
 `
 
 const TableTitle = styled.p`
+    color: var(--color-gray-600);
     font-weight: var(--font-weight-normal);
 `
 
@@ -237,7 +216,8 @@ const ReadCV = styled.div`
 `
 
 const Projects = styled.section`
-    margin-bottom: 10rem;
+    margin-top: 5rem;
+    margin-bottom: 12rem;
     border-top: 1px solid var(--color-divider);
     padding-top: var(--spacing-2x);
 `
@@ -253,7 +233,7 @@ const ProjectGrid = styled.ul`
     grid-template-columns: repeat(2, 1fr);
     align-items: start;
     column-gap: 24px;
-    row-gap: 120px;
+    row-gap: 6rem;
     margin-top: calc(-1 * var(--spacing-6x));
 
     & li:first-of-type {
@@ -261,10 +241,10 @@ const ProjectGrid = styled.ul`
         margin-left: 25%;
     }
 
-    /* & li:last-of-type {
+    & li:last-of-type {
         grid-column: 1 / -1;
         margin-right: 25%;
-    } */
+    }
 `
 
 const Craft = styled.section`

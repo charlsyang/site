@@ -72,8 +72,8 @@ export default function Home({allPostsData}) {
             </NowContent>
             <Reading>
               <ReadingLabel>Reading</ReadingLabel>
-              <CustomLink href='https://www.amazon.com/End-Education-Redefining-Value-School/dp/0679750312'>The End of Education</CustomLink>
-              <Author>Neil Postman</Author>
+              <CustomLink href='https://en.wikipedia.org/wiki/Deschooling_Society'>Deschooling Society</CustomLink>
+              <Author>Ivan Illich</Author>
             </Reading>
           </Now>
           <Contact>

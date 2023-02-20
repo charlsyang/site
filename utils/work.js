@@ -34,7 +34,8 @@ export function getPublishedPostsData() {
       [].concat(
         publishedPostsData.filter(project => project.slug == "aura"),
         publishedPostsData.filter(project => project.slug == "role"),
-        publishedPostsData.filter(project => project.slug == "aps")
+        publishedPostsData.filter(project => project.slug == "aps"),
+        publishedPostsData.filter(project => project.slug == "vol")
       )
 
     return sortedPostsData
