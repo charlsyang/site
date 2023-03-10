@@ -37,7 +37,7 @@ export default function WorkIndex({ allPostsData }) {
                             <p>He cares deeply about quality and holds craftsmanship dear to&nbsp;heart.</p>
                         </Headline>
                         <Callout>
-                            <p>Charlsy will graduate soon in June 2023 and is looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
+                            <p>Charlsy will graduate in June 2023 and is looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
                         </Callout>
                     </Intro>
                     <ContactLinks>
