@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import Link from 'next/link'
 import GridWrapper from './GridWrapper'
+import { QUERIES } from '../utils/constants'
 
 export default function Contact({children}) {
     return (
@@ -21,6 +22,11 @@ const ContactWrapper = styled(GridWrapper)`
 const Content = styled.section`
     grid-column: 7 / -2;
     font-size: var(--font-size-l);
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+        font-size: var(--font-size-m);
+    }
 `
 
 const Message = styled.p`

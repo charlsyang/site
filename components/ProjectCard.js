@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import Link from 'next/link'
+import { QUERIES } from '../utils/constants'
 
 export default function ProjectCard({ slug, title, subtitle, type, cover }) {
     return (
@@ -46,6 +47,11 @@ const Heading = styled.h3`
     line-height: 1.3;
     margin: var(--spacing-1x) 0;
     width: 80%;
+
+    @media ${QUERIES.phoneAndBelow} {
+        font-size: var(--font-size-s);
+        width: auto;
+    }
 `
 
 const Title = styled.span`
@@ -55,4 +61,8 @@ const Title = styled.span`
 const ProjectType = styled.p`
     font-size: var(--font-size-xs);
     color: var(--color-gray-600);
+
+    @media ${QUERIES.phoneAndBelow} {
+        font-size: var(--font-size-xxs);
+    }
 `

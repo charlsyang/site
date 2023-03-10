@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Image from 'next/image';
+import { QUERIES } from '../utils/constants'
 
 import AuraIcons from '../public/visuals/aura-icons.png';
 import ClassicTypo from '../public/visuals/classic-typo.png';
@@ -58,6 +59,11 @@ const GalleryWrapper = styled.div`
         width: 100%;
         height: auto;
         border: 1px solid var(--color-divider);
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        display: flex;
+        flex-direction: column;
     }
 `
 

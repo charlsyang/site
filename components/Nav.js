@@ -4,6 +4,7 @@ import GridWrapper from './GridWrapper';
 import Fleuron from '../public/favicon.svg'
 import Image from 'next/image';
 import MaxWidthWrapper from './MaxWidthWrapper';
+import { QUERIES } from '../utils/constants';
 
 const Nav = () => {
     return (
@@ -28,6 +29,10 @@ const NavWrapper = styled(GridWrapper)`
     margin-left: auto;
     margin-right: auto;
     max-width: 1200px;
+
+    @media ${QUERIES.phoneAndBelow} {
+        display: flex;
+    }
 `
 
 const Home = styled.div`
@@ -48,8 +53,6 @@ const StyledFleuron = styled(Fleuron)`
             transition: var(--transition-default);
         }
     }
-
-    
 `
 
 const NavLinks = styled.nav`
@@ -65,6 +68,10 @@ const NavLinks = styled.nav`
 
     & a:hover {
         color: var(--color-gray-900);
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        gap: var(--spacing-2x);
     }
 `
 

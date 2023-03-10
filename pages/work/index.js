@@ -10,6 +10,7 @@ import { ArrowUpRight } from 'react-feather'
 import CustomLink from '../../components/CustomLink'
 import Contact from '../../components/Contact'
 import Gallery from '../../components/Gallery'
+import Balancer from 'react-wrap-balancer'
 
 export async function getStaticProps() {
     const allPostsData = getPublishedPostsData();
@@ -32,8 +33,8 @@ export default function WorkIndex({ allPostsData }) {
                 <GridWrapper>
                     <Intro>
                         <Headline>
-                            <p>Charlsy designs visual and interactive experience for products and brands.</p>
-                            <p>He cares deeply about quality and holds craftsmanship dear to heart.</p>
+                            <p>Charlsy designs visual and interactive experience for products and&nbsp;brands.</p>
+                            <p>He cares deeply about quality and holds craftsmanship dear to&nbsp;heart.</p>
                         </Headline>
                         <Callout>
                             <p>Charlsy will graduate soon in June 2023 and is looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
@@ -117,21 +118,27 @@ const Intro = styled.section`
     grid-column: 7 / -1;
     padding-top: 10rem;
     max-width: 33rem;
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+        padding-top: 8rem;
+    }
 `
 
 
 const Headline = styled.div`    
     margin-bottom: var(--spacing-3x);
 
-    @media ${QUERIES.tabletAndBelow} {
-      font-size: var(--font-size-l);
-    }
-
     & p {
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-xl);
         line-height: 1.3;
         color: var(--color-gray-900);
+        
+        @media ${QUERIES.tabletAndBelow} {
+            font-size: var(--font-size-l);
+            hyphens: auto;
+        }
     }
 
     & p+p {
@@ -150,6 +157,10 @@ const Callout = styled.div`
     & p {
         line-height: 1.3;
     }
+
+    @media ${QUERIES.phoneAndBelow} {
+        margin-bottom: calc(var(--spacing-1x) * 6);
+    }
 `
 
 const ContactLinks = styled.div`
@@ -161,12 +172,23 @@ const ContactLinks = styled.div`
     & p {
         color: var(--color-gray-600);
     }
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-bottom: var(--spacing-4x);
+    }
 `
 
 const Experience = styled.section`
     display: flex;
     flex-direction: column;
     grid-column: -5 / -1;
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+    }
 `
 
 const TableTitle = styled.p`
@@ -181,7 +203,7 @@ const Table = styled.table`
 const TableRow = styled.tr`
     border-bottom: 1px solid var(--color-divider);
     display: grid;
-    grid-template-columns: 0.5fr 1fr 2fr;
+    grid-template-columns: 0.5fr 1fr 2.5fr;
     column-gap: 16px;
     padding: 6px 0;
     padding-right: 24px;
@@ -189,9 +211,13 @@ const TableRow = styled.tr`
     font-weight: var(--font-weight-normal);
     color: var(--color-gray-600);
     
-
     &:first-of-type {
         border-top: 1px solid var(--color-divider);
+    }
+
+
+    @media ${QUERIES.phoneAndBelow} {
+        padding-right: 0;
     }
 `
 
@@ -220,12 +246,21 @@ const Projects = styled.section`
     margin-bottom: 12rem;
     border-top: 1px solid var(--color-divider);
     padding-top: var(--spacing-2x);
+
+    @media ${QUERIES.phoneAndBelow} {
+        margin-bottom: 5rem;
+    }
 `
 
 const SectionHeading = styled.h2`
     font-size: var(--font-size-m);
     font-weight: var(--font-weight-normal);
     margin-bottom: var(--spacing-3x);
+
+    @media ${QUERIES.phoneAndBelow} {
+        font-size: var(--font-size-s);
+        margin-bottom: var(--spacing-2x);
+    }
 `
 
 const ProjectGrid = styled.ul`
@@ -245,6 +280,21 @@ const ProjectGrid = styled.ul`
         grid-column: 1 / -1;
         margin-right: 25%;
     }
+
+    @media ${QUERIES.phoneAndBelow} {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-5x);
+        margin-top: 0;
+
+        & li:first-of-type {
+            margin-left: calc(-1 * var(--hover-area));
+        }
+
+        & li:last-of-type {
+            margin-right: calc(-1 * var(--hover-area));
+        }
+    }
 `
 
 const Craft = styled.section`
@@ -260,6 +310,10 @@ const ReDream = styled.div`
 
     & video {
         width: 100%;
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
     }
 `
 

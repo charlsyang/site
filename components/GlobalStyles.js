@@ -66,6 +66,7 @@ const GlobalStyles = createGlobalStyle`
         --font-ampersand: ${FAMILIES.ampersand};
 
         --font-size-base: 16;
+        --font-size-xxs: calc(12 / var(--font-size-base) * 1rem);
         --font-size-xs: calc(14 / var(--font-size-base) * 1rem);
         --font-size-s: calc(16 / var(--font-size-base) * 1rem);
         --font-size-m: calc(18 / var(--font-size-base) * 1rem);
