@@ -57,7 +57,7 @@ const Main = styled(GridWrapper)`
         font-size: var(--font-size-m);
 
         @media ${QUERIES.tabletAndBelow} {
-        font-size: var(--font-size-s);
+            font-size: var(--font-size-s);
         }
     }
     
@@ -82,6 +82,10 @@ const Content = styled.div`
     width: min(30rem, 100%);
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+    }
 `
 
 const PageHead = styled.h1`
