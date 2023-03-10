@@ -121,7 +121,6 @@ const Intro = styled.section`
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;
-        padding-top: 8rem;
     }
 `
 
@@ -134,15 +133,19 @@ const Headline = styled.div`
         font-size: var(--font-size-xl);
         line-height: 1.3;
         color: var(--color-gray-900);
-        
-        @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-l);
-            hyphens: auto;
-        }
     }
 
     & p+p {
         text-indent: 2em;
+    }
+
+    @media ${QUERIES.tabletAndBelow} {
+        margin-bottom: var(--spacing-4x);
+
+        & p {
+            font-size: var(--font-size-l);
+            hyphens: auto;
+        }
     }
 `
 

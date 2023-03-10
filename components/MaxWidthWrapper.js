@@ -10,8 +10,8 @@ const MaxWidthWrapper = styled.div`
   padding-right: 40px;
 
   @media ${QUERIES.phoneAndBelow} {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: var(--spacing-2x);
+    padding-right: var(--spacing-2x);
   }
 `;
 

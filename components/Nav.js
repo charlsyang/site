@@ -9,17 +9,17 @@ import { QUERIES } from '../utils/constants';
 const Nav = () => {
     return (
         <MaxWidthWrapper>
-        <NavWrapper>
-            <Home>
-                <Link href='/'>
-                    <StyledFleuron/>
-                </Link>
-            </Home>
-            <NavLinks>
-                <Link href='/work'>Work</Link>
-                <Link href='/blog'>Blog</Link>
-            </NavLinks>
-        </NavWrapper>
+            <NavWrapper>
+                <Home>
+                    <Link href='/'>
+                        <StyledFleuron/>
+                    </Link>
+                </Home>
+                <NavLinks>
+                    <Link href='/work'>Work</Link>
+                    <Link href='/blog'>Blog</Link>
+                </NavLinks>
+            </NavWrapper>
         </MaxWidthWrapper>
     );
 }
@@ -32,6 +32,7 @@ const NavWrapper = styled(GridWrapper)`
 
     @media ${QUERIES.phoneAndBelow} {
         display: flex;
+        gap: var(--spacing-2x);
     }
 `
 
