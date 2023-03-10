@@ -162,6 +162,7 @@ const Callout = styled.div`
     }
 
     @media ${QUERIES.phoneAndBelow} {
+        padding: 16px 20px 16px 20px;
         margin-bottom: calc(var(--spacing-1x) * 6);
     }
 `
