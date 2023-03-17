@@ -47,7 +47,7 @@ export default function ProjectHead(props) {
 
 const Header = styled.header`
     margin-top: 10rem;
-    margin-bottom: 5rem;
+    margin-bottom: 3rem;
 
     @media ${QUERIES.phoneAndBelow} {
         margin-bottom: 2rem;

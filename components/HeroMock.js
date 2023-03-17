@@ -23,7 +23,7 @@ export default function HeroMock({type, source}) {
 
 const HeroMockWrapper = styled.div`
     padding: ${props => props.type == 'video' ? '64px 72px' : '0' };
-    margin: 40px 0 72px 0;
+    margin: 40px 0 3rem 0;
     background-color: var(--color-block);
 
     @media ${QUERIES.phoneAndBelow} {

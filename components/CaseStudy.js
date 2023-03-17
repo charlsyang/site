@@ -15,7 +15,7 @@ const CaseStudy = styled.article`
     // Headings
 
     & h2 {
-        font-size: var(--font-size-s);
+        font-size: var(--font-size-xs);
         font-weight: var(--font-weight-bold);
         color: var(--color-gray-600);
         text-transform: uppercase;
