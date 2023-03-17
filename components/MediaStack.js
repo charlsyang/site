@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { QUERIES } from '../utils/constants';
 
 export default function MediaStack({children}) {
     return (
@@ -13,4 +14,9 @@ const MediaStackWrapper = styled.div`
     flex-direction: column;
     gap: var(--spacing-3x);
     margin: 4rem 0;
+
+    @media ${QUERIES.phoneAndBelow} {
+        gap: var(--spacing-2x);
+        margin: 2rem 0;
+    }
 `

@@ -17,6 +17,10 @@ export default function Contact({children}) {
 const ContactWrapper = styled(GridWrapper)`
     margin: 10rem 0 12rem 0;
     border-top: 1px solid var(--color-divider);
+
+    @media ${QUERIES.phoneAndBelow} {
+        margin: 8rem 0 8rem 0;
+    }
 `
 
 const Content = styled.section`

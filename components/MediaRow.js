@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { QUERIES } from '../utils/constants';
 
 export default function MediaRow({content, single, bg}) {
     return (
@@ -25,12 +26,18 @@ export default function MediaRow({content, single, bg}) {
 const MediaRowWrapper = styled.div`
     max-width: 1200px;
 	display: flex;
-	gap: 24px;
+	gap: var(--spacing-3x);
     margin: ${props => props.isSingle ? '4rem 0' : '0' };
 
     & img, video {
         width: 100%;
         display: block;
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        flex-direction: column;
+        gap: var(--spacing-2x);
+        margin: ${props => props.isSingle ? '2rem 0' : '0' };
     }
 `
 
@@ -47,6 +54,13 @@ const FigCaption = styled.figcaption`
     color: var(--color-gray-600);
     margin-top: var(--spacing-2x);
     margin-bottom: var(--spacing-3x);
+    line-height: 1.5;
+
+    @media ${QUERIES.phoneAndBelow} {
+        margin-top: var(--spacing-1x);
+        font-size: var(--font-size-xs);
+        margin-bottom: 0;
+    }
 `
 
 const Video = styled.div`

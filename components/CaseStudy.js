@@ -2,12 +2,10 @@ import styled from 'styled-components';
 import { QUERIES } from '../utils/constants';
 
 const CaseStudy = styled.article`   
-    margin-bottom: 10rem;
     color: var(--color-gray-900);
     position: relative;
 
-    @media ${QUERIES.tabletAndBelow} {
-        width: 50ch;
+    @media ${QUERIES.phoneAndBelow} {
     }
 
     & * {
@@ -17,23 +15,17 @@ const CaseStudy = styled.article`
     // Headings
 
     & h2 {
-        font-size: var(--font-size-xs);
+        font-size: var(--font-size-s);
         font-weight: var(--font-weight-bold);
         color: var(--color-gray-600);
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-top: clamp(2rem, 10vw, 11rem);
+        margin-top: clamp(4rem, 10vw, 11rem);
         margin-bottom: var(--spacing-1x);
 
         @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-s);
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+            font-size: var(--font-size-xxs);
         }
-    }
-
-    & time+h2 {
-        margin-top: 0;  // Remove top margin if article starts with H2
     }
 
     & h3 {
@@ -46,8 +38,7 @@ const CaseStudy = styled.article`
         width: 32%;  
 
         @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-s);
-            margin-top: 1.75rem;
+            font-size: var(--font-size-l);
             margin-bottom: 0.75rem; 
             position: revert;
             width: 100%;
@@ -62,6 +53,15 @@ const CaseStudy = styled.article`
         margin-left: 51%;
         margin-top: 4rem;
         margin-bottom: var(--spacing-2x);
+
+        @media ${QUERIES.tabletAndBelow} {
+            font-size: var(--font-size-m);
+            margin-left: 0;
+            margin-top: 3rem;
+            margin-bottom: 0.75rem; 
+            position: revert;
+            width: 100%;
+        }
     }
 
     // Paragraph
@@ -78,9 +78,13 @@ const CaseStudy = styled.article`
         margin-bottom: 1rem;
 
         @media ${QUERIES.tabletAndBelow} {
-            position: revert;
+            position: static;
             width: 100%;
             margin-left: 0;
+        }
+
+        @media ${QUERIES.phoneAndBelow} {
+            font-size: var(--font-size-s);
         }
     }
 
@@ -88,6 +92,11 @@ const CaseStudy = styled.article`
         font-size: var(--font-size-l);
         line-height: 1.4;
         margin-bottom: 10rem;
+
+        @media ${QUERIES.phoneAndBelow} {
+            font-size: var(--font-size-m);
+            margin-bottom: 6rem;
+        }
     }
 
     & h3+p {
