@@ -90,7 +90,6 @@ const CaseStudy = styled.article`
 
     & > p:first-of-type {  // Project summary
         font-size: var(--font-size-l);
-        line-height: 1.4;
         margin-bottom: 10rem;
 
         @media ${QUERIES.phoneAndBelow} {
@@ -101,6 +100,10 @@ const CaseStudy = styled.article`
 
     & h3+p {
         padding-top: 2px; // To achieve baseline alignment with h3
+    }
+
+    & h3+h4 {
+        margin-top: 0; // Remove top margin when h4 directly follows h3
     }
 
     & a {

@@ -26,6 +26,7 @@ const ContactWrapper = styled(GridWrapper)`
 const Content = styled.section`
     grid-column: 7 / -2;
     font-size: var(--font-size-l);
+    font-weight: var(--font-weight-normal);
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;

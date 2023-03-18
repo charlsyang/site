@@ -1,12 +1,108 @@
 ---
 title: 'Voltality'
-subtitle: 'Connecting volunteers with matched opportunities'
+subtitle: 'Connecting volunteers with opportunities that matches their values and interest'
 type: ['Mobile', 'UI']
 cover: '/project_vol/cover.png'
-timeline: ['Sep–Nov', 'Fall 2021']
+timeline: ['September–November', 'Fall 2021']
 team: ['Joyce Chang', 'Alexa Schlein', 'Carla Castillo']
 contribution: ['Visual design', 'Interaction design', 'Motion design']
 isPublished: true
 ---
 
-Work in progress...😅
+<HeroMock type='image' source='/project_vol/vol-hero.png'/>
+
+Young adult volunteers tend to bear the time-intensive responsibility to search for the volunteering opportunities and events. How might we make it easier for motivated young adults to find information about volunteering opportunities online? Introducing Voltality, a centralized volunteering resource platform that connects volunteers with opportunities that align with their values and interests. 
+
+## Matching
+### Volunteering events that truly match your preferences
+
+Ten matched volunteering opportunities will show up in the inbox every day. Recommendations are made based on users’ preferences that they self-report such as location, format, and skills required. Users will evaluate their matches and take action: swipe left to archive, swipe right to save.
+
+<MediaStack>
+<MediaRow content= {[
+    {type: 'video', source: '/project_vol/matching-swipe.mp4'}
+]}/>
+<MediaRow content= {[
+    {type: 'video', source: '/project_vol/matching-metric.mp4', caption: 'Users can look into why the opportunity is recommended'},
+    {type: 'video', source: '/project_vol/matching-filter.mp4', caption: 'Users can further customize recommendation using filters'}
+]}/>
+</MediaStack>
+
+## Community
+### A place for like-minded volunteers and your favorite organizations
+
+Research revealed that frequent volunteers often find opportunities through their networks, and new volunteers often get into volunteering asked by friends. Therefore, Voltality aims to be a place that connects users with friends and like-minded volunteers, allowing them to leverage their network to find volunteering opportunities.
+
+<MediaStack>
+<MediaRow content= {[
+    {type: 'video', source: '/project_vol/community-feed.mp4'}
+]}/>
+<MediaRow content= {[
+    {type: 'video', source: '/project_vol/community-follow.mp4', caption: 'Connect with volunteer friends and get updates from favorite organizations'},
+    {type: 'video', source: '/project_vol/community-mention.mp4', caption: 'Discover like-minded volunteers and opportunities through the mention feature'}
+]}/>
+</MediaStack>
+
+## Explore
+### Explore opportunities contextually based on time, location, and more
+
+The Explore tab is where volunteers discover opportunities beyond those that are recommended to them. It surfaces users’ saved opportunities upfront as a reminder to go or apply, and shows contextually relevant events that are happening soon and near users’ location. Users can also use tags to filter down opportunities, or directly search with keywords.
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/explore.png'}
+]} single='true'/>
+
+## Entities
+### At the core of the platform is three interacting entities: events, volunteers, and organizations
+
+#### Event Detail
+
+The event detail page shows everything that volunteers need to know about an event. By showing which friends are going, it reinforces the social aspect of the platform. Here, users can make an informed decision to share, sign up, or save for later.
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/event-chart.png'},
+    {type: 'video', source: '/project_vol/event-detail.mp4'}
+]} single='true'/>
+
+#### Volunteer Profile
+
+The volunteer profile represents a volunteer’s identity and activity on the platform. It shows users’ interested causes and skillset as labels to help people recognize like-minded peers at a glance. The profile also shows all events attended, posts sent, posts that mentioned the person, as well as badges collected.
+
+By intentionally hiding the followers count, the profile removes the vanity metric that goes against the intention of the platform to foster meaning connections. On the other hand, the following list is retained because it could become a useful trail of discovery.
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/volunteer-chart.png'},
+    {type: 'image', source: '/project_vol/volunteer-profile.png'}
+]} single='true'/>
+
+#### Organization Profile
+
+The organization profile is where nonprofits and alike show their contact information and the events they are recruiting volunteers for. 
+
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/org-chart.png'},
+    {type: 'image', source: '/project_vol/org-profile.png'}
+]} single='true'/>
+
+## Design Language
+### A vibrant design language built with atomic components
+
+The design language of Voltality is vibrant, warm, and welcoming. Just as its name suggests—a volunteering platform that’s full of vitality. The language is materialized by an atomic design system with a series of components.
+
+<MediaStack>
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/lang-radius.png'},
+    {type: 'image', source: '/project_vol/lang-color.png'},
+    {type: 'image', source: '/project_vol/lang-type.png'}
+]}/>
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/lang-atomic.png', caption: 'The construction of the community feed'}
+]}/>
+<MediaRow content= {[
+    {type: 'image', source: '/project_vol/lang-event-card.png', caption: 'Different variants of the event card component with varying level of details'}
+]}/>
+</MediaStack>
+
+
+<Contact>Interested in the process and how I iterated on the UI? Hit me up for a deep dive of the project.</Contact>
+

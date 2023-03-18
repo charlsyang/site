@@ -12,7 +12,14 @@ export default function MediaRow({content, single, bg}) {
                                 <FigCaption>{item.caption}</FigCaption>
                             </Figure>
                         );
-					} else if (item.type == 'image') {
+					} else if (item.type == 'video' && item.caption !== undefined) {
+                        return (
+                            <Video key = {index}>
+                                <video src={item.source} autoPlay loop muted draggable='false'/>
+                                <FigCaption>{item.caption}</FigCaption>
+                            </Video>
+                        );
+                    } else if (item.type == 'image') {
                         return <Figure key = {index}><Img src={item.source} bg={bg} draggable='false'/></Figure>
                     } else if (item.type == 'video') {
 						return <Video key = {index}><video src={item.source} autoPlay loop muted draggable='false'/></Video>;

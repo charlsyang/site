@@ -119,10 +119,10 @@ const Contribution = styled.div`
 const DataList = styled.ul`
     display: flex;
     flex-direction: column;
-    /* align-items: flex-start; */
     gap: var(--spacing-s);
 
     & li {
+        font-weight: var(--font-weight-normal);
         line-height: 1.3;
     }
 `

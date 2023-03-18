@@ -60,6 +60,7 @@ const Title = styled.span`
 
 const ProjectType = styled.p`
     font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
     color: var(--color-gray-600);
 
     @media ${QUERIES.phoneAndBelow} {

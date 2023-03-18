@@ -150,15 +150,16 @@ const Headline = styled.div`
 `
 
 const Callout = styled.div`
-    padding: 16px 24px 14px 24px;
+    padding: 16px 24px;
     border-radius: 6px;
     border: 1px solid var(--color-gray-100);
     background-color: var(--color-block);
     margin-bottom: calc(var(--spacing-1x) * 8);
     color: var(--color-article-body);
+    font-weight: var(--font-weight-normal);
 
     & p {
-        line-height: 1.3;
+        line-height: 1.4;
     }
 
     @media ${QUERIES.phoneAndBelow} {
@@ -172,6 +173,7 @@ const ContactLinks = styled.div`
     display: flex;
     flex-direction: column;
     gap: var(--spacing-3x);
+    font-weight: var(--font-weight-normal);
 
     & p {
         color: var(--color-gray-600);
@@ -325,6 +327,7 @@ const MediaTitle = styled.div`
     display: flex;
     gap: var(--spacing-s);
     align-items: center;
+    font-weight: var(--font-weight-normal);
 
     & svg {
         color: var(--color-gray-600);
