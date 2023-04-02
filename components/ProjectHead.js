@@ -104,6 +104,17 @@ const DataRoll = styled.div`
         gap: var(--spacing-5x);
         white-space: nowrap;
         overflow-x: auto;
+        --gradient-size-start: var(--spacing-3x);
+        --gradient-size-end: 20%;
+        mask-image: linear-gradient(to right, transparent 0, #000 var(--gradient-size-start), #000 calc(100% - var(--gradient-size-end)), transparent 100%);
+        margin-left: -16px;
+        padding-left: 16px;
+        padding-right: 48px;
+        padding-bottom: var(--spacing-4x);
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 `
 
