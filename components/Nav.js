@@ -8,12 +8,12 @@ import { QUERIES } from '../utils/constants';
 
 const Nav = () => {
     return (
+        <>
+        <Blur/>
         <MaxWidthWrapper>
             <NavWrapper>
-                <Home>
-                    <Link href='/'>
-                        <StyledFleuron/>
-                    </Link>
+                <Home href='/'>
+                    <StyledFleuron/>
                 </Home>
                 <NavLinks>
                     <Link href='/work'>Work</Link>
@@ -21,14 +21,14 @@ const Nav = () => {
                 </NavLinks>
             </NavWrapper>
         </MaxWidthWrapper>
+        </>
     );
 }
 
 const NavWrapper = styled(GridWrapper)`
-    padding-top: var(--spacing-3x);
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 1200px;
+    position: relative;
+    z-index: 2;
+    padding-top: var(--spacing-2x);
 
     @media ${QUERIES.phoneAndBelow} {
         display: flex;
@@ -36,13 +36,32 @@ const NavWrapper = styled(GridWrapper)`
     }
 `
 
-const Home = styled.div`
+const Blur = styled.div`
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    backdrop-filter: blur(16px);
+    mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+    width: 100vw;
+    height: 48px;
+
+    &::after {
+        content:"";
+        position: fixed;
+        top: 0;
+        inset:0;
+        background-image: linear-gradient(to bottom, var(--color-bg) 0, transparent 100%);
+        opacity: 0.3;
+    }
+`
+
+const Home = styled(Link)`
     max-width: 24px;
 `
 
 const StyledFleuron = styled(Fleuron)`
     display: block;
-    transform: scale(0.9);
+    transform: scale(0.9) translateY(-1px);
     & path {
         fill: var(--color-gray-600);
         transition: var(--transition-slow);
@@ -60,7 +79,8 @@ const NavLinks = styled.nav`
     grid-column: 7 / -1;
     display: flex;
     gap: var(--spacing-4x);
-
+    position: relative;
+    
     & a {
         font-size: var(--font-size-s);
         color: var(--color-gray-600);
@@ -75,7 +95,5 @@ const NavLinks = styled.nav`
         gap: var(--spacing-2x);
     }
 `
-
-
 
 export default Nav;
