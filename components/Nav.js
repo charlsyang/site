@@ -9,25 +9,26 @@ import { QUERIES } from '../utils/constants';
 const Nav = () => {
     return (
         <>
-        <Blur/>
-        <MaxWidthWrapper>
+            {/* <Blur/> */}
             <NavWrapper>
-                <Home href='/'>
-                    <StyledFleuron/>
-                </Home>
-                <NavLinks>
-                    <Link href='/work'>Work</Link>
-                    <Link href='/blog'>Blog</Link>
-                </NavLinks>
+                <NavGrid>
+                    <Home href='/'>
+                        <StyledFleuron/>
+                    </Home>
+                    <NavLinks>
+                        <Link href='/work'>Work</Link>
+                        <Link href='/blog'>Blog</Link>
+                    </NavLinks>
+                </NavGrid>
             </NavWrapper>
-        </MaxWidthWrapper>
         </>
     );
 }
 
-const NavWrapper = styled(GridWrapper)`
-    position: relative;
-    z-index: 2;
+const NavWrapper = styled(MaxWidthWrapper)`
+`
+
+const NavGrid = styled(GridWrapper)`
     padding-top: var(--spacing-2x);
 
     @media ${QUERIES.phoneAndBelow} {
@@ -39,20 +40,20 @@ const NavWrapper = styled(GridWrapper)`
 const Blur = styled.div`
     position: fixed;
     top: 0;
-    z-index: 1;
+    background-color: #000;
     backdrop-filter: blur(16px);
-    mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+    /* mask-image: linear-gradient(to bottom, #000 0, transparent 100%); */
     width: 100vw;
     height: 48px;
 
-    &::after {
+    /* &::after {
         content:"";
         position: fixed;
         top: 0;
         inset:0;
         background-image: linear-gradient(to bottom, var(--color-bg) 0, transparent 100%);
         opacity: 0.3;
-    }
+    } */
 `
 
 const Home = styled(Link)`
