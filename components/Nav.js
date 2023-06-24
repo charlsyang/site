@@ -9,7 +9,7 @@ import { QUERIES } from '../utils/constants';
 const Nav = () => {
     return (
         <>
-            {/* <Blur/> */}
+            <Blur/>
             <NavWrapper>
                 <NavGrid>
                     <Home href='/'>
@@ -26,6 +26,7 @@ const Nav = () => {
 }
 
 const NavWrapper = styled(MaxWidthWrapper)`
+    z-index: 2;
 `
 
 const NavGrid = styled(GridWrapper)`
@@ -40,20 +41,22 @@ const NavGrid = styled(GridWrapper)`
 const Blur = styled.div`
     position: fixed;
     top: 0;
-    background-color: #000;
     backdrop-filter: blur(16px);
-    /* mask-image: linear-gradient(to bottom, #000 0, transparent 100%); */
+    z-index: 1;
+    mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
     width: 100vw;
     height: 48px;
 
-    /* &::after {
+    &::after {
         content:"";
         position: fixed;
         top: 0;
         inset:0;
+        width: 100vw;
+        height: 48px;
         background-image: linear-gradient(to bottom, var(--color-bg) 0, transparent 100%);
         opacity: 0.3;
-    } */
+    }
 `
 
 const Home = styled(Link)`
