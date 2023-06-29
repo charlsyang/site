@@ -53,12 +53,12 @@ const Figure = styled.figure`
 `
 
 const Img = styled.img`
-    background-color: ${props => props.bg ? 'var(--color-block)' : 'none' };
+    background-color: ${props => props.bg ? 'var(--color-bg-solid)' : 'none' };
 `
 
 const FigCaption = styled.figcaption`
     font-size: var(--font-size-s);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     margin-top: var(--spacing-2x);
     margin-bottom: var(--spacing-3x);
     line-height: 1.5;

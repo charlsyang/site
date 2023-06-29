@@ -91,7 +91,7 @@ const Content = styled.div`
 const PageHead = styled.h1`
     font-size: var(--font-size-l);
     font-weight: var(--font-weight-bold);
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
     margin-bottom: var(--spacing-6x);
 
     @media ${QUERIES.tabletAndBelow} {
@@ -114,7 +114,7 @@ const BlogItem = styled.li`
 `
 
 const StyledDate = styled.p`
-  color: var(--color-gray-600);
+  color: var(--color-text-muted);
 `
 
 export default BlogIndex;

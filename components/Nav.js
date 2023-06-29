@@ -46,15 +46,14 @@ const Blur = styled.div`
     mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
     width: 100vw;
     height: 48px;
+    user-select: none;
+    pointer-events: none;
 
     &::after {
         content:"";
-        position: fixed;
-        top: 0;
         inset:0;
-        width: 100vw;
-        height: 48px;
-        background-image: linear-gradient(to bottom, var(--color-bg) 0, transparent 100%);
+        position: absolute;
+        background-image: linear-gradient(to bottom, var(--color-bg-base) 0, transparent 100%);
         opacity: 0.3;
     }
 `
@@ -67,13 +66,13 @@ const StyledFleuron = styled(Fleuron)`
     display: block;
     transform: scale(0.9) translateY(-1px);
     & path {
-        fill: var(--color-gray-600);
+        fill: var(--color-text-muted);
         transition: var(--transition-slow);
     }
 
     &:hover {
         & path {
-            fill: var(--color-gray-900);
+            fill: var(--color-text-base);
             transition: var(--transition-default);
         }
     }
@@ -87,12 +86,12 @@ const NavLinks = styled.nav`
     
     & a {
         font-size: var(--font-size-s);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         text-decoration: none;
     }
 
     & a:hover {
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
     }
 
     @media ${QUERIES.phoneAndBelow} {

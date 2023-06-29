@@ -35,7 +35,7 @@ const Card = styled.li`
     }
 
     &:hover {
-        background-color: var(--color-divider);
+        background-color: var(--color-bg-hover);
         transition: background-color var(--transition-default);
     }
 `
@@ -43,7 +43,7 @@ const Card = styled.li`
 const Heading = styled.h3`
     font-size: var(--font-size-m);
     font-weight: var(--font-weight-normal);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     line-height: 1.3;
     margin: var(--spacing-1x) 0;
     width: 80%;
@@ -55,13 +55,13 @@ const Heading = styled.h3`
 `
 
 const Title = styled.span`
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
 `
 
 const ProjectType = styled.p`
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-normal);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
 
     @media ${QUERIES.phoneAndBelow} {
         font-size: var(--font-size-xxs);

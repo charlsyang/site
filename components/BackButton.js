@@ -23,12 +23,12 @@ const Back = styled.a`
     width: 6rem;
     display: flex;
     align-items: center;
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     cursor: pointer;
     text-decoration: none;
 
     &:hover {
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
     }
 
     &:hover span:last-of-type {

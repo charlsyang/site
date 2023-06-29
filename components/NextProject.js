@@ -38,7 +38,7 @@ const Heading = styled.h4`
     grid-column: 1 / 4;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-bold);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
 

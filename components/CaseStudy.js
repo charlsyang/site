@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { QUERIES } from '../utils/constants';
 
 const CaseStudy = styled.article`   
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
     position: relative;
 
     @media ${QUERIES.phoneAndBelow} {
@@ -17,7 +17,7 @@ const CaseStudy = styled.article`
     & h2 {
         font-size: var(--font-size-xs);
         font-weight: var(--font-weight-bold);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-top: clamp(4rem, 10vw, 11rem);
@@ -32,7 +32,7 @@ const CaseStudy = styled.article`
         font-size: var(--font-size-xl);
         font-weight: var(--font-weight-medium);
         line-height: 1.25;;
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
         margin-bottom: 1rem;
         position: absolute;
         width: 32%;  
@@ -48,7 +48,7 @@ const CaseStudy = styled.article`
     & h4 {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-normal);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         width: 49%;
         margin-left: 51%;
         margin-top: 4rem;
@@ -69,7 +69,7 @@ const CaseStudy = styled.article`
     & > p {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-normal);
-        color: var(--color-article-body);       
+        color: var(--color-text-article);       
         line-height: 1.5;
         hyphens: auto;
         hanging-punctuation: first;

@@ -133,7 +133,7 @@ const Intro = styled.header`
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     line-height: 1.3;
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
 
     @media ${QUERIES.tabletAndBelow} {
       font-size: var(--font-size-l);
@@ -158,7 +158,7 @@ const StyledBalancer = styled(Balancer)`
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     line-height: 1.3;
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
 
     @media ${QUERIES.tabletAndBelow} {
       font-size: var(--font-size-l);
@@ -198,11 +198,11 @@ const Blog = styled.section`
 const SectionTitle = styled.h2`
   grid-column: 1 / 2;
   font-weight: var(--font-weight-normal);
-  color: var(--color-gray-600);
+  color: var(--color-text-muted);
 
   @media ${QUERIES.phoneAndBelow} {
     padding-bottom: var(--spacing-1x);
-    border-bottom: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--colo-border);
   }
 `
 
@@ -227,7 +227,7 @@ const AllBlog = styled.a`
   display: flex;
   align-items: center;
   gap: var(--spacing-s);
-  color: var(--color-gray-900);
+  color: var(--color-text-base);
   cursor: pointer;
   
   & svg {
@@ -245,7 +245,7 @@ const AllBlog = styled.a`
 `
 
 const StyledDate = styled.p`
-  color: var(--color-gray-600);
+  color: var(--color-text-muted);
 `
 
 const Now = styled.section`
@@ -273,7 +273,7 @@ const NowContent = styled.div`
   grid-column: 2 / -1;
 
   & p {
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
     line-height: 1.5;
     hyphens: auto;
   }
@@ -292,16 +292,16 @@ const ReadingLabel = styled.p`
   letter-spacing: 1px;
   text-transform: lowercase;
   font-variant: small-caps;
-  color: var(--color-gray-300);
+  color: var(--color-text-faint);
   margin-bottom: var(--spacing-1x);
 `
 
 const BookTitle = styled.p`
-  color: var(--color-gray-900);
+  color: var(--color-text-base);
 `
 
 const Author = styled.p`
-  color: var(--color-gray-600);
+  color: var(--color-text-muted);
 `
 
 const Contact = styled.section`
@@ -342,5 +342,5 @@ const ContactItem = styled.div`
 `
 
 const ContactItemLabel = styled.p`
-  color: var(--color-gray-300);
+  color: var(--color-text-faint);
 `

@@ -58,7 +58,7 @@ const GalleryWrapper = styled.div`
     & img, video {
         width: 100%;
         height: auto;
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
     }
 
     @media ${QUERIES.phoneAndBelow} {

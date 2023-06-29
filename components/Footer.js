@@ -42,21 +42,21 @@ const Divider = styled.div`
     
     background-image: linear-gradient(
         90deg,
-        var(--color-bg) 0%,
-        var(--color-divider) 25%,
-        var(--color-divider) 50%,
-        var(--color-divider) 75%,
-        var(--color-bg) 100%
+        var(--color-bg-base) 0%,
+        var(--color-border) 25%,
+        var(--color-border) 50%,
+        var(--color-border) 75%,
+        var(--color-bg-base) 100%
     );
 
     @media ${QUERIES.laptopAndBelow} {
         background-image: linear-gradient(
             90deg,
-            var(--color-bg) 0%,
-            var(--color-divider) 10%,
-            var(--color-divider) 50%,
-            var(--color-divider) 90%,
-            var(--color-bg) 100%
+            var(--color-bg-base) 0%,
+            var(--color-border) 10%,
+            var(--color-border) 50%,
+            var(--color-border) 90%,
+            var(--color-bg-base) 100%
         );
     }
 `
@@ -71,7 +71,7 @@ const FooterContent = styled.div`
 const Footnote = styled.p`
     font-size: var(--font-size-xs);
     font-family: var(--font-sans);
-    color: var(--color-gray-300);
+    color: var(--color-text-faint);
 `
 
 const Ampersand = styled.span`
@@ -84,11 +84,11 @@ const Ampersand = styled.span`
 const Colophon = styled.a`
     font-family: var(--font-sans);
     font-size: var(--font-size-xs);
-    color: var(--color-gray-300);
+    color: var(--color-text-faint);
     text-decoration: none;
 
     & :hover {
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
         cursor: pointer;
     }
 `

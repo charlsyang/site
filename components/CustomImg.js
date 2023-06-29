@@ -29,7 +29,7 @@ const FigCaption = styled.figcaption`
   font-family: var(--font-sans);
   font-size: var(--font-size-m);
   font-weight: var(--font-weight-normal);
-  color: var(--color-gray-600);
+  color: var(--color-text-muted);
   margin-top: var(--spacing-2x);
 
   @media ${QUERIES.tabletAndBelow} {

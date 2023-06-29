@@ -81,7 +81,7 @@ const Heading = styled.div`
 const Title = styled.h1`
     font-size: var(--font-size-l);
     font-weight: var(--font-weight-medium);
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
     line-height: 1.25;
     margin-bottom: var(--spacing-1x);
     `
@@ -89,7 +89,7 @@ const Title = styled.h1`
 const Subtitle = styled.h2`
     font-size: var(--font-size-l);
     font-weight: var(--font-weight-normal);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     line-height: 1.25;
 `
 
@@ -142,7 +142,7 @@ const SmallHead = styled.p`
     font-size: var(--font-size-s);
     font-weight: var(--font-weight-normal);
     line-height: 1.3;
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     margin-bottom: var(--spacing-1x);
 `
 

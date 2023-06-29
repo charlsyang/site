@@ -1,8 +1,9 @@
-import {mauve, mauveDark} from '@radix-ui/colors';
+import {violet, violetDark, mauve, mauveDark} from '@radix-ui/colors';
 
 export const THEME = {
     colors: {
         ...mauve,
+        ...violet,
     },
 
     weights: {
@@ -15,6 +16,7 @@ export const THEME = {
 export const DARKTHEME = {
     colors: {
         ...mauveDark,
+        ...violetDark,
     },
 
     weights: {

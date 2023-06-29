@@ -37,7 +37,7 @@ export default function WorkIndex({ allPostsData }) {
                             <p>He cares deeply about quality and holds craftsmanship dear to&nbsp;heart.</p>
                         </Headline>
                         <Callout>
-                            <p>Charlsy will graduate in June 2023 and is looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
+                            <p>Charlsy is actively looking for full-time product design roles. Learn more about <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>Charlsy as a designer</Link>.</p>   
                         </Callout>
                     </Intro>
                     <ContactLinks>
@@ -132,7 +132,7 @@ const Headline = styled.div`
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-xl);
         line-height: 1.3;
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
     }
 
     & p+p {
@@ -152,10 +152,10 @@ const Headline = styled.div`
 const Callout = styled.div`
     padding: 16px 24px;
     border-radius: 6px;
-    border: 1px solid var(--color-gray-100);
-    background-color: var(--color-block);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-solid);
     margin-bottom: calc(var(--spacing-1x) * 8);
-    color: var(--color-article-body);
+    color: var(--color-text-article);
     font-weight: var(--font-weight-normal);
 
     & p {
@@ -176,7 +176,7 @@ const ContactLinks = styled.div`
     font-weight: var(--font-weight-normal);
 
     & p {
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
     }
 
     @media ${QUERIES.phoneAndBelow} {
@@ -198,7 +198,7 @@ const Experience = styled.section`
 `
 
 const TableTitle = styled.p`
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     font-weight: var(--font-weight-normal);
 `
 
@@ -207,7 +207,7 @@ const Table = styled.table`
 `
 
 const TableRow = styled.tr`
-    border-bottom: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--color-border);
     display: grid;
     grid-template-columns: 0.5fr 1fr 2.5fr;
     column-gap: 16px;
@@ -215,10 +215,10 @@ const TableRow = styled.tr`
     padding-right: 24px;
 
     font-weight: var(--font-weight-normal);
-    color: var(--color-gray-600);
+    color: var(--color-text-muted);
     
     &:first-of-type {
-        border-top: 1px solid var(--color-divider);
+        border-top: 1px solid var(--color-border);
     }
 
 
@@ -234,7 +234,7 @@ const TdYear = styled.td`
 `
 
 const TdCompany = styled.td`
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
 `
 
 const TdRole = styled.td`
@@ -250,7 +250,7 @@ const ReadCV = styled.div`
 const Projects = styled.section`
     margin-top: 5rem;
     margin-bottom: 12rem;
-    border-top: 1px solid var(--color-divider);
+    border-top: 1px solid var(--color-border);
     padding-top: var(--spacing-2x);
 
     @media ${QUERIES.phoneAndBelow} {
@@ -304,7 +304,7 @@ const ProjectGrid = styled.ul`
 `
 
 const Craft = styled.section`
-    border-top: 1px solid var(--color-divider);
+    border-top: 1px solid var(--color-border);
     padding-top: var(--spacing-2x);
     display: flex;
     flex-direction: column;
@@ -330,6 +330,6 @@ const MediaTitle = styled.div`
     font-weight: var(--font-weight-normal);
 
     & svg {
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
     }
 `

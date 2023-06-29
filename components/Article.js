@@ -4,8 +4,8 @@ import { QUERIES } from '../utils/constants';
 const Article = styled.article`
     margin-top: calc(10rem - var(--back-button-height));
     margin-bottom: 10rem;
-    color: var(--color-gray-900);
-    width: 60ch;
+    color: var(--color-text-base);
+    max-width: 60ch;
 
     @media ${QUERIES.tabletAndBelow} {
         width: 50ch;
@@ -13,8 +13,12 @@ const Article = styled.article`
 
     & * {
         font-family: var(--font-sans);
-        font-size: var(--font-size-m);
-        color:  var(--color-article-body);        
+        font-size: var(--font-size-l);
+        color:  var(--color-text-article); 
+        
+        @media ${QUERIES.phoneAndBelow} {
+            font-size: var(--font-size-m);
+        }
     }
 
     // Headings
@@ -22,7 +26,7 @@ const Article = styled.article`
     & h1 {
         font-size: var(--font-size-l);
         font-weight: var(--font-weight-bold);
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
         margin-bottom: var(--spacing-s);
 
         @media ${QUERIES.tabletAndBelow} {
@@ -33,7 +37,7 @@ const Article = styled.article`
     & time {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-normal);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         display: block;
         margin-bottom: 4rem;
 
@@ -46,7 +50,7 @@ const Article = styled.article`
     & h2 {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-bold);
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
         margin-top: 2.5rem;
         margin-bottom: 1.25rem;
 
@@ -64,7 +68,7 @@ const Article = styled.article`
     & h3 {
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-medium);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         margin-top: 2rem;
         margin-bottom: 1rem;
 
@@ -79,7 +83,7 @@ const Article = styled.article`
         font-family: var(--font-serif);
         font-size: var(--font-size-m);
         font-weight: var(--font-weight-medium);
-        color: var(--color-gray-900);
+        color: var(--color-text-base);
         font-style: italic;
         margin-top: 1.5rem;
         margin-bottom: 0.25rem;
@@ -95,10 +99,14 @@ const Article = styled.article`
 
     & p {
         font-family: var(--font-serif);
-        line-height: 1.6;
+        line-height: 1.45;
         margin-bottom: 1rem;
         hyphens: auto;
         hanging-punctuation: first;
+
+        @media ${QUERIES.phoneAndBelow} {
+            line-height: 1.4;
+        }
     }
 
     & a {
@@ -107,7 +115,7 @@ const Article = styled.article`
     }
 
     & a:hover, a:hover * {
-        color: var(--color-accent);
+        color: var(--color-link-hover);
     }
 
     & em {
@@ -128,7 +136,7 @@ const Article = styled.article`
 
     & ul {
         --bullet-width: 8px;
-        --bullet-gap: 16px;
+        --bullet-gap: 10px;
         --bullet-indent: calc(var(--bullet-width) + var(--bullet-gap));
         display: flex;
         flex-direction: column;
@@ -142,16 +150,16 @@ const Article = styled.article`
     }
 
     & ul > li::before {
-        content: "*";
+        content: "–";
         position: absolute;
         left: calc(var(--bullet-indent) * -1);
         width: var(--bullet-width);
-        color: var(--color-gray-600);
         font-family: var(--font-sans);
-        font-size: var(--font-size-xl);
+        font-size: var(--font-size-l);
+        color: var(--color-text-faint);
 
         @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-l);
+            font-size: var(--font-size-m);
         }
     }
 
@@ -167,9 +175,9 @@ const Article = styled.article`
     & ol li::marker {
         font-family: var(--font-sans);
         font-size: var(--font-size-s);
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         font-variant-numeric: tabular-nums;
-        letter-spacing: -1px;
+        letter-spacing: -2px;
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-xs);
@@ -185,20 +193,15 @@ const Article = styled.article`
 
     // Blockquote
 
+    & blockquote {
+        border-left: 2px solid var(--color-border);
+        padding-left: 1rem;
+        margin: 2rem 0;
+    }
+
     & blockquote p {
-        font-family: var(--font-serif);
-        font-style: italic;
-        margin-top: 2rem;
-        margin-bottom: 0;
-    }
-
-    & blockquote p+p {
-        margin-top: 0;
-        text-indent: 1.8em;
-    }
-
-    & blockquote p:last-of-type {
-        margin-bottom: 2rem;
+        font-weight: var(--font-weight-normal);
+        color: var(--color-text-muted);
     }
 
     // Inline code
@@ -207,7 +210,7 @@ const Article = styled.article`
         font-family: var(--font-mono);
         font-size: var(--font-size-xs);
         padding: 2px 4px;
-        background-color: var(--mauve6);
+        background-color: var(--color-bg-solid);
         border-radius: 3px;
     }
 
@@ -236,7 +239,7 @@ const Article = styled.article`
 
     & .footnotes::before {
         content: "* * *";
-        color: var(--color-gray-600);
+        color: var(--color-text-muted);
         display: block;
         text-align: center;
         letter-spacing: .5em;
@@ -262,7 +265,7 @@ const Article = styled.article`
 
     & hr {
         border: none;
-        border-top: 1.5px solid var(--color-divider);
+        border-top: 1.5px solid var(--color-border);
         margin-bottom: var(--spacing-5x);
     }
 

@@ -21,7 +21,7 @@ export default function Colophon() {
                                 Given the nature of a one-man team, the site is designed—inevitably—part 
                                 in <CustomLink href='https://www.figma.com/'>Figma</CustomLink>, part in <CustomLink href='https://code.visualstudio.com/'>VS Code</CustomLink>. 
                                 The type is set in <CustomLink href='https://abcdinamo.com/typefaces/diatype'>Diatype</CustomLink> from
-                                 Dinamo and <CustomLink href='https://www.productiontype.com/family/newsreader'>Newsreader</CustomLink> by Hugues Gentile.
+                                 Dinamo and <CustomLink href='https://www.ludwigtype.de/fonts/marat/overview'>Marat</CustomLink> by Ludwig Übele.
                             </p>
                             <p>
                                 Technology-wise the site is built with <CustomLink href='https://nextjs.org/'>Next.js</CustomLink>, 
@@ -66,7 +66,7 @@ const Title = styled.h1`
     font-family: var(--font-serif);
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
-    color: var(--color-gray-900);
+    color: var(--color-text-base);
 
     @media ${QUERIES.tabletAndBelow} {
         font-size: var(--font-size-l);
@@ -79,7 +79,7 @@ const Content = styled.div`
         font-family: var(--font-sans);
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-m);
-        color: var(--color-article-body);
+        color: var(--color-text-article);
         max-width: 40ch;
 
         @media ${QUERIES.tabletAndBelow} {
@@ -96,12 +96,12 @@ const Content = styled.div`
     }
 
     & p > a {
-        /* color: var(--color-gray-600); */
-        color: var(--color-article-body);
+        /* color: var(--color-text-muted); */
+        color: var(--color-text-article);
     }
 
     & p > a:hover {
-        color: var(--color-accent);
+        color: var(--color-link-hover);
     }
 `
 

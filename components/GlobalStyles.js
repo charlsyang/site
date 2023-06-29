@@ -52,7 +52,22 @@ const GlobalStyles = createGlobalStyle`
         font-display: swap;
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
     }
+
+    @font-face {
+        font-family: 'Marat';
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        src: url(/fonts/Marat-Regular.woff2) format('woff2');
+    }
     
+    @font-face {
+        font-family: 'Marat';
+        font-weight: 400;
+        font-style: italic;
+        font-display: swap;
+        src: url(/fonts/Marat-RegularItalic.woff2) format('woff2');
+    }
 
     /* DESIGN TOKENS */
 
@@ -61,7 +76,7 @@ const GlobalStyles = createGlobalStyle`
         /* Typography */
         
         --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
-        --font-serif: 'Newsreader', ${FAMILIES.fallbackSerif};
+        --font-serif: 'Marat', ${FAMILIES.fallbackSerif};
         --font-mono: 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
@@ -110,47 +125,49 @@ const GlobalStyles = createGlobalStyle`
     html,
     body {
         font-family: var(--font-sans);
-        background: var(--color-bg);
+        background: var(--color-bg-base);
         min-height: 100%;
-        --color-accent-hsl: 240 95% 76%;
-        --color-accent: hsla(var(--color-accent-hsl) / 1);
-        --color-accent-500: hsla(var(--color-accent-hsl) / .5);
-        --color-accent-300: hsla(var(--color-accent-hsl) / .3);
     }
 
     :root {
-        --color-bg: ${THEME.colors.mauve1};
-        --color-gray-900: ${THEME.colors.mauve12};
-        --color-gray-600: ${THEME.colors.mauve11};
-        --color-gray-300: ${THEME.colors.mauve9};
-        --color-gray-100: ${THEME.colors.mauve6};
-        --color-article-body: ${DARKTHEME.colors.mauve7};
-        --color-link-underline: ${THEME.colors.mauve8};
-        --color-divider: ${THEME.colors.mauve4};
-        --color-block: ${THEME.colors.mauve3};
+        --color-bg-base: ${THEME.colors.mauve1};
+        --color-bg-solid: ${THEME.colors.mauve3};
+        --color-bg-hover: ${THEME.colors.mauve4};
+        --color-bg-selected: ${THEME.colors.violet5};
+        --color-text-base: ${THEME.colors.mauve12};
+        --color-text-article: ${DARKTHEME.colors.mauve6};
+        --color-text-muted: ${THEME.colors.mauve11};
+        --color-text-faint: ${THEME.colors.mauve9};
+        --color-border: ${THEME.colors.mauve6};
+        --color-link-border: ${THEME.colors.mauve8};
+        --color-link-hover: ${THEME.colors.violet9};
+
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
         --font-weight-bold: ${THEME.weights.bold};
     }
 
     [data-theme='dark'] {
-        --color-bg: ${DARKTHEME.colors.mauve1};
-        --color-gray-900: ${DARKTHEME.colors.mauve12};
-        --color-gray-600: ${DARKTHEME.colors.mauve10};
-        --color-gray-300: ${DARKTHEME.colors.mauve8};
-        --color-gray-100: ${DARKTHEME.colors.mauve6};
-        --color-article-body: ${DARKTHEME.colors.mauve11};
-        --color-link-underline: var(--color-gray-300);
-        --color-divider: ${DARKTHEME.colors.mauve4};
-        --color-block: ${DARKTHEME.colors.mauve2};
+        --color-bg-base: ${DARKTHEME.colors.mauve1};
+        --color-bg-solid: ${DARKTHEME.colors.mauve3};
+        --color-bg-hover: ${DARKTHEME.colors.mauve4};
+        --color-bg-selected: ${DARKTHEME.colors.violet5};
+        --color-text-base: ${DARKTHEME.colors.mauve12};
+        --color-text-article: ${THEME.colors.mauve8};
+        --color-text-muted: ${DARKTHEME.colors.mauve11};
+        --color-text-faint: ${DARKTHEME.colors.mauve9};
+        --color-border: ${DARKTHEME.colors.mauve6};
+        --color-link-border: ${DARKTHEME.colors.mauve8};
+        --color-link-hover: ${DARKTHEME.colors.violet9};
+
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};
         --font-weight-bold: ${DARKTHEME.weights.bold};
     }
 
     a {
-        color: var(--color-gray-900);
-        text-decoration-color: var(--color-link-underline);
+        color: var(--color-text-base);
+        text-decoration-color: var(--color-link-border);
         text-decoration-thickness: 1.5px;
         text-underline-offset: 2.4px;
         text-decoration-skip-ink: auto;        
@@ -158,13 +175,13 @@ const GlobalStyles = createGlobalStyle`
     }
 
     a:hover {
-        color: var(--color-accent);
-        text-decoration-color: var(--color-accent);
+        color: var(--color-link-hover);
+        text-decoration-color: var(--color-link-hover);
         transition: all var(--transition-fast);
     }
 
     ::selection {
-        background-color: var(--color-accent-300);
+        background-color: var(--color-bg-selected);
     }
 
     img {
