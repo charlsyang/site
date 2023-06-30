@@ -16,7 +16,7 @@ const Article = styled.article`
         font-size: var(--font-size-l);
         color:  var(--color-text-article); 
         
-        @media ${QUERIES.phoneAndBelow} {
+        @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-m);
         }
     }
@@ -141,21 +141,23 @@ const Article = styled.article`
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        margin-left: var(--bullet-indent);
         margin-bottom: 1rem;
 
         @media ${QUERIES.tabletAndBelow} {
-            --bullet-gap: 12px;
+            --bullet-gap: 8px;
+        }
+        
+        @media ${QUERIES.phoneAndBelow} {
+            padding-left: var(--spacing-2x);
         }
     }
 
     & ul > li::before {
-        content: "–";
+        content: "⁃";
         position: absolute;
         left: calc(var(--bullet-indent) * -1);
         width: var(--bullet-width);
         font-family: var(--font-sans);
-        font-size: var(--font-size-l);
         color: var(--color-text-faint);
 
         @media ${QUERIES.tabletAndBelow} {
@@ -168,20 +170,32 @@ const Article = styled.article`
         flex-direction: column;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        list-style-type: decimal;
-        padding-left: var(--spacing-4x);
+        list-style-type: none;
+        counter-reset: list-item;
+
+        @media ${QUERIES.phoneAndBelow} {
+            padding-left: var(--spacing-3x);
+        }
     }
 
-    & ol li::marker {
+    & ol li::before {
+        content: counter(list-item) '.';
+        position: absolute;
+        left: -36px;
+        padding-top: 4px;
         font-family: var(--font-sans);
         font-size: var(--font-size-s);
         color: var(--color-text-muted);
         font-variant-numeric: tabular-nums;
-        letter-spacing: -2px;
+        letter-spacing: -0.5px;
+        
+        text-align: right; 
+        width: 32px;
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-xs);
-            padding-left: var(--spacing-3x);
+            left: -34px;
+            padding-top: 3.5px;
         }
     }
 
@@ -265,7 +279,7 @@ const Article = styled.article`
 
     & hr {
         border: none;
-        border-top: 1.5px solid var(--color-border);
+        border-top: 1px solid var(--color-border);
         margin-bottom: var(--spacing-5x);
     }
 

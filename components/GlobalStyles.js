@@ -116,15 +116,15 @@ const GlobalStyles = createGlobalStyle`
     *:before,
     *:after {
     box-sizing: border-box;
-    line-height: 1.5;
     font-family: var(--fallback-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: auto;
-    }
+}
 
     html,
     body {
         font-family: var(--font-sans);
+        line-height: 1.5;
         background: var(--color-bg-base);
         min-height: 100%;
     }
