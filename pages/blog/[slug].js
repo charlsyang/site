@@ -80,6 +80,7 @@ const BlogHead = styled.div`
         font-weight: var(--font-weight-medium);
         color: var(--color-text-base);
         margin-bottom: var(--spacing-s);
+        text-wrap: balance;
     }
 
     & time {
