@@ -2,13 +2,17 @@ import styled from 'styled-components';
 import { QUERIES } from '../utils/constants';
 
 const Article = styled.article`
-    margin-top: calc(10rem - var(--back-button-height));
-    margin-bottom: 10rem;
     color: var(--color-text-base);
-    max-width: 60ch;
+    max-width: 56ch;
+    grid-column: 7 / -1;
 
     @media ${QUERIES.tabletAndBelow} {
-        width: 50ch;
+        grid-column: 5 / -1;
+        max-width: 50ch;
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
     }
 
     & * {
@@ -22,30 +26,6 @@ const Article = styled.article`
     }
 
     // Headings
-
-    & h1 {
-        font-size: var(--font-size-l);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-text-base);
-        margin-bottom: var(--spacing-s);
-
-        @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-m);
-        }
-    }
-
-    & time {
-        font-size: var(--font-size-m);
-        font-weight: var(--font-weight-normal);
-        color: var(--color-text-muted);
-        display: block;
-        margin-bottom: 4rem;
-
-        @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-s);
-            margin-bottom: 3.5rem;
-        }
-    }
 
     & h2 {
         font-size: var(--font-size-m);
@@ -61,7 +41,7 @@ const Article = styled.article`
         }
     }
 
-    & time+h2 {
+    & h2:not(:empty):first-child {
         margin-top: 0;  // Remove top margin if article starts with H2
     }
 
@@ -100,7 +80,7 @@ const Article = styled.article`
     & p {
         font-family: var(--font-serif);
         line-height: 1.45;
-        margin-bottom: 1rem;
+        margin-bottom: 1em;
         hyphens: auto;
         hanging-punctuation: first;
 
@@ -179,23 +159,21 @@ const Article = styled.article`
     }
 
     & ol li::before {
-        content: counter(list-item) '.';
-        position: absolute;
-        left: -36px;
-        padding-top: 4px;
+        content: counter(list-item);
         font-family: var(--font-sans);
         font-size: var(--font-size-s);
-        color: var(--color-text-muted);
         font-variant-numeric: tabular-nums;
+        color: var(--color-text-muted);
         letter-spacing: -0.5px;
         
+        position: absolute;
+        left: -2em; 
+        padding-top: 3.5px; 
         text-align: right; 
-        width: 32px;
+        width: 20px;
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-xs);
-            left: -34px;
-            padding-top: 3.5px;
         }
     }
 
@@ -241,12 +219,12 @@ const Article = styled.article`
     }
 
     & sup a::before {
-        content: "[";
+        content: "(";
         font-feature-settings: 'sups';
     } 
 
     & sup a::after {
-        content: "]";
+        content: ")";
     } 
 
     // Footnotes 
@@ -273,6 +251,12 @@ const Article = styled.article`
 
     & #footnote-label {
         display: none;
+    }
+
+    & .footnotes p {
+        --indent: 1em;
+        text-indent: calc(var(--indent) * -1);
+        padding-left: var(--indent);
     }
 
     // Divider

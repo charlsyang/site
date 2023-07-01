@@ -99,6 +99,7 @@ const GlobalStyles = createGlobalStyle`
         --spacing-5x: calc(var(--spacing-base) * 5);
         --spacing-6x: calc(var(--spacing-base) * 6);
 
+        --nav-height: calc(var(--spacing-base) * 7);
         --footer-height: calc(var(--spacing-base) * 7);
         --back-button-height: var(--spacing-6x);
 

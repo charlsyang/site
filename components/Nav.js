@@ -27,6 +27,7 @@ const Nav = () => {
 
 const NavWrapper = styled(MaxWidthWrapper)`
     z-index: 2;
+    height: var(--nav-height);
 `
 
 const NavGrid = styled(GridWrapper)`

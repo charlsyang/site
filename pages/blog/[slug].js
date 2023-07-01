@@ -5,6 +5,7 @@ import { getMDXComponent } from "mdx-bundler/client"
 import { useMemo } from "react"
 import { QUERIES } from '../../utils/constants'
 import MaxWidthWrapper from '../../components/MaxWidthWrapper'
+import GridWrapper from '../../components/GridWrapper'
 import Article from '../../components/Article'
 import Date from '../../components/Date'
 import Footer from '../../components/Footer'
@@ -38,37 +39,67 @@ export default function BlogPost({ code, frontmatter }) {
                 title={frontmatter.title}
             />
             <MaxWidthWrapper>
-                <Back href='/blog' text='Blog'/>
-                <Main>
-                    <Article>
+                <MainContent>
+                    <Back href='/blog' text='Blog'/> 
+                    <BlogHead>
                         <h1>{frontmatter.title}</h1>
                         <Date dateString={frontmatter.date} />
+                    </BlogHead>
+                    <Article>
                         <Component components={{a: CustomLink, img: CustomImg}}/>
                     </Article>
-                </Main>
+                </MainContent>
             </MaxWidthWrapper>
         </>
     )
 }
 
-const Main = styled.main`
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
+const MainContent = styled(GridWrapper)`
+    position: relative;
+    padding: 10rem 0;
+    min-height: calc(100vh - var(--nav-height) - var(--footer-height));
+
+    @media ${QUERIES.phoneAndBelow} {
+        padding: 5rem 0;
+    }
+`
+
+const BlogHead = styled.div`
+    grid-column: 3 / 6;
 
     @media ${QUERIES.tabletAndBelow} {
-        min-height: calc(100vh - var(--footer-height));
+        grid-column: 5 / -1;
+    }
+
+    @media ${QUERIES.phoneAndBelow} {
+        grid-column: 1 / -1;
+    }
+
+    & h1 {
+        font-size: var(--font-size-m);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-base);
+        margin-bottom: var(--spacing-s);
+    }
+
+    & time {
+        font-size: var(--font-size-s);
+        font-weight: var(--font-weight-normal);
+        color: var(--color-text-muted);
+        display: block;
+        margin-bottom: 4rem;
+
+        @media ${QUERIES.tabletAndBelow} {
+            margin-bottom: 3.5rem;
+        }
     }
 `
 
 const Back = styled(BackButton)`
-    position: sticky;
-    top: var(--spacing-5x);
-    left: var(--spacing-6x);
+    grid-column: 1 / 3;
+    translate: 0 -8px;
 
-    @media ${QUERIES.tabletAndBelow} {
-        position: relative;
-        left: 0;
+    @media ${QUERIES.phoneAndBelow} {
+        translate: 0 -56px;
     }
 `
