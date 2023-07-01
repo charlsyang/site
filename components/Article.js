@@ -8,7 +8,6 @@ const Article = styled.article`
 
     @media ${QUERIES.tabletAndBelow} {
         grid-column: 5 / -1;
-        max-width: 50ch;
     }
 
     @media ${QUERIES.phoneAndBelow} {
@@ -20,7 +19,7 @@ const Article = styled.article`
         font-size: var(--font-size-l);
         color:  var(--color-text-article); 
         
-        @media ${QUERIES.tabletAndBelow} {
+        @media ${QUERIES.phoneAndBelow} {
             font-size: var(--font-size-m);
         }
     }
@@ -85,7 +84,7 @@ const Article = styled.article`
         hanging-punctuation: first;
 
         @media ${QUERIES.phoneAndBelow} {
-            line-height: 1.4;
+            line-height: 1.5;
         }
     }
 
