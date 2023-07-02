@@ -18,10 +18,6 @@ const Article = styled.article`
         font-family: var(--font-sans);
         font-size: var(--font-size-l);
         color:  var(--color-text-article); 
-        
-        @media ${QUERIES.phoneAndBelow} {
-            font-size: var(--font-size-m);
-        }
     }
 
     // Headings
