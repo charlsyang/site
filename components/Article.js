@@ -150,7 +150,7 @@ const Article = styled.article`
         gap: 0.5rem;
         margin-bottom: 1rem;
         list-style-type: none;
-        counter-reset: list-item 1;
+        counter-reset: list-counter;
 
         @media ${QUERIES.phoneAndBelow} {
             padding-left: var(--spacing-3x);
