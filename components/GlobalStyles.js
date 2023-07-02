@@ -70,8 +70,16 @@ const GlobalStyles = createGlobalStyle`
     }
 
     @font-face {
-        font-family: 'Fallback';
-        src: local('Georgia');
+        font-family: 'Adjusted Arial';
+        src: local(Arial);
+        size-adjust: 98%;
+        ascent-override: 94%;
+        descent-override: 31%;
+    }  
+
+    @font-face {
+        font-family: 'Adjusted Georgia';
+        src: local(Georgia);
         size-adjust: 87%;
         ascent-override: 103%;
         descent-override: 35%;
@@ -83,8 +91,8 @@ const GlobalStyles = createGlobalStyle`
 
         /* Typography */
         
-        --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
-        --font-serif: 'Marat', 'Fallback', ${FAMILIES.fallbackSerif};
+        --font-sans: 'Diatype','Adjusted Arial', ${FAMILIES.fallbackSans};
+        --font-serif: 'Marat', 'Adjusted Georgia', ${FAMILIES.fallbackSerif};
         --font-mono: 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
