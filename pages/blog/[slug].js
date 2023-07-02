@@ -98,7 +98,7 @@ const BlogHead = styled.div`
 
 const Back = styled(BackButton)`
     grid-column: 1 / 3;
-    translate: 0 -8px;
+    translate: 4px -11px;
 
     @media ${QUERIES.phoneAndBelow} {
         translate: 0 -56px;
