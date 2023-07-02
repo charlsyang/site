@@ -78,6 +78,10 @@ const Article = styled.article`
         margin-bottom: 1em;
         hyphens: auto;
         hanging-punctuation: first;
+
+        @media ${QUERIES.phoneAndBelow} {
+            line-height: 1.5;
+        }
     }
 
     & a {
