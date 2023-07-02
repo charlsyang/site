@@ -163,12 +163,12 @@ const Article = styled.article`
         
         position: absolute;
         left: -2em; 
-        padding-top: 3.5px; 
+        margin-top: 0.21em; 
         text-align: right; 
         width: 20px;
 
-        @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-xs);
+        @media ${QUERIES.phoneAndBelow} {
+            left: -1.8em; 
         }
     }
 

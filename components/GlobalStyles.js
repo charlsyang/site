@@ -57,7 +57,7 @@ const GlobalStyles = createGlobalStyle`
         font-family: 'Marat';
         font-weight: 400;
         font-style: normal;
-        font-display: swap;
+        font-display: fallback;
         src: url(/fonts/Marat-Regular.woff2) format('woff2');
     }
     
@@ -65,9 +65,17 @@ const GlobalStyles = createGlobalStyle`
         font-family: 'Marat';
         font-weight: 400;
         font-style: italic;
-        font-display: swap;
+        font-display: fallback;
         src: url(/fonts/Marat-RegularItalic.woff2) format('woff2');
     }
+
+    @font-face {
+        font-family: 'Fallback';
+        src: local('Georgia');
+        size-adjust: 87%;
+        ascent-override: 103%;
+        descent-override: 35%;
+    }  
 
     /* DESIGN TOKENS */
 
@@ -76,7 +84,7 @@ const GlobalStyles = createGlobalStyle`
         /* Typography */
         
         --font-sans: 'Diatype', ${FAMILIES.fallbackSans};
-        --font-serif: 'Marat', ${FAMILIES.fallbackSerif};
+        --font-serif: 'Marat', 'Fallback', ${FAMILIES.fallbackSerif};
         --font-mono: 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
