@@ -70,6 +70,22 @@ const GlobalStyles = createGlobalStyle`
     }
 
     @font-face {
+        font-family: 'Marat';
+        font-weight: 300;
+        font-style: normal;
+        font-display: fallback;
+        src: url(/fonts/Marat-Light.woff2) format('woff2');
+    }
+    
+    @font-face {
+        font-family: 'Marat';
+        font-weight: 300;
+        font-style: italic;
+        font-display: fallback;
+        src: url(/fonts/Marat-LightItalic.woff2) format('woff2');
+    }
+
+    @font-face {
         font-family: 'Adjusted Arial';
         src: local(Arial);
         size-adjust: 98%;
@@ -163,6 +179,8 @@ const GlobalStyles = createGlobalStyle`
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
         --font-weight-bold: ${THEME.weights.bold};
+
+        --font-weight-serif: ${WEIGHTS.normal};
     }
 
     [data-theme='dark'] {
@@ -182,6 +200,8 @@ const GlobalStyles = createGlobalStyle`
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};
         --font-weight-bold: ${DARKTHEME.weights.bold};
+
+        --font-weight-serif: ${WEIGHTS.light};
     }
 
     a {

@@ -17,6 +17,7 @@ const Article = styled.article`
     & * {
         font-family: var(--font-sans);
         font-size: var(--font-size-l);
+        font-weight: var(--font-weight-serif);
         color: var(--color-text-article);
     }
 
@@ -57,7 +58,6 @@ const Article = styled.article`
     & h4 {
         font-family: var(--font-serif);
         font-size: var(--font-size-m);
-        font-weight: var(--font-weight-medium);
         color: var(--color-text-base);
         font-style: italic;
         margin-top: 1.5rem;
@@ -74,6 +74,7 @@ const Article = styled.article`
 
     & p {
         font-family: var(--font-serif);
+        font-weight: var(--font-weight-serif);
         color:  var(--color-text-article); 
         line-height: 1.45;
         margin-bottom: 1em;
@@ -211,22 +212,12 @@ const Article = styled.article`
 
     & sup a {
         font-family: var(--font-sans);
-        font-size: 12px;
-        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-m);
+        color: var(--color-text-muted);
         text-decoration: none;
-        position: relative;
-        top: -0.4em;
         padding-left: 2px;
-    }
-
-    & sup a::before {
-        content: "(";
         font-feature-settings: 'sups';
-    } 
-
-    & sup a::after {
-        content: ")";
-    } 
+    }
 
     // Footnotes 
 
