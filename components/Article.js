@@ -78,7 +78,11 @@ const Article = styled.article`
         line-height: 1.45;
         margin-bottom: 1em;
         hyphens: auto;
-        hanging-punctuation: first;
+        hyphenate-limit-chars: 6 3 2;
+        hyphenate-limit-lines: 2;
+        hyphenate-limit-last: always;
+        hyphenate-limit-zone: 8%;
+        hanging-punctuation: first last;
 
         @media ${QUERIES.phoneAndBelow} {
             line-height: 1.5;

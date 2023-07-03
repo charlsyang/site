@@ -45,7 +45,9 @@ export default function BlogPost({ code, frontmatter }) {
             <Date dateString={frontmatter.date} />
           </BlogHead>
           <Article>
-            <Component components={{ a: CustomLink, img: CustomImg, pre: CodeSnippet }} />
+            <Component
+              components={{ a: CustomLink, img: CustomImg, pre: CodeSnippet }}
+            />
           </Article>
         </MainContent>
       </MaxWidthWrapper>
@@ -64,6 +66,7 @@ const MainContent = styled(GridWrapper)`
 `;
 
 const BlogHead = styled.div`
+  padding-top: 2px; // baseline align title with article
   grid-column: 3 / 6;
 
   @media ${QUERIES.tabletAndBelow} {
@@ -98,7 +101,7 @@ const BlogHead = styled.div`
 
 const Back = styled(BackButton)`
   grid-column: 1 / 3;
-  translate: 4px -11px;
+  translate: 4px -10px;
 
   @media ${QUERIES.phoneAndBelow} {
     translate: 0 -56px;
