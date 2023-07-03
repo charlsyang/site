@@ -93,7 +93,7 @@ const GlobalStyles = createGlobalStyle`
         
         --font-sans: 'Diatype','Adjusted Arial', ${FAMILIES.fallbackSans};
         --font-serif: 'Marat', 'Adjusted Georgia', ${FAMILIES.fallbackSerif};
-        --font-mono: 'Input Mono', 'SF Mono', ${FAMILIES.fallbackMono};
+        --font-mono: 'Input Mono Reg', 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
         --font-size-base: 16;

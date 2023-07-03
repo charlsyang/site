@@ -46,11 +46,12 @@ const Pre = styled.pre`
   padding: var(--spacing-2x) var(--code-margin);
   border-radius: 4px;
   overflow: auto;
-  /* border: 1px solid var(--color-border); */ // too much? not sure
   line-height: 1.2;
+  /* border: 1px solid var(--color-border); */ // too much? not sure
 
   & span {
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
+    font-feature-settings: "ss11" 1, "ss12" 1;
   }
 `;

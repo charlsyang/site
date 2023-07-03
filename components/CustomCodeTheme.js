@@ -12,6 +12,7 @@ let customTheme = {
 		types: ["comment"],
 		style: {
 		  color: "var(--color-text-muted)",
+          fontFamily: "Input Mono It",
 		  fontStyle: "italic",
 		},
 	  },
@@ -31,6 +32,7 @@ let customTheme = {
 		types: ["changed", "deleted", "inserted", "attr-name"],
 		style: {
 		  color: "var(--color-text-article)",
+          fontFamily: "Input Mono It",
 		  fontStyle: "italic",
 		},
 	  },
