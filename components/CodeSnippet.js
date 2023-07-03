@@ -36,6 +36,8 @@ export default CodeSnippet;
 const CodeWrapper = styled.div`
   --code-margin: 20px;
   margin: 2em calc(var(--code-margin) * -1);
+  background-color: var(--color-bg-solid);
+  border-radius: 4px;
 
   @media ${QUERIES.phoneAndBelow} {
     margin: 1em 0;
@@ -44,14 +46,14 @@ const CodeWrapper = styled.div`
 
 const Pre = styled.pre`
   padding: var(--spacing-2x) var(--code-margin);
-  border-radius: 4px;
   overflow: auto;
   line-height: 1.2;
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--code-margin), #000 calc(100% - var(--code-margin)), transparent 100%);
   /* border: 1px solid var(--color-border); */ // too much? not sure
 
   & span {
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    font-feature-settings: "ss11" 1, "ss12" 1;
+    font-feature-settings: "ss01" 1, "ss11" 1, "ss12" 1;
   }
 `;

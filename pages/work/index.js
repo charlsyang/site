@@ -213,6 +213,7 @@ const TableRow = styled.tr`
     column-gap: 16px;
     padding: 6px 0;
     padding-right: 24px;
+    align-items: baseline;
 
     font-weight: var(--font-weight-normal);
     color: var(--color-text-muted);
@@ -230,7 +231,6 @@ const TableRow = styled.tr`
 const TdYear = styled.td`
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    padding-top: 1px;
 `
 
 const TdCompany = styled.td`

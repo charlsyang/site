@@ -1,7 +1,7 @@
 let customTheme = {
 	plain: {
 	  color: "var(--color-text-article)",
-	  backgroundColor: "var(--color-bg-solid)",
+	//   backgroundColor: "var(--color-bg-solid)",
 	  fontFamily: "var(--font-mono)",
       fontWeight: "var(--font-weight-normal)",
 	  fontSize: "var(--font-size-s)",
