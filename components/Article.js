@@ -17,7 +17,7 @@ const Article = styled.article`
     & * {
         font-family: var(--font-sans);
         font-size: var(--font-size-l);
-        color:  var(--color-text-article); 
+        color: var(--color-text-article);
     }
 
     // Headings
@@ -74,6 +74,7 @@ const Article = styled.article`
 
     & p {
         font-family: var(--font-serif);
+        color:  var(--color-text-article); 
         line-height: 1.45;
         margin-bottom: 1em;
         hyphens: auto;
@@ -196,9 +197,10 @@ const Article = styled.article`
     & p > code {
         font-family: var(--font-mono);
         font-size: var(--font-size-xs);
-        padding: 2px 4px;
+        padding: 2px 8px;
+        margin: 0 1px;
         background-color: var(--color-bg-solid);
-        border-radius: 3px;
+        border-radius: 4px;
     }
 
     // Superscript

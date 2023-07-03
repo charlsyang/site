@@ -1,5 +1,5 @@
-import { createGlobalStyle } from 'styled-components';
-import { FAMILIES, WEIGHTS, THEME, DARKTHEME } from '../utils/constants';
+import { createGlobalStyle } from "styled-components";
+import { FAMILIES, WEIGHTS, THEME, DARKTHEME } from "../utils/constants";
 
 const GlobalStyles = createGlobalStyle`
     /* http://meyerweb.com/eric/tools/css/reset/
@@ -93,7 +93,7 @@ const GlobalStyles = createGlobalStyle`
         
         --font-sans: 'Diatype','Adjusted Arial', ${FAMILIES.fallbackSans};
         --font-serif: 'Marat', 'Adjusted Georgia', ${FAMILIES.fallbackSerif};
-        --font-mono: 'SF Mono', ${FAMILIES.fallbackMono};
+        --font-mono: 'Input Mono', 'SF Mono', ${FAMILIES.fallbackMono};
         --font-ampersand: ${FAMILIES.ampersand};
 
         --font-size-base: 16;
@@ -147,6 +147,7 @@ const GlobalStyles = createGlobalStyle`
     }
 
     :root {
+        --color-theme: ${THEME.colors.violet11};
         --color-bg-base: ${THEME.colors.mauve1};
         --color-bg-solid: ${THEME.colors.mauve3};
         --color-bg-hover: ${THEME.colors.mauve4};
@@ -157,7 +158,7 @@ const GlobalStyles = createGlobalStyle`
         --color-text-faint: ${THEME.colors.mauve9};
         --color-border: ${THEME.colors.mauve6};
         --color-link-border: ${THEME.colors.mauve8};
-        --color-link-hover: ${THEME.colors.violet9};
+        --color-link-hover: var(--color-theme);
 
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
@@ -165,6 +166,7 @@ const GlobalStyles = createGlobalStyle`
     }
 
     [data-theme='dark'] {
+        --color-theme: ${DARKTHEME.colors.violet11};
         --color-bg-base: ${DARKTHEME.colors.mauve1};
         --color-bg-solid: ${DARKTHEME.colors.mauve3};
         --color-bg-hover: ${DARKTHEME.colors.mauve4};
@@ -175,7 +177,7 @@ const GlobalStyles = createGlobalStyle`
         --color-text-faint: ${DARKTHEME.colors.mauve9};
         --color-border: ${DARKTHEME.colors.mauve6};
         --color-link-border: ${DARKTHEME.colors.mauve8};
-        --color-link-hover: ${DARKTHEME.colors.violet9};
+        --color-link-hover: var(--color-theme);
 
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};

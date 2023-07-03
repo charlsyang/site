@@ -27,9 +27,10 @@ export const DARKTHEME = {
 };
 
 export const WEIGHTS = {
-    normal: 360,
-    medium: 460,
-    bold: 560,
+    light: 300,
+    normal: 400,
+    medium: 500,
+    bold: 600,
 };
 
 /* Desktop first */

@@ -1,0 +1,59 @@
+---
+title: 'Code Snippet'
+date: '2023-07-02'
+tags: []
+excerpt: ''
+isPublished: true
+---
+
+Some long overdue love for my blog—added support for code snippets and syntax highlight (with `prism-react-render`). So here’s a few random codes just to test out how it looks. Properly themed and type set in [Input Mono](https://input.djr.com/) by David Jonathan Ross.
+
+You’d probably notice that the layout changes slightly, too. In fact along with this update there’re also improved list styling, new serif type, unified color system, and some more I am working on. Maybe I will write about it. Maybe.
+
+
+```js
+import React from 'react';
+
+export function Counter({ initialCount = 0 }) {
+  const [count, setCount] = React.useState(initialCount);
+  return (
+    <button type="button" onClick={() => setCount((prevCount) => prevCount + 1)}>
+      {count}
+    </button>
+  );
+}
+```
+
+
+```css
+.footer {
+    height: var(--footer-height);
+    position: relative;
+    max-width: min(100%, calc(1200px + 40px * 2));
+}
+```
+
+
+```js
+/* The function returns the same value as a === b without using === or !== operators */
+
+function strictEquals(a, b) {
+    if (Object.is(a, b)) {
+        if (Object.is(a, NaN)) {
+            return false;
+        } else {
+            return true;
+        };
+    } else {
+        if (
+            (Object.is(a, 0) && Object.is(b, -0)) || 
+            (Object.is(a, -0) && Object.is(b, 0))
+        ) {
+            return true;
+        } else {
+            return false;
+        };
+    };
+}'
+```
+

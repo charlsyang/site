@@ -31,7 +31,9 @@ class MyDocument extends Document {
   render() {
     return (
       <Html lang="en">
-        <Head></Head>
+        <Head>
+        <link href="https://fastly-cloud.typenetwork.com/projects/7347/fontface.css?64a210d9" rel="stylesheet" type="text/css"/>
+        </Head>
         <body>
           <Main />
           <NextScript />

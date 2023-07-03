@@ -21,7 +21,7 @@ export default function Colophon() {
                                 Given the nature of a one-man team, the site is designed—inevitably—part 
                                 in <CustomLink href='https://www.figma.com/'>Figma</CustomLink>, part in <CustomLink href='https://code.visualstudio.com/'>VS Code</CustomLink>. 
                                 The type is set in <CustomLink href='https://abcdinamo.com/typefaces/diatype'>Diatype</CustomLink> from
-                                 Dinamo and <CustomLink href='https://www.ludwigtype.de/fonts/marat/overview'>Marat</CustomLink> by Ludwig Übele.
+                                 Dinamo, <CustomLink href='https://www.ludwigtype.de/fonts/marat/overview'>Marat</CustomLink> by Ludwig Übele,  and <CustomLink href='https://input.djr.com/'>Input Mono</CustomLink> by DJR.
                             </p>
                             <p>
                                 Technology-wise the site is built with <CustomLink href='https://nextjs.org/'>Next.js</CustomLink>, 
