@@ -112,6 +112,7 @@ const Article = styled.article`
 
    & li, li * {
         font-family: var(--font-serif);
+        line-height: 1.45;
         position: relative;
     }
 
@@ -121,7 +122,7 @@ const Article = styled.article`
         --bullet-indent: calc(var(--bullet-width) + var(--bullet-gap));
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.5em;
         margin-bottom: 1rem;
 
         @media ${QUERIES.tabletAndBelow} {
@@ -134,12 +135,13 @@ const Article = styled.article`
     }
 
     & ul > li::before {
-        content: "⁃";
+        content: "–";
         position: absolute;
         left: calc(var(--bullet-indent) * -1);
         width: var(--bullet-width);
         font-family: var(--font-sans);
         color: var(--color-text-faint);
+        margin-top: 1px;
 
         @media ${QUERIES.tabletAndBelow} {
             font-size: var(--font-size-m);
@@ -149,7 +151,7 @@ const Article = styled.article`
     & ol {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.5em;
         margin-bottom: 1rem;
         list-style-type: none;
         counter-reset: list-counter;
