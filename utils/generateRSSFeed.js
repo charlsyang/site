@@ -21,11 +21,12 @@ export default async function generateRSSFeed() {
   }
 
   const feed = new Feed({
-    title: "Charlsy’s Blog",
-    description: "Charlsy’s place on the web, a digital garden where he grows his half-baked ideas and budding thoughts.",
+    title: "Charlsy Yang",
+    description: "Half-baked ideas and budding thoughts.",
     id: siteURL,
     link: siteURL,
     copyright: `All rights reserved ${date.getFullYear()}, Charlsy Yang`,
+    favicon: `${siteURL}/favicon.ico`,
     updated: date, // today's date
     language: 'en',
     feedLinks: {

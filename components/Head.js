@@ -5,7 +5,6 @@ const Head = ({title, description}) => {
             <NextHead>
                 <title>{title}</title>
                 <meta name="description" content={description} />
-                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
             </NextHead>
         )
 }

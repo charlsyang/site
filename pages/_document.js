@@ -34,6 +34,7 @@ class MyDocument extends Document {
         <Head>
           <link href="https://fastly-cloud.typenetwork.com/projects/7347/fontface.css?64a210d9" rel="stylesheet" type="text/css"/>
           <link rel="alternate" type="application/rss+xml" title="charlsyang.com rss feed" href="/feed.xml" />
+          <link rel="icon" href="/favicon.ico" />
         </Head>
         <body>
           <Main />
