@@ -4,13 +4,10 @@ import { QUERIES } from '../utils/constants'
 import { ArrowLeft } from 'react-feather'
 
 const BackButton = (props) => {
-    const href = props.href;
-    const text = props.text;
-
     return (
-        <Link href={href} legacyBehavior>
+        <Link href={props.href} legacyBehavior>
             <Back {...props}>
-                <ArrowLeft size={20}/> <BackText>{text}</BackText>
+                <ArrowLeft size={20}/> <BackText>{props.children}</BackText>
             </Back>
         </Link>
     );

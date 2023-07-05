@@ -32,7 +32,7 @@ export default function Colophon() {
                                 Thanks for visiting. Among myriads of other sites having you on mine is nothing 
                                 less than a pleasure. Have a good one.
                             </p>
-                            <Back href='/' text='Home'/>
+                            <Back href='/'>Home</Back>
                         </Content>
                     </ContentWrapper>
                 </Main>

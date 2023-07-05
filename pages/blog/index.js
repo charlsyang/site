@@ -10,6 +10,7 @@ import { QUERIES } from '../../utils/constants'
 import GridWrapper from '../../components/GridWrapper'
 
 export async function getStaticProps() {
+    
     const allPostsData = getSortedPostsData();
     return {
       props: {

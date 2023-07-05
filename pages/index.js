@@ -8,10 +8,13 @@ import GridWrapper from '../components/GridWrapper'
 import CustomLink from '../components/CustomLink'
 import { QUERIES } from '../utils/constants'
 import { ArrowRight } from 'react-feather'
-import Balancer from 'react-wrap-balancer'
+import generateRSSFeed from '../utils/generateRSSFeed'
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
+  
+  await generateRSSFeed();
+
   return {
     props: {
       allPostsData

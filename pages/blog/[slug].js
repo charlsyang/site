@@ -39,7 +39,7 @@ export default function BlogPost({ code, frontmatter }) {
       <Head title={frontmatter.title} />
       <MaxWidthWrapper>
         <MainContent>
-          <Back href="/blog" text="Blog" />
+          <Back href="/blog">Blog</Back>
           <BlogHead>
             <h1>{frontmatter.title}</h1>
             <Date dateString={frontmatter.date} />

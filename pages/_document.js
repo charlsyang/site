@@ -32,7 +32,8 @@ class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head>
-        <link href="https://fastly-cloud.typenetwork.com/projects/7347/fontface.css?64a210d9" rel="stylesheet" type="text/css"/>
+          <link href="https://fastly-cloud.typenetwork.com/projects/7347/fontface.css?64a210d9" rel="stylesheet" type="text/css"/>
+          <link rel="alternate" type="application/rss+xml" title="charlsyang.com rss feed" href="/feed.xml" />
         </Head>
         <body>
           <Main />

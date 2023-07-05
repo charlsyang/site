@@ -8,7 +8,7 @@ import remarkUnwrapImages from 'remark-unwrap-images'
 const postsDirectory = path.join(process.cwd(), 'blog')
 
 export function getSortedPostsData() {
-    const fileNames = fs.readdirSync(postsDirectory)
+    const fileNames = fs.readdirSync(postsDirectory) // an array of all file names
     const allPostsData = fileNames.map(fileName => {    
       const slug = fileName.replace(/\.mdx$/, '') 
       
@@ -19,10 +19,11 @@ export function getSortedPostsData() {
   
       return {
         slug, 
+        fileContents,
         ...matterResult.data
       }
-    }) // [{id: 'pre-rendering', title: '...', date: '...'}, {id: 'ssg-ssr', title: '...', date: '...'}]
-    
+    }) // [{slug: 'pre-rendering', title: '...', date: '...'}, {slug: 'ssg-ssr', title: '...', date: '...'}]
+
     const publishedPostsData = [];
     for (const postData of allPostsData){
       if (postData.isPublished === true) {
@@ -30,7 +31,7 @@ export function getSortedPostsData() {
       };
     }
 
-    return publishedPostsData.sort(({ date: a }, { date: b }) => {
+    const sortedPublishedPostsData = publishedPostsData.sort(({ date: a }, { date: b }) => {
         if (a < b) {
             return 1
         } else if (a > b) {
@@ -39,7 +40,10 @@ export function getSortedPostsData() {
             return 0
         }
     })
-}
+
+    return sortedPublishedPostsData;
+    
+} // this function returns an array of post metadata (slug and stuff in front matter) sorted by date
 
 export function getAllPostSlugs() {
     const fileNames = fs.readdirSync(postsDirectory)
@@ -50,7 +54,7 @@ export function getAllPostSlugs() {
             }
         };
     });
-}
+} // this function returns an array of “params” objects [{param: {slug: '..'}}, {param: {slug: '..'}}, ...]
 
 export async function getPostData(slug) {
     const fullPath = path.join(postsDirectory, `${slug}.mdx`)
@@ -86,5 +90,5 @@ export async function getPostData(slug) {
         frontmatter,
         code,
     };
-}
+} // this function returns a post object based on the slug passed to it (code part)
 
