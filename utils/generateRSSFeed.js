@@ -26,7 +26,7 @@ export default async function generateRSSFeed() {
     id: siteURL,
     link: siteURL,
     copyright: `All rights reserved ${date.getFullYear()}, Charlsy Yang`,
-    favicon: `${siteURL}/favicon.ico`,
+    favicon: `${siteURL}/favicons/favicon.ico`,
     updated: date, // today's date
     language: 'en',
     feedLinks: {
