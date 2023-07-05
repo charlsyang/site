@@ -27,7 +27,10 @@ const BlogIndex = ({ allPostsData }) => {
         <MaxWidthWrapper>
             <Main>
                 <Content>
-                    <PageHead>Blog</PageHead>
+                    <PageHead>
+                        <PageTitle>Blog</PageTitle>
+                        <RSS href='/feed.xml'>RSS</RSS>
+                    </PageHead>
                     <BlogList>
                         {allPostsData.map( ({ slug, date, title }) => (
                             <BlogItem key={slug}>
@@ -89,14 +92,25 @@ const Content = styled.div`
     }
 `
 
-const PageHead = styled.h1`
+const PageTitle = styled.h1`
     font-size: var(--font-size-l);
     font-weight: var(--font-weight-bold);
     color: var(--color-text-base);
-    margin-bottom: var(--spacing-6x);
 
     @media ${QUERIES.tabletAndBelow} {
         font-size: var(--font-size-m);
+    }
+`
+
+const RSS = styled.a`
+    font-size: var(--font-size-s);
+`
+
+
+const PageHead = styled.div`
+    margin-bottom: var(--spacing-6x);
+
+    @media ${QUERIES.tabletAndBelow} {
         margin-bottom: var(--spacing-4x);
     }
 `
