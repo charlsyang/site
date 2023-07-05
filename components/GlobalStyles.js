@@ -49,7 +49,7 @@ const GlobalStyles = createGlobalStyle`
     @font-face {
         font-family: 'Diatype';
         font-weight: 100 700;
-        font-display: swap;
+        font-display: fallback;
         src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
     }
 

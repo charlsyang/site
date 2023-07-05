@@ -3,3 +3,4 @@ node_modules/
 .next/
 public/feed.xml
 .env.local
+.eslintrc.json
