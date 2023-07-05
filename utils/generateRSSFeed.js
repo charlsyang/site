@@ -12,7 +12,7 @@ allPosts.map((post) => {
 })
 
 export default async function generateRSSFeed() {
-  const siteURL = process.env.VERCEL_URL;
+  const siteURL = 'https://charlsyang.com';
   const date = new Date();
   const author = {
     name: "Charlsy Yang",
@@ -45,7 +45,7 @@ export default async function generateRSSFeed() {
       link: url,
       description: excerpt,
       content: content,
-      author: [author],
+      author: 'Charlsy Yang',
       date: new Date(date),
     });
   });
