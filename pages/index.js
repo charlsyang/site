@@ -83,12 +83,12 @@ export default function Home({allPostsData}) {
             <SectionTitle>Say hi</SectionTitle>
             <ContactList>
               <ContactItem>
-                <ContactItemLabel>email</ContactItemLabel>
+                <ContactItemLabel>Email</ContactItemLabel>
                 <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
               </ContactItem>
               <ContactItem>
-                <ContactItemLabel>twitter</ContactItemLabel>
-                <CustomLink href="https://twitter.com/imcharlsy">@imcharlsy</CustomLink>
+                <ContactItemLabel>Mastodon</ContactItemLabel>
+                <CustomLink rel="me" href="https://typo.social/@charlsy">charlsy@typo.social</CustomLink>
               </ContactItem>
             </ContactList>
           </Contact>
