@@ -1,0 +1,29 @@
+---
+title: 'Typography is a Balloon'
+date: '2023-07-08'
+tags: ['design', 'typography']
+excerpt: 'Typography is not a container of text but an embodiment that visually reifies text.'
+isPublished: true
+---
+
+In [his critique](https://practicaltypography.com/drowning-the-crystal-goblet.html) of the canonical metaphor of typography as a crystal goblet, Matthew Butterick suggests quite an interesting alternative: typography is a balloon.
+
+*[The Crystal Goblet (or Printing Should Be Invisible)](https://readings.design/PDF/The%20Crystal%20Goblet.pdf)* is a classic essay in typography, written by Beatrice Warde in 1932[^1]. Warde likens typography to a goblet and text to the wine it contains. She argues that typography should be invisible like a crystal goblet that allows its content’s beauty to show through.
+
+Butterick stands against the separation between substance and presentation implied in this metaphor because typography is what gives shape to the otherwise invisible text:
+
+> A goblet can be invisible because the wine is not. But text is already invisible, so typography cannot be. Rather than wine in a goblet, a more apt parallel might be helium in a balloon: the balloon gives shape and visibility to something that otherwise cannot be seen.
+
+It was the first time I read about critique on the goblet metaphor, and the more I think about it the more it makes sense. When we think of balloon we think of a ballon filled with air. As much as a balloon is not quite a balloon until it’s inflated, typography is not typography until individual letter forms are assembled to say something.
+
+It’s another illustration of McLuhan’s “the medium is the message”: one is always in contact with the content through some form of representation. Content cannot exist in a vacuum without the representation carrying it through. Typography is not a container of text but an embodiment that visually reifies text. 
+
+This also makes me think of the notion of “CSS reset”. It’s tempting to think that a plain HTML document is style-free when you see some black text rendered on a white background. In fact, plain doesn’t mean there is no style. Plain *is* a style.
+
+[Someone somewhere](https://developer.mozilla.org/en-US/docs/Web/CSS/Cascade#user-agent_stylesheets) has to specify that text should be black and set in Times New Roman, that `<h1>` should look larger than `<h2>`, that lists should be indented and paragraphs should be separated by space. On top of these, rules are made about what should be block-level elements and what should be inline. These are all typographic decisions, decisions about the visual presentation of text. 
+
+When we are not starting from scratch, we need to take into account the default styles in order to achieve what we want. To make it easier to infer how things will look like, people came up with a set of CSS rules that clears out the default, which are now known as the practice of CSS reset.
+
+I am not sure how much thoughts were put into designing the user agent stylesheet to convey a sense of “rawness”. But should we not forget that default *is* a choice. It’s a choice that warrants more attention and needs to be made intentionally.
+
+[^1]: Ideas aside, it’s beautifully written, so I encourage you to read if you haven’t.

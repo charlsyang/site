@@ -6,6 +6,7 @@ const allPosts = getSortedPostsData();
 
 // Convert to markdown to html string
 const showdown  = require('showdown');
+showdown.setFlavor('github'); // set to GFM
 const converter = new showdown.Converter({metadata: true, omitExtraWLInCodeBlocks: true, tables: true});
 allPosts.map((post) => {
   post.content = converter.makeHtml(post.fileContents); // create a new “content” key for html string
