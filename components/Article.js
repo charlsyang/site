@@ -3,7 +3,7 @@ import { QUERIES } from '../utils/constants';
 
 const Article = styled.article`
     color: var(--color-text-base);
-    max-width: 56ch;
+    max-width: 57ch;
     grid-column: 7 / -1;
 
     @media ${QUERIES.tabletAndBelow} {
@@ -245,12 +245,6 @@ const Article = styled.article`
 
     & #footnote-label {
         display: none;
-    }
-
-    & .footnotes p {
-        --indent: 1em;
-        text-indent: calc(var(--indent) * -1);
-        padding-left: var(--indent);
     }
 
     // Divider
