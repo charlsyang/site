@@ -1,16 +1,18 @@
 import fs from 'fs';
+import ReactDOMServer from 'react-dom/server'
 import { Feed } from "feed";
-import { getSortedPostsData } from "./blog";
+import { getSortedPostsData, getPostData } from "./blog";
+import { getMDXComponent } from "mdx-bundler/client";
 
 const allPosts = getSortedPostsData();
 
 // Convert to markdown to html string
-const showdown  = require('showdown');
-showdown.setFlavor('github'); // set to GFM
-const converter = new showdown.Converter({metadata: true, omitExtraWLInCodeBlocks: true, tables: true});
-allPosts.map((post) => {
-  post.content = converter.makeHtml(post.fileContents); // create a new “content” key for html string
-})
+for (let i=0; i < allPosts.length; i++) {
+  const {code} = await getPostData(allPosts[i].slug); // Get code
+  const RenderedPost = getMDXComponent(code); // Get rendered post
+  const html = ReactDOMServer.renderToStaticMarkup(<RenderedPost/>); // Turn into html
+  allPosts[i].content = html;
+}
 
 export default async function generateRSSFeed() {
   const siteURL = 'https://charlsyang.com';
