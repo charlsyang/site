@@ -15,13 +15,6 @@ const Article = styled.article`
         grid-column: 1 / -1;
     }
 
-    & * {
-        font-family: var(--font-sans);
-        font-size: var(--font-size-l);
-        font-weight: var(--font-weight-serif);
-        color: var(--color-text-article);
-    }
-
     // Headings
 
     & h2 {
@@ -75,6 +68,7 @@ const Article = styled.article`
 
     & p {
         font-family: var(--font-serif);
+        font-size: var(--font-size-l);
         font-weight: var(--font-weight-serif);
         color:  var(--color-text-article); 
         line-height: 1.45;
@@ -113,6 +107,8 @@ const Article = styled.article`
 
    & li, li * {
         font-family: var(--font-serif);
+        font-size: var(--font-size-l);
+        color:  var(--color-text-article); 
         line-height: 1.45;
         position: relative;
     }
@@ -266,6 +262,8 @@ const Article = styled.article`
     & th, td {
         padding: 4px;
         font-family: var(--font-serif);
+        font-size: var(--font-size-m);
+        color: var(--color-text-article);
     }
 `
 

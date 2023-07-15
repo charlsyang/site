@@ -19,7 +19,6 @@ export default function SideNote({children}) {
 }
 
 const Sup = styled.label`
-    display: inline-block;
     counter-increment: sidenote-counter;
 
     @media ${QUERIES.phoneAndBelow} {
@@ -28,16 +27,17 @@ const Sup = styled.label`
     
     &:after {
         content: '[' counter(sidenote-counter) ']';
-        font-variant-numeric: tabular-nums;
+        font-family: var(--font-sans);
         font-size: var(--font-size-xxs);
         font-weight: var(--font-weight-medium);
-        letter-spacing: 1px;
         color: var(--color-text-muted);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 1px;
         margin-left: 3px;
-        vertical-align: middle;
+        vertical-align: 1px;
     }
 
-    &:hover ~ span:after {
+    &:hover ~ small:after {
         border-top: 1px solid var(--color-link-border);
     }
 `
