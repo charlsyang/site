@@ -5,6 +5,7 @@ const Article = styled.article`
     color: var(--color-text-base);
     max-width: 57ch;
     grid-column: 7 / -1;
+    counter-reset: sidenote-counter;
 
     @media ${QUERIES.tabletAndBelow} {
         grid-column: 5 / -1;

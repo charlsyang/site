@@ -1,0 +1,31 @@
+---
+title: 'Invisible Rogue Characters'
+date: '2023-07-15'
+tags: []
+excerpt: 'How to resolve the error “input is not proper utf-8, indicate encoding!”'
+isPublished: true
+---
+
+When I was trying to generate the RSS XML file for this blog, I met this error: `input is not proper utf-8, indicate encoding!`, ensued by a series of obscure characters that were presumably the culprit: `Bytes: 0x0B 0xEF 0xBC 0x9A`. 
+
+After some debugging and research, I realized that the `input` here referred to the content of my blog articles. Apparently the error happened because some characters in my articles weren’t “properly represented” in UTF-8<SideNote>UTF-8 is an encoding scheme that translates characters into computer bytes</SideNote>. I am not entirely sure what “properly represented” means, but my understanding is that they were somehow “corrupted” and didn’t show up in the way they should.
+
+The latter part was what caused the trouble. While people reported they resolved this error simply by going into their files and deleting these rogue characters, they also said that these characters—because of the corruption–cannot seen by eyes. Even though the error message provided a proximate location of these characters, it didn’t help much as I couldn’t tell what I was trying to remove.
+
+In Harry Potter, our homonymous protagonist has a magical artifact called invisible cloak that hides everything under it from sight. While few things can penetrate the cloak, there is another artifact that can reveal the presence of someone even if they are wearing it: the Marauder’s Map.
+
+Sublime Text, surprise surprise, is the Marauder’s Map in our story. It wasn’t until I came across [this Japanese blog](https://inoueani.com/wordpress-rssfeed-utf8error/) (thanks Google Translate!) that I found the solution. Turned out Sublime Text is about the only plain text editor on Mac that will visually displays these rogue characters. Behold<SideNote>In this case, 0xa0 is a non-breaking space</SideNote>:
+
+![Copying text to Sublime Text reveals the invisible characters 0xa0](/images/invisible.gif)
+
+I opened all my blog text files in Sublime Text, went through each of them, and deleted all the weird characters I saw. Saved, refreshed. Voila, no more errors! 
+
+Now, I don’t have a lot of articles so I can afford this kind of manual inspection, but what if there’re thousands of them?
+I am not sure how to do this at scale, given that I don’t even know what I am looking for. So please do ping me if you know—maybe with some arcane regular expression?—how to.
+
+And you might well ask, why did this happen in the first place? Where did these rogue characters come from? The simple answer is, this seems to happen during the process of copying and pasting, especially when you are copying from programs with custom text rendering algorithm (like design softwares and some modern note-taking apps that try to do fancy stuff).
+
+So, takeaway: 
+1. Be careful when you are copying text from other programs that might result in “broken characters” which could cause XML parsing error.
+2. Double check using Sublime Text and hunt down those rogue characters! (if that’s at all feasible to you)
+

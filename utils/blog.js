@@ -19,7 +19,6 @@ export function getSortedPostsData() {
   
       return {
         slug, 
-        fileContents,
         ...matterResult.data
       }
     }) // [{slug: 'pre-rendering', title: '...', date: '...'}, {slug: 'ssg-ssr', title: '...', date: '...'}]

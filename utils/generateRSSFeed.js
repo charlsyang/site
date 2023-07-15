@@ -3,6 +3,7 @@ import ReactDOMServer from 'react-dom/server'
 import { Feed } from "feed";
 import { getSortedPostsData, getPostData } from "./blog";
 import { getMDXComponent } from "mdx-bundler/client";
+import SideNote from '../components/SideNote';
 
 const allPosts = getSortedPostsData();
 
@@ -10,7 +11,7 @@ const allPosts = getSortedPostsData();
 for (let i=0; i < allPosts.length; i++) {
   const {code} = await getPostData(allPosts[i].slug); // Get code
   const RenderedPost = getMDXComponent(code); // Get rendered post
-  const html = ReactDOMServer.renderToStaticMarkup(<RenderedPost/>); // Turn into html
+  const html = ReactDOMServer.renderToStaticMarkup(<RenderedPost components={{ SideNote }}/>); // Turn into html
   allPosts[i].content = html;
 }
 
