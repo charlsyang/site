@@ -13,6 +13,7 @@ import CustomLink from "../../components/CustomLink";
 import CustomImg from "../../components/CustomImg";
 import BackButton from "../../components/BackButton";
 import CodeSnippet from "../../components/CodeSnippet";
+import SideNote from "../../components/SideNote";
 
 export async function getStaticProps({ params }) {
   const postData = await getPostData(params.slug);
@@ -46,7 +47,7 @@ export default function BlogPost({ code, frontmatter }) {
           </BlogHead>
           <Article>
             <Component
-              components={{ a: CustomLink, img: CustomImg, pre: CodeSnippet }}
+              components={{ a: CustomLink, img: CustomImg, pre: CodeSnippet, SideNote }}
             />
           </Article>
         </MainContent>
