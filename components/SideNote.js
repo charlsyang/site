@@ -9,20 +9,48 @@ export default function SideNote({children}) {
     const uniqueID = generateUniqueID();
     return (
         <>
-            <Sup htmlFor={uniqueID}/>
             <Toggle id={uniqueID}/>
+            <Sup htmlFor={uniqueID}/>
             <NoteContentWrapper> 
-                <NoteContent>{children}</NoteContent>
+                <NoteContent>
+                    <Parens> (Sidenote: </Parens>
+                    {children}
+                    <Parens>)</Parens>
+                </NoteContent>
             </NoteContentWrapper>
         </>
     );
 }
 
+const Toggle = styled.input.attrs({ type: 'checkbox' })`
+    display: none;
+`
+
 const Sup = styled.label`
     counter-increment: sidenote-counter;
-
+    margin-left: 3px;
+    position: relative;
+    
     @media ${QUERIES.phoneAndBelow} {
         cursor: pointer;
+        
+        // Underline
+        &:before {
+            content: '';
+            display: inline-block;
+            width: 90%;
+            height: 1.5px;
+            background-color: var(--color-link-border);
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            translate: -50% 0;
+        }
+
+        ${Toggle}:checked ~ &:before {
+            display: none;
+        }
+
     }
     
     &:after {
@@ -33,17 +61,9 @@ const Sup = styled.label`
         color: var(--color-text-muted);
         font-variant-numeric: tabular-nums;
         letter-spacing: 1px;
-        margin-left: 3px;
         vertical-align: 1px;
+        
     }
-
-    &:hover ~ small:after {
-        border-top: 1px solid var(--color-link-border);
-    }
-`
-
-const Toggle = styled.input.attrs({ type: 'checkbox' })`
-    display: none;
 `
 
 const NoteContentWrapper = styled.small`
@@ -58,7 +78,7 @@ const NoteContentWrapper = styled.small`
     @media ${QUERIES.phoneAndBelow} {
         display: none;
 
-        ${Toggle}:checked + & {
+        ${Toggle}:checked ~ & {
             display: block;
             float: left;
             left: var(--spacing-1x);
@@ -79,11 +99,21 @@ const NoteContentWrapper = styled.small`
         right: -0.5em;
         width: 16%;
 
+        ${Sup}:hover ~ & {
+            border-top: 1px solid var(--color-link-border);
+        }
+
         @media ${QUERIES.tabletAndBelow} {
             grid-column: 1 / 5;
             display: none;
         }
     }
+`
+
+const Parens = styled.span`
+    position: absolute;
+    left: -99999px;
+    opacity: 0;
 `
 
 const NoteContent = styled.span`
