@@ -15,7 +15,7 @@ export default function SideNote({children}) {
                 <NoteContent>
                     <Parens> (Sidenote: </Parens>
                     {children}
-                    <Parens>)</Parens>
+                    <Parens>) </Parens>
                 </NoteContent>
             </NoteContentWrapper>
         </>
@@ -35,7 +35,7 @@ const Sup = styled.label`
         cursor: pointer;
         
         // Underline
-        &:before {
+        &:after {
             content: '';
             display: inline-block;
             width: 90%;
@@ -44,16 +44,16 @@ const Sup = styled.label`
             position: absolute;
             bottom: 2px;
             left: 50%;
-            translate: -50% 0;
+            translate: -52% 0;
         }
 
-        ${Toggle}:checked ~ &:before {
+        ${Toggle}:checked ~ &:after {
             display: none;
         }
 
     }
     
-    &:after {
+    &:before {
         content: '[' counter(sidenote-counter) ']';
         font-family: var(--font-sans);
         font-size: var(--font-size-xxs);
@@ -62,7 +62,6 @@ const Sup = styled.label`
         font-variant-numeric: tabular-nums;
         letter-spacing: 1px;
         vertical-align: 1px;
-        
     }
 `
 
