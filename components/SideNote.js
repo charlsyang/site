@@ -15,7 +15,7 @@ export default function SideNote({children}) {
                 <NoteContent>
                     <Parens> (Sidenote: </Parens>
                     {children}
-                    <Parens>) </Parens>
+                    <Parens>)</Parens>
                 </NoteContent>
             </NoteContentWrapper>
         </>
