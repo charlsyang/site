@@ -89,6 +89,8 @@ const NoteContentWrapper = styled.small`
 
   @media ${QUERIES.phoneAndBelow} {
     display: none;
+    animation: ${fade} var(--transition-slow) var(--ease-out) backwards;
+    animation-delay: 0;
 
     ${Toggle}:checked ~ & {
       display: block;
