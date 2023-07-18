@@ -160,17 +160,6 @@ const GlobalStyles = createGlobalStyle`
         }
     }
 
-    @keyframes sidenote-fade {
-        from {
-            scale: 0.95;
-            opacity: 0;
-        }
-        to {
-            scale: 1;
-            opacity: 100%;
-        }
-    }
-
     /* GLOBAL STYLES */
 
     *,

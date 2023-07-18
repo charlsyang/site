@@ -15,6 +15,8 @@ const Article = styled.article`
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;
+        animation: onload-fade var(--duration-load) var(--ease-out) backwards;
+        animation-delay: var(--stagger-1);
     }
 
     // Headings

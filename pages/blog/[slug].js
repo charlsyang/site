@@ -65,10 +65,6 @@ const MainContent = styled(GridWrapper)`
   position: relative;
   padding: 10rem 0;
   min-height: calc(100vh - var(--nav-height) - var(--footer-height));
-
-  @media ${QUERIES.phoneAndBelow} {
-    padding: 5rem 0;
-  }
 `;
 
 const BlogHead = styled.div`
@@ -83,6 +79,8 @@ const BlogHead = styled.div`
 
   @media ${QUERIES.phoneAndBelow} {
     grid-column: 1 / -1;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: 0;
   }
 
   & h1 {
@@ -115,6 +113,6 @@ const Back = styled(BackButton)`
   animation: onload-fade var(--duration-load) var(--ease-out);
 
   @media ${QUERIES.phoneAndBelow} {
-    translate: 0 -56px;
+    display: none;
   }
 `;
