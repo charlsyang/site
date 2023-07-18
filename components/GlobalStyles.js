@@ -140,7 +140,35 @@ const GlobalStyles = createGlobalStyle`
         --transition-fast: 160ms;
         --transition-default: 240ms;
         --transition-slow: 320ms;
+        --duration-load: 600ms;
+        --stagger-1: 50ms;
+        --stagger-2: 100ms;
+        --stagger-3: 150ms;
+        --ease-in-out: cubic-bezier(0.65,0.05,0.36,1);
+        --ease-out: cubic-bezier(0.17,0.84,0.44,1);
 
+    }
+
+    @keyframes onload-fade {
+        from {
+            translate: 0 32px;
+            opacity: 0;
+        }
+        to {
+            translate: 0 0;
+            opacity: 100%;
+        }
+    }
+
+    @keyframes sidenote-fade {
+        from {
+            scale: 0.95;
+            opacity: 0;
+        }
+        to {
+            scale: 1;
+            opacity: 100%;
+        }
     }
 
     /* GLOBAL STYLES */

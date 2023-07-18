@@ -6,6 +6,8 @@ const Article = styled.article`
     max-width: 57ch;
     grid-column: 7 / -1;
     counter-reset: sidenote-counter;
+    animation: onload-fade var(--duration-load) var(--ease-out) backwards;
+    animation-delay: var(--stagger-2);
 
     @media ${QUERIES.tabletAndBelow} {
         grid-column: 5 / -1;

@@ -103,12 +103,26 @@ const PageTitle = styled.h1`
 `
 
 const RSS = styled.a`
-    font-size: var(--font-size-s);
-`
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    text-decoration: none;
+    padding: 2px 4px 0px 4px;
+    border: 1px solid var(--color-text-base);
+    border-radius: 2px;
+    color: var(--color-text-base);
+    line-height: 1.2;
 
+    &:hover {
+        border: 1px solid var(--color-link-hover);
+    }
+`
 
 const PageHead = styled.div`
     margin-bottom: var(--spacing-6x);
+    display: flex;
+    gap: var(--spacing-1x);
+    align-items: center;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.tabletAndBelow} {
         margin-bottom: var(--spacing-4x);
@@ -119,6 +133,8 @@ const BlogList = styled.ul`
     flex-direction: column;
     gap: var(--spacing-3x);
     grid-column: 2 / -1;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
 `
 
 const BlogItem = styled.li`
