@@ -53,7 +53,7 @@ const Main = styled(GridWrapper)`
     /* display: flex;
     justify-content: center;
     align-items: flex-start; */
-    min-height: calc(100vh - var(--footer-height) - var(--back-button-height));
+    min-height: calc(100vh - var(--footer-height) - var(--nav-height));
     
     & * {
         font-family: var(--font-sans);
@@ -84,7 +84,7 @@ const Back = styled(BackButton)`
 const Content = styled.div`
     grid-column: 7 / -1;
     width: min(30rem, 100%);
-    margin-top: calc(10rem - var(--back-button-height));
+    margin-top: 10rem;
     margin-bottom: 10rem;
 
     @media ${QUERIES.phoneAndBelow} {
