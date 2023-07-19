@@ -106,7 +106,6 @@ const PageTitle = styled.h1`
 const RSS = styled.p`
     font-size: var(--font-size-s);
     font-weight: var(--font-weight-normal);
-    letter-spacing: 0.5px;
     color: var(--color-text-muted);
 
     & a {
