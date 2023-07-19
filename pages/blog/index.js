@@ -29,7 +29,7 @@ const BlogIndex = ({ allPostsData }) => {
                 <Content>
                     <PageHead>
                         <PageTitle>Blog</PageTitle>
-                        <RSS href='/feed.xml'>RSS</RSS>
+                        <RSS>Subscribe with <a href='/feed.xml'>RSS</a></RSS>
                     </PageHead>
                     <BlogList>
                         {allPostsData.map( ({ slug, date, title }) => (
@@ -95,6 +95,7 @@ const Content = styled.div`
 const PageTitle = styled.h1`
     font-size: var(--font-size-l);
     font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-s);
     color: var(--color-text-base);
 
     @media ${QUERIES.tabletAndBelow} {
@@ -102,31 +103,23 @@ const PageTitle = styled.h1`
     }
 `
 
-const RSS = styled.a`
-    font-size: var(--font-size-xxs);
-    font-weight: var(--font-weight-medium);
+const RSS = styled.p`
+    font-size: var(--font-size-s);
+    font-weight: var(--font-weight-normal);
     letter-spacing: 0.5px;
-    text-decoration: none;
-    padding: 2px 4px 0px 4px;
-    border: 1px solid var(--color-text-base);
-    border-radius: 2px;
-    color: var(--color-text-base);
-    line-height: 1.2;
+    color: var(--color-text-muted);
 
-    &:hover {
-        border: 1px solid var(--color-link-hover);
+    & a {
+        font-size: var(--font-size-s);
     }
 `
 
 const PageHead = styled.div`
     margin-bottom: var(--spacing-6x);
-    display: flex;
-    gap: var(--spacing-1x);
-    align-items: center;
     animation: onload-fade var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.tabletAndBelow} {
-        margin-bottom: var(--spacing-4x);
+        margin-bottom: var(--spacing-5x);
     }
 `
 const BlogList = styled.ul`
