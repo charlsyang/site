@@ -118,6 +118,7 @@ const Intro = styled.section`
     grid-column: 7 / -1;
     padding-top: 10rem;
     max-width: 33rem;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;
@@ -174,6 +175,8 @@ const ContactLinks = styled.div`
     flex-direction: column;
     gap: var(--spacing-3x);
     font-weight: var(--font-weight-normal);
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
 
     & p {
         color: var(--color-text-muted);
@@ -191,6 +194,8 @@ const Experience = styled.section`
     display: flex;
     flex-direction: column;
     grid-column: -5 / -1;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;
@@ -252,6 +257,8 @@ const Projects = styled.section`
     margin-bottom: 12rem;
     border-top: 1px solid var(--color-border);
     padding-top: var(--spacing-2x);
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-2);
 
     @media ${QUERIES.phoneAndBelow} {
         margin-bottom: 5rem;
@@ -309,6 +316,8 @@ const Craft = styled.section`
     display: flex;
     flex-direction: column;
     gap: var(--spacing-3x);
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-3);
 `
 
 const ReDream = styled.div`
