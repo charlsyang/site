@@ -42,7 +42,7 @@ export default function Colophon() {
 }
 
 const Main = styled.main`
-    min-height: calc(100vh - var(--footer-height));
+    min-height: calc(100vh - var(--footer-height) - var(--nav-height));
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -67,6 +67,7 @@ const Title = styled.h1`
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
     color: var(--color-text-base);
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.tabletAndBelow} {
         font-size: var(--font-size-l);
@@ -74,6 +75,8 @@ const Title = styled.h1`
 `
 
 const Content = styled.div`
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
     
     & p {
         font-family: var(--font-sans);
