@@ -103,7 +103,7 @@ const MainContent = styled.main`
   font-family: var(--font-sans);
   padding-top: 10rem;
   padding-bottom: 5rem;
-  min-height: calc(100vh - var(--footer-height));
+  min-height: calc(100vh - var(--footer-height) - var(--nav-height));
 
   & * {
     font-family: inherit;
@@ -120,6 +120,7 @@ const Intro = styled.header`
   margin-bottom: 10rem;
   grid-column: 7 / -1;
   max-width: 45ch;
+  animation: onload-fade var(--duration-load) var(--ease-out) both;
 
   @media ${QUERIES.tabletAndBelow} {
       grid-column: 7 / -1;
@@ -185,6 +186,8 @@ const Blog = styled.section`
   display: grid;
   grid-column-gap: 24px;
   grid-template-columns: repeat(5, 1fr);
+  animation: onload-fade var(--duration-load) var(--ease-out) both;
+  animation-delay: var(--stagger-1);
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 1 / 7;
@@ -257,6 +260,8 @@ const Now = styled.section`
   grid-template-columns: repeat(5, 1fr);
   grid-column-gap: 24px;
   grid-row-gap: var(--spacing-6x);
+  animation: onload-fade var(--duration-load) var(--ease-out) both;
+  animation-delay: var(--stagger-2);
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 7 / -1;
@@ -313,6 +318,8 @@ const Contact = styled.section`
   grid-template-columns: repeat(5, 1fr);
   gap: 20px;
   margin-top: 5rem;
+  animation: onload-fade var(--duration-load) var(--ease-out) both;
+  animation-delay: var(--stagger-3);
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 7 / -1;
