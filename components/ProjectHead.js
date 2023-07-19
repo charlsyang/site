@@ -14,31 +14,31 @@ export default function ProjectHead(props) {
                     <Title>{props.title}</Title>
                     <Subtitle>{props.subtitle}</Subtitle>
                 </Heading>
-                    <DataRoll>
-                        <Timeline>
-                            <SmallHead>Timeline</SmallHead>
-                            <DataList>
-                                <li>{props.timeline[0]}</li>
-                                <li>{props.timeline[1]}</li>
-                            </DataList>
-                        </Timeline>
-                        <Team>
-                            <SmallHead>Team</SmallHead>
-                            <DataList>
-                                {props.team.map((member, index) => {
-                                    return <li key = {index}>{member}</li>;
-                                })}
-                            </DataList>
-                        </Team>
-                        <Contribution>
-                            <SmallHead>Contribution</SmallHead>
-                            <DataList>
-                                {props.contribution.map((contribution, index) => {
-                                    return <li key = {index}>{contribution}</li>;
-                                })}
-                            </DataList>
-                        </Contribution>
-                    </DataRoll>
+                <DataRoll>
+                    <Timeline>
+                        <SmallHead>Timeline</SmallHead>
+                        <DataList>
+                            <li>{props.timeline[0]}</li>
+                            <li>{props.timeline[1]}</li>
+                        </DataList>
+                    </Timeline>
+                    <Team>
+                        <SmallHead>Team</SmallHead>
+                        <DataList>
+                            {props.team.map((member, index) => {
+                                return <li key = {index}>{member}</li>;
+                            })}
+                        </DataList>
+                    </Team>
+                    <Contribution>
+                        <SmallHead>Contribution</SmallHead>
+                        <DataList>
+                            {props.contribution.map((contribution, index) => {
+                                return <li key = {index}>{contribution}</li>;
+                            })}
+                        </DataList>
+                    </Contribution>
+                </DataRoll>
             </Metadata>
         </GridWrapper>
         </Header>
@@ -70,6 +70,7 @@ const Heading = styled.div`
     max-width: 24rem;
     margin-bottom: 72px;
     grid-column: 1 / 5;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.phoneAndBelow} {
         grid-column: 1 / -1;
@@ -98,6 +99,8 @@ const DataRoll = styled.div`
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-3x);
     padding-bottom: var(--spacing-2x);
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
 
     @media ${QUERIES.phoneAndBelow} {
         display: flex;

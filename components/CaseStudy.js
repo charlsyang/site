@@ -4,6 +4,8 @@ import { QUERIES } from '../utils/constants';
 const CaseStudy = styled.article`   
     color: var(--color-text-base);
     position: relative;
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-2);
 
     @media ${QUERIES.phoneAndBelow} {
     }
