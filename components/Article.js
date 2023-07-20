@@ -205,7 +205,7 @@ const Article = styled.article`
     & p > code {
         font-family: var(--font-mono);
         font-size: var(--font-size-xs);
-        padding: 2px 8px;
+        padding: 2px var(--spacing-s);
         margin: 0 1px;
         background-color: var(--color-bg-solid);
         border-radius: 4px;
