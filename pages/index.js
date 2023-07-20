@@ -261,7 +261,7 @@ const Now = styled.section`
   grid-column-gap: 24px;
   grid-row-gap: var(--spacing-6x);
   animation: onload-fade var(--duration-load) var(--ease-out) both;
-  animation-delay: var(--stagger-2);
+  animation-delay: var(--stagger-1);
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 7 / -1;
@@ -319,7 +319,7 @@ const Contact = styled.section`
   gap: 20px;
   margin-top: 5rem;
   animation: onload-fade var(--duration-load) var(--ease-out) both;
-  animation-delay: var(--stagger-3);
+  animation-delay: var(--stagger-2);
 
   @media ${QUERIES.tabletAndBelow} {
     grid-column: 7 / -1;
