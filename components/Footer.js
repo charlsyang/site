@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, {keyframes} from 'styled-components';
 import Link from 'next/link';
 import { QUERIES } from '../utils/constants'
 
@@ -16,6 +16,15 @@ const Footer = () => {
     );
 }
 
+const footerFade = keyframes`
+    from {
+        opacity: 0;
+        translate: 0 8px;
+    } to {
+        opacity: 100%;
+        translate: 0 0;
+    }
+`
 
 const FooterWrapper = styled.footer`
     height: var(--footer-height);
@@ -25,6 +34,8 @@ const FooterWrapper = styled.footer`
     margin-right: auto;
     padding-left: 40px;
     padding-right: 40px;
+
+    animation: ${footerFade} var(--duration-load) var(--ease-out) both;
 
     @media ${QUERIES.phoneAndBelow} {
         padding-left: 24px;

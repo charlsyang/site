@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import Link from 'next/link'
 import GridWrapper from './GridWrapper';
 import Fleuron from '../public/favicon.svg'
@@ -25,9 +25,20 @@ const Nav = () => {
     );
 }
 
+const navFade = keyframes`
+    from {
+        opacity: 0;
+        translate: 0 -8px;
+    } to {
+        opacity: 100%;
+        translate: 0 0;
+    }
+`
+
 const NavWrapper = styled(MaxWidthWrapper)`
     z-index: 2;
     height: var(--nav-height);
+    animation: ${navFade} var(--duration-load) var(--ease-out) both;
 `
 
 const NavGrid = styled(GridWrapper)`
