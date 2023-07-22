@@ -13,7 +13,7 @@ export default function SideNote({ children }) {
       <Sup htmlFor={uniqueID} />
       <NoteContentWrapper>
         <NoteContent>
-          <Parens> (Sidenote: </Parens>
+          <Parens> (Note: </Parens>
           {children}
           <Parens>)</Parens>
         </NoteContent>
