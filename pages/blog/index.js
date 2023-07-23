@@ -29,7 +29,7 @@ const BlogIndex = ({ allPostsData }) => {
                 <Content>
                     <PageHead>
                         <PageTitle>Blog</PageTitle>
-                        <RSS>Subscribe with <a href='/feed.xml'>RSS</a></RSS>
+                        <RSS>Subscribe via <a href='/feed.xml'>RSS</a> or <a href='https://buttondown.email/charlsyang'>email</a></RSS>
                     </PageHead>
                     <BlogList>
                         {allPostsData.map( ({ slug, date, title }) => (
