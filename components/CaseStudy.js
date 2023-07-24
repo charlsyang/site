@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { QUERIES } from '../utils/constants';
 
 const CaseStudy = styled.article`   
-    color: var(--color-text-base);
+    /* color: var(--color-text-base); */
     position: relative;
     animation: onload-fade var(--duration-load) var(--ease-out) both;
     animation-delay: var(--stagger-2);
@@ -114,7 +114,7 @@ const CaseStudy = styled.article`
     }
 
     & a:hover, a:hover * {
-        color: var(--color-accent);
+        color: var(--color-link-hover);
     }
 
     & em {
