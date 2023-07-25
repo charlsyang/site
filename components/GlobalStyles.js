@@ -50,7 +50,7 @@ const GlobalStyles = createGlobalStyle`
         font-family: 'Diatype';
         font-weight: 100 700;
         font-display: fallback;
-        src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
+        src: url(/fonts/ABCDiatypeVariable.woff2) format(woff2) tech(variations);
     }
 
     @font-face {
