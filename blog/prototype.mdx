@@ -1,0 +1,43 @@
+---
+title: 'Prototype'
+date: '2023-11-12'
+tags: ['design']
+excerpt: 'A good prototype is judged by how well it embodies a particular idea to be evaluated.'
+isPublished: true
+---
+
+What is a prototype? A prototype does not exist in isolation, it has to be a prototype *of* something. In most cases, this is the final product that ships to users. A prototype is thus a model that looks and works like the final product. 
+
+For software, a prototype needs to be interactive. After all, software is a dynamic medium. It moves and morphs in its interaction with the user, and interaction is a series of action and response that unfold over time. Software designers need to be constantly thinking about various states and transitions triggered by users’ actions, and how data flows and transforms in response. An interactive prototype allows designers to make a quality judgement of how a software feels because how it feels is very much embodied in how it behaves.
+
+Closely related is the concept of fidelity. Fidelity is the extent to which a prototype resembles the final product that users see and use. We often speak of prototype in terms of its fidelity: the higher fidelity it is, the closer it is to “the real thing”. Since software is dynamic, one way to think about the fidelity of a software prototype is its level of interactivity. The more interactive a prototype, it is able to react to more user actions and give a greater variety of responses. 
+
+On the less interactive end of the spectrum, there is the simple Figma click-through prototype that navigates between static screens. One step further, tools such as ProtoPie and Origami come with conditionals and variables that allow designers to do more advanced state-driven prototyping. Going beyond design, there is engineering prototype written in code that’s used to explore technical considerations and constraints. As the fidelity of prototype progresses, its scope often decreases due to the increasing cost. 
+
+This all sounds good but abstract. What does it *really* look like when a software prototype climbs the ladder of fidelity?
+
+## What makes a high fidelity software prototype
+
+In a piece of working software, interactivity often manifests in mundane details: the blinking cursor, the links and buttons that offer a gentle affirmation of your presence as you glide over, or the AI chatbot’s text streaming effect that is now familiar to everyone. These little signs of life subtly communicates that the software is working. It’s like the nods and “uh-huh”s that come from another human being you converse with. The dynamic nature of software makes it a living organism that needs to provide constant reassurance.
+
+Real software has friction and gaps, too. I often find that a design prototype throws me off because it’s too perfect—so skeptically snappy that everything loads in an instant. There are a lot of interim states in a working software, such as the shimmering skeleton when the page is loading and the looping spinner that lets users know it’s on it. A prototype that is “close to the real thing” means it also encompasses some, if not all of software’s imperfection. 
+
+Sometimes these transient gaps are not only a part of the reality, but can be a utility in themselves. When you ask a favor from someone, you expect it to take time. If the person returns to you in no time, you might question the deliverable’s quality. The labor illusion says that people value things more when they see the work behind them<SideNote>[Labor Illusion. The Psychology of Design.](https://growth.design/psychology#labor-illusion)</SideNote>. It’s important to identify moments when users expect efforts from the software and insert “white space” even when there’s none.
+
+Another way to make prototype feel more “alive” is animation, or more specifically [transition animation](https://uxdesign.cc/transition-animations-a-practical-guide-5dba4d42f659). I’d like to think about this as stage design. Just like casts and props won’t suddenly show up in the middle of nowhere, we expect to see how elements on the page enter and exit the scene and how they spatially relate to each other. Transition animation helps bridge the perception gap between two different steps and make interfaces easier to understand. In this regard, interaction design is no less than an art of time-space orchestration.
+
+Subtle interactivity, in-between states, and transition animation, these are what makes a software prototype closer to the final product. Granted, none of the three is cheap. It costs a significant amount of time and energy to emulate these details in design tools, in many cases it is even ill-advised to do so—which brings me to the next topic.
+
+## Why do we prototype
+
+When I first learned how to use ProtoPie in [Michael](https://art.washington.edu/people/michael-smith)’s class, I got hooked. We were designing a login and sign-up flow with lots of form validation. After the flow was in place, I became caught up in getting ProtoPie to implement all the cases that could happen.
+
+When I approached Michael with my technical question, he reminded me not to get too obsessed with the prototype. As a designer, it’s easy to get hung up in perfectionism and try to hack the tool to cover every scenario and edge case, making the prototype so polished that it’s undistinguishable from the real software. This is the peril of chasing fidelity, and it’s a dangerous place to be in.
+
+It’s important to remember that prototype is not what ships to customers. It is but a mirage of the final product, a process artifact that’s by definition thrown-away work—[even for code](https://addyosmani.com/blog/prototypes/). This is not to say that you should be careless with your prototype, but your prototype should never have fidelity as its goal. A common but tricky question ensues: how to choose the right kinds of prototype to build? How do I know a prototype is “good enough”? 
+
+In its essence, prototype is a manifestation of ideas. A good prototype is thus not judged by its realness, but how well it embodies a particular idea to be evaluated. In the paper *What do prototypes prototype?*<SideNote>Houde S & Hill C, 1997. [What do Prototypes Prototype?](https://hci.stanford.edu/courses/cs247/2012/readings/WhatDoPrototypesPrototype.pdf)</SideNote>, the authors proposes a framework that looks at prototypes from the questions they ask: What role will the product play in a user’s life? How should it look and feel? How should it be implemented? In other words, instead of focusing on how well the prototype should be made, ask whether the prototype has fulfilled its purpose. Has it covered the gist the concept, the core user flow, or the hypothesis to be tested?
+
+Here’re a couple more heuristics to consider: First, how much time do you have? Grounding on realistic factors like timeline and bandwidth sets useful guardrails. Second, who are you going to show this prototype to? While design peers could use their knowledge to fill in the gaps and infer what the missing part looks like, layperson like business leaders or end users might need higher fidelity to help them visualize the full picture. Finally, what kinds of feedbacks do you need? While simple opinions and thoughts could be provoked by prototypes with lower resolution, feedbacks that can’t quite be verbalized such as feelings and behaviors would need a finer simulation to elicit.
+
+As all the hard problems in design, there’s no easy answer. It’s a good place to start with the purpose of prototype, available resources, and the types of audience and feedback, but ultimately it depends on the specific situation you find yourself in. At the end of the day, prototype is a tool to explore and communicate ideas. It is an epitome of designers’ unique superpower: the ability to make things. By giving shapes to ideas, designers provide a tangible form to talk about and iterate on—and this often shows up as a prototype that resolves confusion, rallies the team, and reifies the vision for a path forward.
