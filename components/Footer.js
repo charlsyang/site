@@ -7,7 +7,7 @@ const Footer = () => {
         <FooterWrapper>
             <Divider/>
             <FooterContent>
-                <Footnote>© 2023 · Design <Ampersand>&</Ampersand> built in Seattle</Footnote>
+                <Footnote>© 2025 · Made with love in Mountain View</Footnote>
                 <Link href='/colophon' passHref legacyBehavior>
                     <Colophon>Colophon</Colophon>
                 </Link>
