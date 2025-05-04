@@ -1,105 +1,99 @@
-import Head from '../components/Head'
-import MaxWidthWrapper from '../components/MaxWidthWrapper'
-import styled from 'styled-components'
-import Link from 'next/link'
-import { getSortedPostsData } from '../utils/blog'
-import Date from '../components/Date'
-import GridWrapper from '../components/GridWrapper'
-import CustomLink from '../components/CustomLink'
-import { QUERIES } from '../utils/constants'
-import { ArrowRight } from 'react-feather'
-import generateRSSFeed from '../utils/generateRSSFeed'
+import Head from "../components/Head";
+import MaxWidthWrapper from "../components/MaxWidthWrapper";
+import styled from "styled-components";
+import Link from "next/link";
+import { getSortedPostsData } from "../utils/blog";
+import Date from "../components/Date";
+import GridWrapper from "../components/GridWrapper";
+import CustomLink from "../components/CustomLink";
+import { QUERIES } from "../utils/constants";
+import { ArrowRight } from "react-feather";
+import generateRSSFeed from "../utils/generateRSSFeed";
 
 export async function getStaticProps() {
   const allPostsData = getSortedPostsData();
-  
+
   await generateRSSFeed();
 
   return {
     props: {
-      allPostsData
-    }
-  }
+      allPostsData,
+    },
+  };
 }
 
-export default function Home({allPostsData}) {
+export default function Home({ allPostsData }) {
   let latestPostData;
   if (allPostsData.length > 5) {
-    latestPostData = allPostsData.slice(0, 5)
+    latestPostData = allPostsData.slice(0, 5);
   } else {
-    latestPostData = allPostsData
-  };
+    latestPostData = allPostsData;
+  }
 
-  return <>
-    <Head 
-      title="Charlsy Yang"
-      description="Charlsy’s personal site"
-    />
-    <MaxWidthWrapper>
-      <MainContent>
-        <GridWrapper>
-          <Intro>
-              <p>Charlsy <CustomLink href='/work'>designs</CustomLink> <Ampersand>&</Ampersand> <CustomLink href='/blog'>writes</CustomLink>. </p>
-              <p>He leads a life that straddles two worlds—a tangible one of shaping 
-              forms and an ethereal one of tending&nbsp;thoughts.</p>
-          </Intro>
-        </GridWrapper>
-        <GridWrapper>
-          <Blog>
-            <SectionTitle>Blog</SectionTitle>
-            <BlogList>
-                {latestPostData.map( ({ slug, date, title }) => (
-                      <BlogItem key={slug}>
-                          <Link href={`/blog/${slug}`}>
-                            {title}
-                          </Link>
-                          <StyledDate>
-                            <Date dateString={date}></Date>
-                          </StyledDate>
-                      </BlogItem>
+  return (
+    <>
+      <Head title="Charlsy Yang" description="Charlsy’s personal site" />
+      <MaxWidthWrapper>
+        <MainContent>
+          <GridWrapper>
+            <Intro>
+              <p>
+                Charlsy <CustomLink href="/work">designs</CustomLink>{" "}
+                <Ampersand>&</Ampersand>{" "}
+                <CustomLink href="/blog">writes</CustomLink>.{" "}
+              </p>
+              <p>
+                He leads a life that straddles two worlds—a tangible one of
+                shaping forms and an ethereal one of tending&nbsp;thoughts.
+              </p>
+            </Intro>
+          </GridWrapper>
+          <GridWrapper>
+            <Blog>
+              <SectionTitle>Blog</SectionTitle>
+              <BlogList>
+                {latestPostData.map(({ slug, date, title }) => (
+                  <BlogItem key={slug}>
+                    <Link href={`/blog/${slug}`}>{title}</Link>
+                    <StyledDate>
+                      <Date dateString={date}></Date>
+                    </StyledDate>
+                  </BlogItem>
                 ))}
-                <Link href='/blog' legacyBehavior>
+                <Link href="/blog" legacyBehavior>
                   <AllBlog>
-                      All posts<ArrowRight size={16}/>
+                    All posts
+                    <ArrowRight size={16} />
                   </AllBlog>
                 </Link>
-            </BlogList>
-          </Blog>
-          <Now>
-            <SectionTitle>Now</SectionTitle>
-            <NowContent>
-              <p>Proactively guarding my time for only the enterprises that I deem worthwhile:</p>
-              <p>Continuing to hone my craft. Currently focused on learning front-end web development (hence this site) and design system.</p>
-              <p>Reading extensively and consistently, taking on intellectually stimulating text that sparks my interest. Planning to bring the same discipline to writing, publishing more frequently.</p>
-              <p>Putting intentional efforts in nurturing friendships, writing letters and making calls—doing things <CustomLink href='https://www.youtube.com/watch?v=WjSOZI90PmE'>the long, hard, stupid way.</CustomLink></p>
-            </NowContent>
-            <Reading>
-              <ReadingLabel>Reading</ReadingLabel>
-              <CustomLink href='https://en.wikipedia.org/wiki/Deschooling_Society'>Deschooling Society</CustomLink>
-              <Author>Ivan Illich</Author>
-            </Reading>
-          </Now>
-          <Contact>
-            <SectionTitle>Say hi</SectionTitle>
-            <ContactList>
-              <ContactItem>
-                <ContactItemLabel>Email</ContactItemLabel>
-                <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
-              </ContactItem>
-              <ContactItem>
-                <ContactItemLabel>Mastodon</ContactItemLabel>
-                <CustomLink rel="me" href="https://typo.social/@charlsy">charlsy@typo.social</CustomLink>
-              </ContactItem>
-            </ContactList>
-          </Contact>
-        </GridWrapper>
-      </MainContent>
-    </MaxWidthWrapper>
-  </>;
+              </BlogList>
+            </Blog>
+            <Contact>
+              <SectionTitle>Say hi</SectionTitle>
+              <ContactList>
+                <ContactItem>
+                  <ContactItemLabel>Email</ContactItemLabel>
+                  <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
+                </ContactItem>
+                <ContactItem>
+                  <ContactItemLabel>Bluesky</ContactItemLabel>
+                  <CustomLink
+                    rel="me"
+                    href="https://bsky.app/profile/charlsy.cv"
+                  >
+                    @charlsy.cv
+                  </CustomLink>
+                </ContactItem>
+              </ContactList>
+            </Contact>
+          </GridWrapper>
+        </MainContent>
+      </MaxWidthWrapper>
+    </>
+  );
 }
 
-
-const MainContent = styled.main`
+const MainContent = styled.div`
   font-family: var(--font-sans);
   padding-top: 10rem;
   padding-bottom: 5rem;
@@ -114,25 +108,24 @@ const MainContent = styled.main`
       font-size: var(--font-size-s);
     }
   }
-`
+`;
 
 const Intro = styled.header`
-  margin-bottom: 10rem;
+  margin-bottom: 6rem;
   grid-column: 7 / -1;
   max-width: 45ch;
   animation: onload-fade var(--duration-load) var(--ease-out) both;
 
   @media ${QUERIES.tabletAndBelow} {
-      grid-column: 7 / -1;
-      margin-bottom: 8rem;
+    grid-column: 7 / -1;
+    margin-bottom: 8rem;
   }
 
   @media ${QUERIES.phoneAndBelow} {
-      grid-column: 1 / -1;
-      margin-bottom: 6rem;
+    grid-column: 1 / -1;
+    margin-bottom: 6rem;
   }
-  
-  
+
   & p {
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-xl);
@@ -144,30 +137,14 @@ const Intro = styled.header`
     }
   }
 
-  & p+p {
+  & p + p {
     text-indent: 2em;
   }
 
   & a {
     font-size: inherit;
   }
-`
-/* & span:nth-of-type(2) {
-    text-indent: 2em;
-  }
-*/
-
-/*
-const StyledBalancer = styled(Balancer)`
-    font-weight: var(--font-weight-normal);
-    font-size: var(--font-size-xl);
-    line-height: 1.3;
-    color: var(--color-text-base);
-
-    @media ${QUERIES.tabletAndBelow} {
-      font-size: var(--font-size-l);
-    } 
-`*/
+`;
 
 const Ampersand = styled.span`
   font-family: var(--font-ampersand);
@@ -177,21 +154,17 @@ const Ampersand = styled.span`
   padding-right: 1px;
 
   @media ${QUERIES.tabletAndBelow} {
-      font-size: var(--font-size-l);
-    }
-`
+    font-size: var(--font-size-l);
+  }
+`;
 
 const Blog = styled.section`
-  grid-column: 1 / 6;
+  grid-column: 6 / -1;
   display: grid;
   grid-column-gap: 24px;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   animation: onload-fade var(--duration-load) var(--ease-out) both;
   animation-delay: var(--stagger-1);
-
-  @media ${QUERIES.tabletAndBelow} {
-    grid-column: 1 / 7;
-  }
 
   @media ${QUERIES.phoneAndBelow} {
     grid-column: 1 / -1;
@@ -199,7 +172,7 @@ const Blog = styled.section`
     flex-direction: column;
     gap: var(--spacing-3x);
   }
-`
+`;
 
 const SectionTitle = styled.h2`
   grid-column: 1 / 2;
@@ -210,7 +183,7 @@ const SectionTitle = styled.h2`
     padding-bottom: var(--spacing-1x);
     border-bottom: 1px solid var(--colo-border);
   }
-`
+`;
 
 const BlogList = styled.ul`
   display: flex;
@@ -218,24 +191,23 @@ const BlogList = styled.ul`
   gap: var(--spacing-3x);
   grid-column: 2 / -1;
   align-items: flex-start;
-`
+`;
 
 const BlogItem = styled.li`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-s);
-`
+`;
 
 const AllBlog = styled.a`
   height: var(--back-button-height);
-  margin-top: var(--spacing-3x);
   display: flex;
   align-items: center;
   gap: var(--spacing-s);
   color: var(--color-text-base);
   cursor: pointer;
-  
+
   & svg {
     transition: transform var(--transition-default);
   }
@@ -248,90 +220,28 @@ const AllBlog = styled.a`
   @media ${QUERIES.phoneAndBelow} {
     margin-top: var(--spacing-2x);
   }
-`
+`;
 
 const StyledDate = styled.p`
   color: var(--color-text-muted);
-`
-
-const Now = styled.section`
-  grid-column: 7 / -2;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-column-gap: 24px;
-  grid-row-gap: var(--spacing-6x);
-  animation: onload-fade var(--duration-load) var(--ease-out) both;
-  animation-delay: var(--stagger-1);
-
-  @media ${QUERIES.tabletAndBelow} {
-    grid-column: 7 / -1;
-    grid-row-gap: var(--spacing-4x);
-  }
-  
-  @media ${QUERIES.phoneAndBelow} {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3x);
-    margin-top: var(--spacing-6x);
-  }
-`
-
-const NowContent = styled.div`
-  grid-column: 2 / -1;
-
-  & p {
-    color: var(--color-text-base);
-    line-height: 1.5;
-    hyphens: auto;
-  }
-
-  & p+p {
-    text-indent: 1.5em;
-  }
-`
-
-const Reading = styled.div`
-  grid-column: 2 / -1;
-`
-
-const ReadingLabel = styled.p`
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 1px;
-  text-transform: lowercase;
-  font-variant: small-caps;
-  color: var(--color-text-faint);
-  margin-bottom: var(--spacing-1x);
-`
-
-const BookTitle = styled.p`
-  color: var(--color-text-base);
-`
-
-const Author = styled.p`
-  color: var(--color-text-muted);
-`
+`;
 
 const Contact = styled.section`
-  grid-column: 7 / -2;
+  grid-column: 6 / -1;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 20px;
   margin-top: 5rem;
   animation: onload-fade var(--duration-load) var(--ease-out) both;
   animation-delay: var(--stagger-2);
 
-  @media ${QUERIES.tabletAndBelow} {
-    grid-column: 7 / -1;
-  }
-  
   @media ${QUERIES.phoneAndBelow} {
     grid-column: 1 / -1;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-3x);
   }
-`
+`;
 
 const ContactList = styled.div`
   grid-column: 2 / -1;
@@ -342,15 +252,15 @@ const ContactList = styled.div`
   @media ${QUERIES.tabletAndBelow} {
     gap: var(--spacing-3x);
   }
-`
+`;
 
 const ContactItem = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-s);
-`
+`;
 
 const ContactItemLabel = styled.p`
   color: var(--color-text-faint);
-`
+`;

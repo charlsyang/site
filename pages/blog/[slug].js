@@ -1,6 +1,10 @@
 import Head from "../../components/Head";
 import styled from "styled-components";
-import { getSortedPostsData, getAllPostSlugs, getPostData } from "../../utils/blog";
+import {
+  getSortedPostsData,
+  getAllPostSlugs,
+  getPostData,
+} from "../../utils/blog";
 import { getMDXComponent } from "mdx-bundler/client";
 import { useMemo } from "react";
 import { QUERIES } from "../../utils/constants";
@@ -13,7 +17,6 @@ import CustomImg from "../../components/CustomImg";
 import BackButton from "../../components/BackButton";
 import CodeSnippet from "../../components/CodeSnippet";
 import SideNote from "../../components/SideNote";
-import BlogFooter from "../../components/BlogFooter";
 
 export async function getStaticProps({ params }) {
   const postData = await getPostData(params.slug);
@@ -21,7 +24,7 @@ export async function getStaticProps({ params }) {
   return {
     props: {
       ...postData,
-      allPosts
+      allPosts,
     },
   };
 }
@@ -34,10 +37,8 @@ export async function getStaticPaths() {
   };
 }
 
-export default function BlogPost({ allPosts, code, frontmatter, slug }) {
+export default function BlogPost({ code, frontmatter }) {
   const Component = useMemo(() => getMDXComponent(code), [code]);
-  const readNextPosts = allPosts.filter(post => post.slug !== slug).slice(0, 4);
-  // .sort(() => 0.5 - Math.random())
 
   return (
     <>
@@ -51,11 +52,15 @@ export default function BlogPost({ allPosts, code, frontmatter, slug }) {
           </BlogHead>
           <Article>
             <Component
-              components={{ a: CustomLink, img: CustomImg, pre: CodeSnippet, SideNote }}
+              components={{
+                a: CustomLink,
+                img: CustomImg,
+                pre: CodeSnippet,
+                SideNote,
+              }}
             />
           </Article>
         </MainContent>
-        {/* <BlogFooter readNextPosts={readNextPosts}/> */}
       </MaxWidthWrapper>
     </>
   );
@@ -104,7 +109,6 @@ const BlogHead = styled.div`
     }
   }
 `;
-
 
 const Back = styled(BackButton)`
   grid-column: 1 / 3;
