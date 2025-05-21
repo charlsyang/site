@@ -1,16 +1,16 @@
-import MaxWidthWrapper from '../../components/MaxWidthWrapper';
-import Head from 'next/head';
-import styled from 'styled-components';
-import GridWrapper from '../../components/GridWrapper';
-import Link from 'next/link';
-import { QUERIES } from '../../utils/constants';
-import { getPublishedPostsData } from '../../utils/work';
-import ProjectCard from '../../components/ProjectCard';
-import { ArrowUpRight } from 'react-feather';
-import CustomLink from '../../components/CustomLink';
-import Contact from '../../components/Contact';
-import Gallery from '../../components/Gallery';
-import Balancer from 'react-wrap-balancer';
+import MaxWidthWrapper from "../../components/MaxWidthWrapper";
+import Head from "next/head";
+import styled from "styled-components";
+import GridWrapper from "../../components/GridWrapper";
+import Link from "next/link";
+import { QUERIES } from "../../utils/constants";
+import { getPublishedPostsData } from "../../utils/work";
+import ProjectCard from "../../components/ProjectCard";
+import { ArrowUpRight } from "react-feather";
+import CustomLink from "../../components/CustomLink";
+import Contact from "../../components/Contact";
+import Gallery from "../../components/Gallery";
+import Balancer from "react-wrap-balancer";
 
 export async function getStaticProps() {
   const allPostsData = getPublishedPostsData();
@@ -34,18 +34,18 @@ export default function WorkIndex({ allPostsData }) {
           <Intro>
             <Headline>
               <p>
-                Charlsy designs visual and interactive experience for
-                products and&nbsp;brands.
+                Charlsy designs visual and interactive experience for products
+                and&nbsp;brands.
               </p>
               <p>
-                He cares deeply about quality and holds craftsmanship
-                dear to&nbsp;heart.
+                He cares deeply about quality and holds craftsmanship dear
+                to&nbsp;heart.
               </p>
             </Headline>
             <Callout>
               <p>
-                Learn more about{' '}
-                <Link href='https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80'>
+                Learn more about{" "}
+                <Link href="https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80">
                   Charlsy as a designer
                 </Link>
                 .
@@ -55,13 +55,11 @@ export default function WorkIndex({ allPostsData }) {
           <ContactLinks>
             <div>
               <p>Email</p>
-              <Link href='mailto:hi@charlsy.me'>hi@charlsy.me</Link>
+              <Link href="mailto:hi@charlsy.me">hi@charlsy.me</Link>
             </div>
             <div>
               <p>Resume</p>
-              <Link href='https://read.cv/charlsy'>
-                read.cv/charlsy
-              </Link>
+              <Link href="https://charlsy.cv">charlsy.cv</Link>
             </div>
           </ContactLinks>
         </GridWrapper>
@@ -84,13 +82,13 @@ export default function WorkIndex({ allPostsData }) {
           <GridWrapper>
             <SectionHeading>Craft</SectionHeading>
             <ReDream>
-              <Link href='https://youtu.be/ZVy1wVqHpH4'>
+              <Link href="https://youtu.be/ZVy1wVqHpH4">
                 <video
-                  src='/visuals/redream-teaser.mp4'
+                  src="/visuals/redream-teaser.mp4"
                   autoPlay
                   loop
                   muted
-                  draggable='false'
+                  draggable="false"
                 />
                 <MediaTitle>
                   <p>ReDream: App Concept</p>
@@ -102,8 +100,8 @@ export default function WorkIndex({ allPostsData }) {
           <Gallery />
         </Craft>
         <Contact>
-          If you are looking for a designer to join your team, or
-          simply interested in learning more about my work—
+          If you are looking for a designer to join your team, or simply
+          interested in learning more about my work—
         </Contact>
       </MaxWidthWrapper>
     </>
