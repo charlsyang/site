@@ -25,6 +25,7 @@ export async function getStaticProps({ params }) {
     props: {
       ...postData,
       allPosts,
+      slug: params.slug,
     },
   };
 }
@@ -37,12 +38,20 @@ export async function getStaticPaths() {
   };
 }
 
-export default function BlogPost({ code, frontmatter }) {
+const BASE_URL = "https://charlsyang.com";
+
+export default function BlogPost({ code, frontmatter, slug }) {
   const Component = useMemo(() => getMDXComponent(code), [code]);
+  const ogImage = `${BASE_URL}/api/og?title=${encodeURIComponent(frontmatter.title)}`;
 
   return (
     <>
-      <Head title={frontmatter.title} />
+      <Head
+        title={frontmatter.title}
+        description={frontmatter.excerpt}
+        ogImage={ogImage}
+        path={`/blog/${slug}`}
+      />
       <MaxWidthWrapper>
         <MainContent>
           <Back href="/blog">Blog</Back>
