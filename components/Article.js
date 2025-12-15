@@ -32,6 +32,10 @@ const Article = styled.article`
             margin-top: 2rem;
             margin-bottom: 1rem;
         }
+
+        @media ${QUERIES.phoneAndBelow} {
+            font-weight: var(--font-weight-medium);
+        }
     }
 
     & h2:not(:empty):first-child {
