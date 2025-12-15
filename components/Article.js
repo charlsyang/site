@@ -29,9 +29,12 @@ const Article = styled.article`
         margin-bottom: 1.25rem;
 
         @media ${QUERIES.tabletAndBelow} {
-            font-size: var(--font-size-s);
             margin-top: 2rem;
             margin-bottom: 1rem;
+        }
+
+        @media ${QUERIES.phoneAndBelow} {
+            font-weight: var(--font-weight-medium);
         }
     }
 
