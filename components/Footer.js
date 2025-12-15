@@ -7,7 +7,7 @@ const Footer = () => {
     <FooterWrapper>
       <Divider />
       <FooterContent>
-        <Footnote>© 2025 · Built with love in San Francisco</Footnote>
+        <Footnote>© 2025 · San Francisco</Footnote>
         <Link href="/colophon" passHref legacyBehavior>
           <Colophon>Colophon</Colophon>
         </Link>

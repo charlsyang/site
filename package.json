@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/colors": "^1.0.0",
+    "@vercel/og": "^0.8.5",
     "builtin-modules": "^3.3.0",
     "date-fns": "^2.30.0",
     "esbuild": "^0.18.11",
