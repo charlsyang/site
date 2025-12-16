@@ -33,15 +33,15 @@ export default async function handler(req) {
             flexDirection: "column",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            maxWidth: "900px",
+            // maxWidth: "900px",
           }}
         >
           <h1
             style={{
-              fontSize: title.length > 50 ? "64px" : "72px",
+              fontSize: title.length > 24 ? "64px" : "80px",
               fontWeight: 400,
               color: "#ffffff",
-              lineHeight: 1.15,
+              lineHeight: title.length > 24 ? "1.15" : "1",
               margin: 0,
               letterSpacing: "-0.02em",
               fontFamily: "ABC Diatype",
@@ -53,7 +53,7 @@ export default async function handler(req) {
             style={{
               display: "flex",
               alignItems: "center",
-              marginTop: "40px",
+              marginBottom: "24px",
               gap: "12px",
               opacity: 0.8,
             }}
