@@ -24,7 +24,7 @@ export default async function handler(req) {
           width: "100%",
           display: "flex",
           backgroundColor: "#6550b9",
-          padding: "80px",
+          padding: "120px 80px",
         }}
       >
         <div
@@ -33,7 +33,6 @@ export default async function handler(req) {
             flexDirection: "column",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            // maxWidth: "900px",
           }}
         >
           <h1
@@ -53,7 +52,6 @@ export default async function handler(req) {
             style={{
               display: "flex",
               alignItems: "center",
-              marginBottom: "24px",
               gap: "12px",
               opacity: 0.8,
             }}
