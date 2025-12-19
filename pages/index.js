@@ -32,7 +32,7 @@ export default function Home({ allPostsData }) {
 
   return (
     <>
-      <Head title="Charlsy Yang" description="Charlsy’s personal site" />
+      <Head description="Charlsy's personal site" />
       <MaxWidthWrapper>
         <MainContent>
           <GridWrapper>
