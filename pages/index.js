@@ -76,12 +76,9 @@ export default function Home({ allPostsData }) {
                   <a href="mailto:hi@charlsy.me">hi@charlsy.me</a>
                 </ContactItem>
                 <ContactItem>
-                  <ContactItemLabel>Bluesky</ContactItemLabel>
-                  <CustomLink
-                    rel="me"
-                    href="https://bsky.app/profile/charlsy.cv"
-                  >
-                    @charlsy.cv
+                  <ContactItemLabel>Twitter/X</ContactItemLabel>
+                  <CustomLink rel="me" href="https://x.com/imcharlsy">
+                    @imcharlsy
                   </CustomLink>
                 </ContactItem>
               </ContactList>
