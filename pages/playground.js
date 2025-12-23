@@ -15,15 +15,14 @@ export default function Playground() {
           <Title>Charlsy Yang</Title>
           <Subtitle>Software designer.</Subtitle>
         </Header>
-        <GridContainer>
+        <GridArea>
           <MasonryGrid
             items={SAMPLE_MEDIA}
-            columns={3}
+            rows={3}
             duration={40}
-            gap={12}
-            direction="up"
+            direction="left"
           />
-        </GridContainer>
+        </GridArea>
       </Main>
     </>
   );
@@ -66,12 +65,8 @@ const Subtitle = styled.p`
   margin: 0;
 `;
 
-const GridContainer = styled.div`
+const GridArea = styled.div`
   flex: 0 0 66.666%;
-  min-height: 0; /* Required for flex child to shrink */
+  min-height: 0;
   margin-right: 3rem;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: var(--color-bg-solid);
-  padding: 0 0.6vw;
 `;

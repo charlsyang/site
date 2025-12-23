@@ -2,8 +2,12 @@ import { useRouter } from "next/router";
 import GlobalStyles from "../components/GlobalStyles";
 import { StyleSheetManager } from "styled-components";
 import { ThemeProvider } from "next-themes";
+import { AnimatePresence } from "motion/react";
 import Layout from "../components/Layout";
 import WorkLayout from "../components/WorkLayout";
+import PageTransition, {
+  TransitionProvider,
+} from "../components/PageTransition";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -15,9 +19,15 @@ function MyApp({ Component, pageProps }) {
       <StyleSheetManager enableVendorPrefixes>
         <GlobalStyles />
         <ThemeProvider forcedTheme={Component.theme || null}>
-          <WorkLayout allPostsData={pageProps.allPostsData}>
-            <Component {...pageProps} />
-          </WorkLayout>
+          <TransitionProvider>
+            <WorkLayout allPostsData={pageProps.allPostsData}>
+              <AnimatePresence initial={false}>
+                <PageTransition key={router.asPath}>
+                  <Component {...pageProps} />
+                </PageTransition>
+              </AnimatePresence>
+            </WorkLayout>
+          </TransitionProvider>
         </ThemeProvider>
       </StyleSheetManager>
     );

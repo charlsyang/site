@@ -2,6 +2,8 @@ import styled from "styled-components";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { QUERIES } from "../utils/constants";
+import Fleuron from "../public/favicon.svg";
+import { keyframes } from "styled-components";
 
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
@@ -10,6 +12,15 @@ export default function WorkLayout({ children, allPostsData }) {
   return (
     <Container>
       <Sidebar>
+        <NavWrapper>
+          <NavLinks>
+            <Home href="/">
+              <StyledFleuron />
+            </Home>
+            <Link href="/work">Work</Link>
+            <Link href="/blog">Blog</Link>
+          </NavLinks>
+        </NavWrapper>
         {/* Intro - from current work/index.js */}
         <Intro>
           <Headline>
@@ -22,7 +33,7 @@ export default function WorkLayout({ children, allPostsData }) {
               to&nbsp;heart.
             </p>
           </Headline>
-          <Callout>
+          {/* <Callout>
             <p>
               Learn more about{" "}
               <Link href="https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80">
@@ -30,7 +41,7 @@ export default function WorkLayout({ children, allPostsData }) {
               </Link>
               .
             </p>
-          </Callout>
+          </Callout> */}
         </Intro>
 
         {/* Contact links - from current work/index.js */}
@@ -71,6 +82,63 @@ export default function WorkLayout({ children, allPostsData }) {
 // Styled Components
 // ============================================
 
+const navFade = keyframes`
+    from {
+        opacity: 0;
+        translate: 0 -8px;
+    } to {
+        opacity: 100%;
+        translate: 0 0;
+    }
+`;
+
+const NavWrapper = styled.div`
+  z-index: 2;
+  height: var(--nav-height);
+  animation: ${navFade} var(--duration-load) var(--ease-out) both;
+`;
+
+const Home = styled(Link)`
+  max-width: 24px;
+`;
+
+const StyledFleuron = styled(Fleuron)`
+  display: block;
+  transform: scale(0.9) translateY(-1px);
+  & path {
+    fill: var(--color-text-muted);
+    transition: var(--transition-slow);
+  }
+
+  &:hover {
+    & path {
+      fill: var(--color-text-base);
+      transition: var(--transition-default);
+    }
+  }
+`;
+
+const NavLinks = styled.nav`
+  grid-column: 7 / -1;
+  display: flex;
+  gap: var(--spacing-4x);
+  position: relative;
+
+  & a {
+    font-size: var(--font-size-s);
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  & a:hover {
+    color: var(--color-text-base);
+  }
+
+  @media ${QUERIES.phoneAndBelow} {
+    gap: var(--spacing-2x);
+  }
+`;
+
 const Container = styled.div`
   display: flex;
   height: 100vh;
@@ -78,8 +146,8 @@ const Container = styled.div`
 `;
 
 const Sidebar = styled.aside`
-  flex: 0 0 33.333%;
-  max-width: 400px;
+  flex: 0 0 28%;
+  /* max-width: 400px; */
   min-width: 280px;
   padding: var(--spacing-4x);
   overflow-y: auto;
@@ -98,11 +166,14 @@ const Sidebar = styled.aside`
 `;
 
 const ContentArea = styled.main`
+  position: relative;
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  padding: var(--spacing-2x);
-  padding-left: 0;
+  margin: var(--spacing-2x);
+  border-radius: 24px;
+  background-color: var(--color-bg-solid);
+  border: 1px solid var(--color-border);
 `;
 
 const Intro = styled.section`

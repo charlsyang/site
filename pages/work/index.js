@@ -1,5 +1,4 @@
 import Head from "next/head";
-import styled from "styled-components";
 import { getPublishedPostsData } from "../../utils/work";
 import MasonryGrid, { SAMPLE_MEDIA } from "../../components/MasonryGrid";
 
@@ -18,22 +17,12 @@ export default function WorkIndex({ allPostsData }) {
       <Head>
         <title>Work – Charlsy Yang</title>
       </Head>
-      <GridContainer>
-        <MasonryGrid
-          items={SAMPLE_MEDIA}
-          columns={3}
-          duration={40}
-          direction="up"
-        />
-      </GridContainer>
+      <MasonryGrid
+        items={SAMPLE_MEDIA}
+        rows={3}
+        duration={40}
+        direction="left"
+      />
     </>
   );
 }
-
-const GridContainer = styled.div`
-  height: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: var(--color-bg-solid);
-  padding: 0 0.6vw;
-`;
