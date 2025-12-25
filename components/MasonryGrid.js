@@ -1,7 +1,6 @@
 import styled, { keyframes, css } from "styled-components";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import Matter from "matter-js";
 
 // ============================================
 // Sample Media Data
@@ -294,8 +293,9 @@ const crossfadeTransition = {
 // ============================================
 
 function MasonryItem({ item, index, animationPaused, shuffleKey }) {
-  // Skip animation on initial mount (shuffleKey === 0), only animate on shuffle button click
-  const shouldAnimate = shuffleKey > 0;
+  // Skip ENTRY animation on initial mount (shuffleKey === 0)
+  // But always enable EXIT animation so crossfade works on first refresh click
+  const skipEntryAnimation = shuffleKey === 0;
 
   return (
     <ItemWrapper
@@ -307,9 +307,9 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
         <MediaLayer
           key={`${item.src}-${shuffleKey}`}
           variants={crossfadeVariants}
-          initial={shouldAnimate ? "initial" : false}
+          initial={skipEntryAnimation ? false : "initial"}
           animate="animate"
-          exit={shouldAnimate ? "exit" : undefined}
+          exit="exit"
           transition={crossfadeTransition}
         >
           {item.type === "video" ? (
@@ -390,155 +390,162 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
     const canvas = canvasRef.current;
     const rect = container.getBoundingClientRect();
 
-    function startPhysics() {
-      // Create Matter.js engine
-      const engine = Matter.Engine.create({
-        gravity: { x: 0, y: 1.5 },
-      });
-      engineRef.current = engine;
+    let cleanupPhysics = null;
+    let cancelled = false;
 
-      // Create renderer (invisible - we'll render our own items)
-      const render = Matter.Render.create({
-        canvas: canvas,
-        engine: engine,
-        options: {
-          width: rect.width,
-          height: rect.height,
-          wireframes: false,
-          background: "transparent",
-          pixelRatio: window.devicePixelRatio || 1,
-        },
-      });
-      renderRef.current = render;
+    // Dynamically import Matter.js only when physics mode is activated
+    import("matter-js").then((MatterModule) => {
+      if (cancelled) return;
 
-      // Create ground and walls
-      const wallThickness = 60;
-      const ground = Matter.Bodies.rectangle(
-        rect.width / 2,
-        rect.height + wallThickness / 2,
-        rect.width * 2,
-        wallThickness,
-        { isStatic: true, render: { visible: false } }
-      );
-      const leftWall = Matter.Bodies.rectangle(
-        -wallThickness / 2,
-        rect.height / 2,
-        wallThickness,
-        rect.height * 2,
-        { isStatic: true, render: { visible: false } }
-      );
-      const rightWall = Matter.Bodies.rectangle(
-        rect.width + wallThickness / 2,
-        rect.height / 2,
-        wallThickness,
-        rect.height * 2,
-        { isStatic: true, render: { visible: false } }
-      );
+      const Matter = MatterModule.default;
 
-      Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
+      function startPhysics() {
+        // Create Matter.js engine
+        const engine = Matter.Engine.create({
+          gravity: { x: 0, y: 1.5 },
+        });
+        engineRef.current = engine;
 
-      // Create bodies for each media item
-      // Chamfer creates rounded collision - items collide but overlap at corners
-      const mediaBodies = itemData.map((item, i) => {
-        const body = Matter.Bodies.rectangle(
-          item.x,
-          item.y,
-          item.width * 0.6,
-          item.height * 0.6,
-          {
-            restitution: 0.2,
-            friction: 0.3,
-            frictionAir: 0.05,
-            render: { visible: false },
-            chamfer: { radius: 50 }, // Rounded corners allow visual overlap
-          }
+        // Create renderer (invisible - we'll render our own items)
+        const render = Matter.Render.create({
+          canvas: canvas,
+          engine: engine,
+          options: {
+            width: rect.width,
+            height: rect.height,
+            wireframes: false,
+            background: "transparent",
+            pixelRatio: window.devicePixelRatio || 1,
+          },
+        });
+        renderRef.current = render;
+
+        // Create ground and walls
+        const wallThickness = 60;
+        const ground = Matter.Bodies.rectangle(
+          rect.width / 2,
+          rect.height + wallThickness / 2,
+          rect.width * 2,
+          wallThickness,
+          { isStatic: true, render: { visible: false } }
+        );
+        const leftWall = Matter.Bodies.rectangle(
+          -wallThickness / 2,
+          rect.height / 2,
+          wallThickness,
+          rect.height * 2,
+          { isStatic: true, render: { visible: false } }
+        );
+        const rightWall = Matter.Bodies.rectangle(
+          rect.width + wallThickness / 2,
+          rect.height / 2,
+          wallThickness,
+          rect.height * 2,
+          { isStatic: true, render: { visible: false } }
         );
 
-        // Upward burst only
-        Matter.Body.setVelocity(body, {
-          x: 0,
-          y: -4 - Math.random() * 6,
+        Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
+
+        // Create bodies for each media item
+        const mediaBodies = itemData.map((item, i) => {
+          const body = Matter.Bodies.rectangle(
+            item.x,
+            item.y,
+            item.width * 0.6,
+            item.height * 0.6,
+            {
+              restitution: 0.2,
+              friction: 0.3,
+              frictionAir: 0.05,
+              render: { visible: false },
+              chamfer: { radius: 50 }, // Rounded corners allow visual overlap
+            }
+          );
+
+          // Upward burst only
+          Matter.Body.setVelocity(body, {
+            x: 0,
+            y: -4 - Math.random() * 6,
+          });
+
+          return { body, ...item };
         });
 
-        // Strong spin for chaotic tumbling
-        // Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.4);
+        mediaBodies.forEach(({ body }) => {
+          Matter.Composite.add(engine.world, body);
+        });
 
-        return { body, ...item };
-      });
+        setBodies(mediaBodies);
 
-      mediaBodies.forEach(({ body }) => {
-        Matter.Composite.add(engine.world, body);
-      });
+        // Create mouse constraint for dragging
+        const mouse = Matter.Mouse.create(canvas);
+        const mouseConstraint = Matter.MouseConstraint.create(engine, {
+          mouse: mouse,
+          constraint: {
+            stiffness: 0.2,
+            render: { visible: false },
+          },
+        });
 
-      setBodies(mediaBodies);
+        // Fix for high DPI displays
+        mouse.pixelRatio = window.devicePixelRatio || 1;
 
-      // Create mouse constraint for dragging
-      const mouse = Matter.Mouse.create(canvas);
-      const mouseConstraint = Matter.MouseConstraint.create(engine, {
-        mouse: mouse,
-        constraint: {
-          stiffness: 0.2,
-          render: { visible: false },
-        },
-      });
+        Matter.Composite.add(engine.world, mouseConstraint);
+        mouseConstraintRef.current = mouseConstraint;
 
-      // Fix for high DPI displays
-      mouse.pixelRatio = window.devicePixelRatio || 1;
+        // Keep the mouse in sync with rendering
+        render.mouse = mouse;
 
-      Matter.Composite.add(engine.world, mouseConstraint);
-      mouseConstraintRef.current = mouseConstraint;
+        // Create runner
+        const runner = Matter.Runner.create();
+        runnerRef.current = runner;
 
-      // Keep the mouse in sync with rendering
-      render.mouse = mouse;
+        // Start the engine and renderer
+        Matter.Runner.run(runner, engine);
+        Matter.Render.run(render);
 
-      // Create runner
-      const runner = Matter.Runner.create();
-      runnerRef.current = runner;
-
-      // Start the engine and renderer
-      Matter.Runner.run(runner, engine);
-      Matter.Render.run(render);
-
-      // Animation loop to update body positions
-      let animationId;
-      const updateBodies = () => {
-        setBodies((prev) =>
-          prev.map((item) => ({
-            ...item,
-            x: item.body.position.x,
-            y: item.body.position.y,
-            angle: item.body.angle,
-          }))
-        );
+        // Animation loop to update body positions
+        let animationId;
+        const updateBodies = () => {
+          setBodies((prev) =>
+            prev.map((item) => ({
+              ...item,
+              x: item.body.position.x,
+              y: item.body.position.y,
+              angle: item.body.angle,
+            }))
+          );
+          animationId = requestAnimationFrame(updateBodies);
+        };
         animationId = requestAnimationFrame(updateBodies);
-      };
-      animationId = requestAnimationFrame(updateBodies);
 
-      // Return cleanup for startPhysics
-      return () => {
-        cancelAnimationFrame(animationId);
-        Matter.Render.stop(render);
-        Matter.Runner.stop(runner);
-        Matter.Composite.clear(engine.world);
-        Matter.Engine.clear(engine);
-        render.canvas = null;
-        render.context = null;
-        render.textures = {};
-      };
-    } // end startPhysics
+        // Return cleanup for startPhysics
+        return () => {
+          cancelAnimationFrame(animationId);
+          Matter.Render.stop(render);
+          Matter.Runner.stop(runner);
+          Matter.Composite.clear(engine.world);
+          Matter.Engine.clear(engine);
+          render.canvas = null;
+          render.context = null;
+          render.textures = {};
+        };
+      } // end startPhysics
 
-    let cleanupPhysics = null;
-
-    const startPhysicsTimeout = setTimeout(() => {
-      cleanupPhysics = startPhysics();
-    }, 50);
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        if (!cancelled) {
+          cleanupPhysics = startPhysics();
+        }
+      }, 50);
+    });
 
     // Cleanup
     return () => {
-      clearTimeout(startPhysicsTimeout);
+      cancelled = true;
       if (cleanupPhysics) cleanupPhysics();
     };
-  }, [containerRef]);
+  }, [containerRef, itemData.length]);
 
   // Use physics bodies if available, otherwise show initial static positions
   const displayBodies = bodies.length > 0 ? bodies : itemData;
@@ -584,7 +591,9 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // ============================================
 
 // Easter egg configuration
-const EASTER_EGG_CLICKS = 5;
+
+// Threshold for triggering the easter egg
+const EASTER_EGG_CLICKS = 15;
 const EASTER_EGG_WINDOW = 10000; // 5 seconds in ms
 
 export default function MasonryGrid({
@@ -982,7 +991,7 @@ const PhysicsOverlay = styled.div`
   inset: 0;
   z-index: 100;
   overflow: hidden;
-  background: var(--color-bg, #0a0a0a);
+  background: var(--color-bg-solid, #0a0a0a);
 `;
 
 const PhysicsCanvas = styled.canvas`
@@ -999,7 +1008,7 @@ const PhysicsItem = styled.div`
   left: 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   pointer-events: none;
   will-change: transform;
 `;
