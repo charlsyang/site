@@ -371,13 +371,53 @@ function InfiniteMasonryRow({
 // BrokenPhysicsMode Component (Easter Egg)
 // ============================================
 
+const CONTACT_BUTTON_URL =
+  "https://twitter.com/messages/compose?recipient_id=841462952750325760";
+
 function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
   const canvasRef = useRef(null);
+  const buttonRef = useRef(null);
   const engineRef = useRef(null);
   const renderRef = useRef(null);
   const runnerRef = useRef(null);
   const mouseConstraintRef = useRef(null);
   const [bodies, setBodies] = useState([]);
+
+  // Custom hit-testing: detect clicks/hover on button area
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const button = buttonRef.current;
+    if (!canvas || !button) return;
+
+    const isOverButton = (x, y) => {
+      const buttonRect = button.getBoundingClientRect();
+      return (
+        x >= buttonRect.left &&
+        x <= buttonRect.right &&
+        y >= buttonRect.top &&
+        y <= buttonRect.bottom
+      );
+    };
+
+    const handleCanvasClick = (e) => {
+      if (isOverButton(e.clientX, e.clientY)) {
+        window.open(CONTACT_BUTTON_URL, "_blank", "noopener,noreferrer");
+      }
+    };
+
+    const handleCanvasMouseMove = (e) => {
+      canvas.style.cursor = isOverButton(e.clientX, e.clientY)
+        ? "pointer"
+        : "default";
+    };
+
+    canvas.addEventListener("click", handleCanvasClick);
+    canvas.addEventListener("mousemove", handleCanvasMouseMove);
+    return () => {
+      canvas.removeEventListener("click", handleCanvasClick);
+      canvas.removeEventListener("mousemove", handleCanvasMouseMove);
+    };
+  }, []);
 
   // Use captured positions immediately for rendering
   const itemData = capturedPositions || [];
@@ -552,6 +592,12 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 
   return (
     <PhysicsOverlay>
+      {/* Message + CTA - rendered first so they appear under the canvas */}
+      <BrokenMessage>
+        <p>You love for my work has broken through.</p>
+        <p>Break the ice next?</p>
+      </BrokenMessage>
+      <ContactButton ref={buttonRef}>Slide into DM</ContactButton>
       <PhysicsCanvas ref={canvasRef} />
       {displayBodies.map((item) => (
         <PhysicsItem
@@ -593,7 +639,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // Easter egg configuration
 
 // Threshold for triggering the easter egg
-const EASTER_EGG_CLICKS = 15;
+const EASTER_EGG_CLICKS = 5;
 const EASTER_EGG_WINDOW = 10000; // 5 seconds in ms
 
 export default function MasonryGrid({
@@ -996,10 +1042,73 @@ const PhysicsOverlay = styled.div`
 
 const PhysicsCanvas = styled.canvas`
   position: absolute;
-  inset: 0;
+  /* inset: 0; */
   width: 100%;
-  height: 100%;
+  height: 50%;
+  bottom: 0;
+  left: 0;
+  right: 0;
   pointer-events: auto;
+`;
+
+const BrokenMessage = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--color-text-muted);
+  transform: translateY(150%);
+`;
+
+const contactButtonFadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(310%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(300%);
+  }
+`;
+
+const ContactButton = styled.span`
+  /* Stays under the canvas - clicks handled via custom hit-testing */
+  margin: 0 auto;
+  transform: translateY(300%);
+  cursor: pointer;
+
+  /* Styling */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: calc(infinity * 1px);
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  width: fit-content;
+  height: 32px;
+
+  /* Delayed fade-in animation */
+  opacity: 0;
+  animation: ${contactButtonFadeIn} 0.3s ease-out 1.5s forwards;
+
+  /* Hover state */
+  transition: background 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    color: #fff;
+  }
+
+  /* Accessible focus state */
+  &:focus-visible {
+    outline: 2px solid var(--color-accent, #6366f1);
+    outline-offset: 2px;
+  }
 `;
 
 const PhysicsItem = styled.div`
