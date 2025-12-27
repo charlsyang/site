@@ -369,65 +369,34 @@ function InfiniteMasonryRow({
 
 // ============================================
 // BrokenPhysicsMode Component (Easter Egg)
+// Runs Matter.js HEADLESS (no canvas) with DOM elements
 // ============================================
 
 const CONTACT_BUTTON_URL =
   "https://twitter.com/messages/compose?recipient_id=841462952750325760";
 
 function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
-  const canvasRef = useRef(null);
-  const buttonRef = useRef(null);
   const engineRef = useRef(null);
-  const renderRef = useRef(null);
   const runnerRef = useRef(null);
-  const mouseConstraintRef = useRef(null);
+  const matterRef = useRef(null); // Store Matter.js module reference
+  const groundRef = useRef(null); // Store ground body for resize updates
+  const wallsRef = useRef({ left: null, right: null }); // Store wall bodies
+  const dragRef = useRef({
+    isDragging: false,
+    body: null,
+    constraint: null,
+    lastMouse: { x: 0, y: 0 },
+    velocity: { x: 0, y: 0 },
+  });
   const [bodies, setBodies] = useState([]);
-
-  // Custom hit-testing: detect clicks/hover on button area
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const button = buttonRef.current;
-    if (!canvas || !button) return;
-
-    const isOverButton = (x, y) => {
-      const buttonRect = button.getBoundingClientRect();
-      return (
-        x >= buttonRect.left &&
-        x <= buttonRect.right &&
-        y >= buttonRect.top &&
-        y <= buttonRect.bottom
-      );
-    };
-
-    const handleCanvasClick = (e) => {
-      if (isOverButton(e.clientX, e.clientY)) {
-        window.open(CONTACT_BUTTON_URL, "_blank", "noopener,noreferrer");
-      }
-    };
-
-    const handleCanvasMouseMove = (e) => {
-      canvas.style.cursor = isOverButton(e.clientX, e.clientY)
-        ? "pointer"
-        : "default";
-    };
-
-    canvas.addEventListener("click", handleCanvasClick);
-    canvas.addEventListener("mousemove", handleCanvasMouseMove);
-    return () => {
-      canvas.removeEventListener("click", handleCanvasClick);
-      canvas.removeEventListener("mousemove", handleCanvasMouseMove);
-    };
-  }, []);
 
   // Use captured positions immediately for rendering
   const itemData = capturedPositions || [];
 
   useEffect(() => {
-    if (!containerRef.current || !canvasRef.current || itemData.length === 0)
-      return;
+    if (!containerRef.current || itemData.length === 0) return;
 
     const container = containerRef.current;
-    const canvas = canvasRef.current;
     const rect = container.getBoundingClientRect();
 
     let cleanupPhysics = null;
@@ -438,51 +407,45 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
       if (cancelled) return;
 
       const Matter = MatterModule.default;
+      matterRef.current = Matter;
 
       function startPhysics() {
-        // Create Matter.js engine
+        // Create Matter.js engine (HEADLESS - no renderer!)
         const engine = Matter.Engine.create({
           gravity: { x: 0, y: 1.5 },
         });
         engineRef.current = engine;
 
-        // Create renderer (invisible - we'll render our own items)
-        const render = Matter.Render.create({
-          canvas: canvas,
-          engine: engine,
-          options: {
-            width: rect.width,
-            height: rect.height,
-            wireframes: false,
-            background: "transparent",
-            pixelRatio: window.devicePixelRatio || 1,
-          },
-        });
-        renderRef.current = render;
-
         // Create ground and walls
+        // Walls are pushed further out to avoid colliding with items
+        // that are partially scrolled off-screen when captured
         const wallThickness = 60;
+        const wallOffset = 200; // Extra buffer for scrolled items
         const ground = Matter.Bodies.rectangle(
           rect.width / 2,
           rect.height + wallThickness / 2,
-          rect.width * 2,
+          rect.width + wallOffset * 2,
           wallThickness,
-          { isStatic: true, render: { visible: false } }
+          { isStatic: true }
         );
         const leftWall = Matter.Bodies.rectangle(
-          -wallThickness / 2,
+          -wallOffset - wallThickness / 2,
           rect.height / 2,
           wallThickness,
           rect.height * 2,
-          { isStatic: true, render: { visible: false } }
+          { isStatic: true }
         );
         const rightWall = Matter.Bodies.rectangle(
-          rect.width + wallThickness / 2,
+          rect.width + wallOffset + wallThickness / 2,
           rect.height / 2,
           wallThickness,
           rect.height * 2,
-          { isStatic: true, render: { visible: false } }
+          { isStatic: true }
         );
+
+        // Store refs for resize updates
+        groundRef.current = ground;
+        wallsRef.current = { left: leftWall, right: rightWall };
 
         Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
 
@@ -491,16 +454,18 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
           const body = Matter.Bodies.rectangle(
             item.x,
             item.y,
-            item.width * 0.6,
-            item.height * 0.6,
+            item.width * 0.7,
+            item.height * 0.7,
             {
               restitution: 0.2,
               friction: 0.3,
               frictionAir: 0.05,
-              render: { visible: false },
               chamfer: { radius: 50 }, // Rounded corners allow visual overlap
             }
           );
+
+          // Store item data on the body for reference
+          body.itemId = item.id;
 
           // Upward burst only
           Matter.Body.setVelocity(body, {
@@ -517,34 +482,14 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 
         setBodies(mediaBodies);
 
-        // Create mouse constraint for dragging
-        const mouse = Matter.Mouse.create(canvas);
-        const mouseConstraint = Matter.MouseConstraint.create(engine, {
-          mouse: mouse,
-          constraint: {
-            stiffness: 0.2,
-            render: { visible: false },
-          },
-        });
-
-        // Fix for high DPI displays
-        mouse.pixelRatio = window.devicePixelRatio || 1;
-
-        Matter.Composite.add(engine.world, mouseConstraint);
-        mouseConstraintRef.current = mouseConstraint;
-
-        // Keep the mouse in sync with rendering
-        render.mouse = mouse;
-
         // Create runner
         const runner = Matter.Runner.create();
         runnerRef.current = runner;
 
-        // Start the engine and renderer
+        // Start the engine (NO renderer - headless mode!)
         Matter.Runner.run(runner, engine);
-        Matter.Render.run(render);
 
-        // Animation loop to update body positions
+        // Animation loop to sync DOM with physics bodies
         let animationId;
         const updateBodies = () => {
           setBodies((prev) =>
@@ -562,13 +507,9 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
         // Return cleanup for startPhysics
         return () => {
           cancelAnimationFrame(animationId);
-          Matter.Render.stop(render);
           Matter.Runner.stop(runner);
           Matter.Composite.clear(engine.world);
           Matter.Engine.clear(engine);
-          render.canvas = null;
-          render.context = null;
-          render.textures = {};
         };
       } // end startPhysics
 
@@ -587,18 +528,177 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
     };
   }, [containerRef, itemData.length]);
 
+  // Responsive ground/walls: update positions on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const wallThickness = 60;
+    const wallOffset = 200;
+
+    const handleResize = (entries) => {
+      // Read Matter from ref inside callback (it's loaded async)
+      const Matter = matterRef.current;
+      if (!Matter || !groundRef.current) return;
+
+      const { width, height } = entries[0].contentRect;
+
+      // Update ground position
+      Matter.Body.setPosition(groundRef.current, {
+        x: width / 2,
+        y: height + wallThickness / 2,
+      });
+
+      // Update wall positions
+      if (wallsRef.current.left) {
+        Matter.Body.setPosition(wallsRef.current.left, {
+          x: -wallOffset - wallThickness / 2,
+          y: height / 2,
+        });
+      }
+      if (wallsRef.current.right) {
+        Matter.Body.setPosition(wallsRef.current.right, {
+          x: width + wallOffset + wallThickness / 2,
+          y: height / 2,
+        });
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [containerRef]);
+
+  // Handle drag start on physics items
+  const handlePointerDown = useCallback(
+    (e, item) => {
+      const Matter = matterRef.current;
+      const engine = engineRef.current;
+      if (!Matter || !engine) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Calculate offset from click point to body center
+      // This keeps the card where the cursor grabbed it instead of snapping center to cursor
+      const offsetX = mouseX - item.body.position.x;
+      const offsetY = mouseY - item.body.position.y;
+
+      // Create a constraint to drag the body
+      // pointB is the offset from body center where we "grabbed" it
+      const constraint = Matter.Constraint.create({
+        pointA: { x: mouseX, y: mouseY },
+        bodyB: item.body,
+        pointB: { x: offsetX, y: offsetY },
+        stiffness: 0.2,
+        length: 0,
+      });
+
+      Matter.Composite.add(engine.world, constraint);
+
+      dragRef.current = {
+        isDragging: true,
+        body: item.body,
+        constraint,
+        lastMouse: { x: mouseX, y: mouseY },
+        velocity: { x: 0, y: 0 },
+      };
+
+      // Capture pointer for smooth dragging even outside element
+      e.target.setPointerCapture(e.pointerId);
+    },
+    [containerRef]
+  );
+
+  const handlePointerMove = useCallback(
+    (e) => {
+      const Matter = matterRef.current;
+      const drag = dragRef.current;
+      if (!Matter || !drag.isDragging || !drag.constraint) return;
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Track velocity for throwing
+      drag.velocity = {
+        x: mouseX - drag.lastMouse.x,
+        y: mouseY - drag.lastMouse.y,
+      };
+
+      // Update constraint point
+      drag.constraint.pointA.x = mouseX;
+      drag.constraint.pointA.y = mouseY;
+
+      drag.lastMouse = { x: mouseX, y: mouseY };
+    },
+    [containerRef]
+  );
+
+  const handlePointerUp = useCallback((e) => {
+    const Matter = matterRef.current;
+    const engine = engineRef.current;
+    const drag = dragRef.current;
+    if (!Matter || !engine || !drag.isDragging) return;
+
+    // Remove constraint
+    if (drag.constraint) {
+      Matter.Composite.remove(engine.world, drag.constraint);
+    }
+
+    // Apply throw velocity
+    if (drag.body) {
+      const throwMultiplier = 0.8;
+      Matter.Body.setVelocity(drag.body, {
+        x: drag.velocity.x * throwMultiplier,
+        y: drag.velocity.y * throwMultiplier,
+      });
+    }
+
+    dragRef.current = {
+      isDragging: false,
+      body: null,
+      constraint: null,
+      lastMouse: { x: 0, y: 0 },
+      velocity: { x: 0, y: 0 },
+    };
+
+    // Release pointer capture
+    e.target.releasePointerCapture(e.pointerId);
+  }, []);
+
   // Use physics bodies if available, otherwise show initial static positions
   const displayBodies = bodies.length > 0 ? bodies : itemData;
 
   return (
     <PhysicsOverlay>
-      {/* Message + CTA - rendered first so they appear under the canvas */}
+      {/* Message + CTA - now fully interactive, no canvas blocking them! */}
       <BrokenMessage>
-        <p>You love for my work has broken through.</p>
+        <p>Your love for my work has broken through.</p>
         <p>Break the ice next?</p>
       </BrokenMessage>
-      <ContactButton ref={buttonRef}>Slide into DM</ContactButton>
-      <PhysicsCanvas ref={canvasRef} />
+      <ContactButtonLink
+        href={CONTACT_BUTTON_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Slide into DM
+      </ContactButtonLink>
+
+      {/* Physics items as DOM elements - draggable via pointer events */}
       {displayBodies.map((item) => (
         <PhysicsItem
           key={item.id}
@@ -609,6 +709,10 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
               item.y - item.height / 2
             }px) rotate(${item.angle || 0}rad)`,
           }}
+          onPointerDown={(e) => handlePointerDown(e, item)}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
           {item.isVideo ? (
             <Video
@@ -1040,16 +1144,7 @@ const PhysicsOverlay = styled.div`
   background: var(--color-bg-solid, #0a0a0a);
 `;
 
-const PhysicsCanvas = styled.canvas`
-  position: absolute;
-  /* inset: 0; */
-  width: 100%;
-  height: 50%;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  pointer-events: auto;
-`;
+// PhysicsCanvas removed - now running Matter.js headless!
 
 const BrokenMessage = styled.div`
   display: flex;
@@ -1070,8 +1165,9 @@ const contactButtonFadeIn = keyframes`
   }
 `;
 
-const ContactButton = styled.span`
-  /* Stays under the canvas - clicks handled via custom hit-testing */
+// ContactButtonLink is now a real <a> tag - fully interactive without canvas blocking!
+const ContactButtonLink = styled.a`
+  position: relative;
   margin: 0 auto;
   transform: translateY(300%);
   cursor: pointer;
@@ -1082,10 +1178,10 @@ const ContactButton = styled.span`
   justify-content: center;
   padding: 12px 16px;
   border-radius: calc(infinity * 1px);
-  background: rgba(0, 0, 0, 0.92);
+  background: #fff;
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  color: #000;
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -1095,13 +1191,14 @@ const ContactButton = styled.span`
 
   /* Delayed fade-in animation */
   opacity: 0;
-  animation: ${contactButtonFadeIn} 0.3s ease-out 1.5s forwards;
+  animation: ${contactButtonFadeIn} 0.3s ease-out 0.8s forwards;
 
   /* Hover state */
   transition: background 0.15s ease, transform 0.15s ease;
 
   &:hover {
-    color: #fff;
+    color: #000;
+    background: #fff;
   }
 
   /* Accessible focus state */
@@ -1118,8 +1215,16 @@ const PhysicsItem = styled.div`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
+  /* Now using pointer-events: auto for DOM-based dragging! */
+  pointer-events: auto;
   will-change: transform;
+  touch-action: none; /* Prevent scroll interference on touch devices */
+  user-select: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
 `;
 
 const fixButtonSlideIn = keyframes`
