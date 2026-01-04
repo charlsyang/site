@@ -4,3 +4,7 @@ node_modules/
 public/feed.xml
 .env.local
 .eslintrc.json
+
+# Media generation cache (not needed in repo, just for local caching)
+data/.visuals-cache.json
+data/.temp/

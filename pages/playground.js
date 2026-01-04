@@ -1,6 +1,7 @@
 import Head from "../components/Head";
 import styled from "styled-components";
-import MasonryGrid, { SAMPLE_MEDIA } from "../components/MasonryGrid";
+import MasonryGrid from "../components/MasonryGrid";
+import visualsData from "../data/visuals.json";
 import { Button } from "../components/Button";
 import Icon from "../components/Icon";
 
@@ -111,7 +112,7 @@ export default function Playground() {
         </Sidebar>
 
         <GridArea>
-          <MasonryGrid items={SAMPLE_MEDIA} />
+          <MasonryGrid items={visualsData} />
         </GridArea>
       </Main>
     </>

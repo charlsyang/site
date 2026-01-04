@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { getPublishedPostsData } from "../../utils/work";
-import MasonryGrid, { SAMPLE_MEDIA } from "../../components/MasonryGrid";
+import MasonryGrid from "../../components/MasonryGrid";
+import visualsData from "../../data/visuals.json";
 
 export async function getStaticProps() {
   const allPostsData = getPublishedPostsData();
@@ -17,7 +18,7 @@ export default function WorkIndex({ allPostsData }) {
       <Head>
         <title>Work – Charlsy Yang</title>
       </Head>
-      <MasonryGrid items={SAMPLE_MEDIA} />
+      <MasonryGrid items={visualsData} />
     </>
   );
 }

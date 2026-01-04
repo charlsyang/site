@@ -6,115 +6,6 @@ import Icon from "./Icon";
 import Button from "./Button";
 
 // ============================================
-// Sample Media Data
-// ============================================
-
-export const SAMPLE_MEDIA = [
-  {
-    id: "1",
-    src: "/visuals/aura-icons.png",
-    alt: "Aura icons",
-    type: "image",
-  },
-  {
-    id: "2",
-    src: "/visuals/card-hover.mp4",
-    alt: "Card hover animation",
-    type: "video",
-  },
-  {
-    id: "3",
-    src: "/visuals/classic-typo.png",
-    alt: "Classic typography",
-    type: "image",
-  },
-  {
-    id: "4",
-    src: "/visuals/credit-card.png",
-    alt: "Credit card design",
-    type: "image",
-  },
-  {
-    id: "5",
-    src: "/visuals/dialogue.png",
-    alt: "Dialogue interface",
-    type: "image",
-  },
-  {
-    id: "6",
-    src: "/visuals/light-dark.mp4",
-    alt: "Light dark mode transition",
-    type: "video",
-  },
-  {
-    id: "7",
-    src: "/visuals/personalized-care.png",
-    alt: "Personalized care",
-    type: "image",
-  },
-  {
-    id: "8",
-    src: "/visuals/product-icons.png",
-    alt: "Product icons",
-    type: "image",
-  },
-  {
-    id: "9",
-    src: "/visuals/redream-teaser.mp4",
-    alt: "Redream teaser",
-    type: "video",
-  },
-  {
-    id: "10",
-    src: "/visuals/research-principles-icons.png",
-    alt: "Research principles icons",
-    type: "image",
-  },
-  {
-    id: "11",
-    src: "/visuals/rubrik-swag.png",
-    alt: "Rubrik swag",
-    type: "image",
-  },
-  {
-    id: "12",
-    src: "/visuals/sim-card.png",
-    alt: "Sim card design",
-    type: "image",
-  },
-  {
-    id: "13",
-    src: "/visuals/smart-home.png",
-    alt: "Smart home interface",
-    type: "image",
-  },
-  {
-    id: "14",
-    src: "/visuals/smart-mug.png",
-    alt: "Smart mug product",
-    type: "image",
-  },
-  {
-    id: "15",
-    src: "/visuals/tide.mp4",
-    alt: "Tide animation",
-    type: "video",
-  },
-  {
-    id: "16",
-    src: "/visuals/timeline.png",
-    alt: "Timeline design",
-    type: "image",
-  },
-  {
-    id: "17",
-    src: "/visuals/todo.mp4",
-    alt: "Todo app animation",
-    type: "video",
-  },
-];
-
-// ============================================
 // Utility Functions
 // ============================================
 
@@ -260,33 +151,84 @@ function calculateDuration(itemCount, rowCount) {
 // Crossfade Configuration
 // ============================================
 const CROSSFADE_DURATION = 0.5; // seconds (for Motion)
+const CROSSFADE_BLUR = 16; // pixels
+const CROSSFADE_EASE = [0.4, 0, 0.2, 1];
 
-// Motion animation variants for crossfade
+// Motion animation variants for crossfade (used on shuffle)
 const crossfadeVariants = {
-  initial: { opacity: 0, filter: "blur(16px)" },
+  initial: { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` },
   animate: { opacity: 1, filter: "blur(0px)" },
-  exit: { opacity: 0, filter: "blur(16px)" },
+  exit: { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` },
 };
 
 const crossfadeTransition = {
   duration: CROSSFADE_DURATION,
-  ease: [0.4, 0, 0.2, 1],
+  ease: CROSSFADE_EASE,
 };
 
 // ============================================
-// MasonryItem Component (simplified with Motion)
+// MasonryItem Component (with blur placeholder support)
 // ============================================
 
 function MasonryItem({ item, index, animationPaused, shuffleKey }) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [placeholderHidden, setPlaceholderHidden] = useState(false);
 
-  // Skip ENTRY animation on initial mount (shuffleKey === 0)
-  // But always enable EXIT animation so crossfade works on first refresh click
-  const skipEntryAnimation = shuffleKey === 0;
+  // Track if this is the first render of this component instance
+  // Fresh mount = true, re-render (shuffle) = false
+  const isFirstRenderRef = useRef(true);
+
+  // Reset loaded state when item changes
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      // First render of this component instance (initial load or exit broken mode)
+      // Keep placeholder visible, let animation play
+      isFirstRenderRef.current = false;
+    } else {
+      // Re-render with different item (shuffle)
+      // Hide placeholder immediately to avoid crossfade interference
+      setPlaceholderHidden(true);
+    }
+    setIsLoaded(false);
+  }, [item.src, shuffleKey]);
+
+  // Hide placeholder after unblur animation completes
+  useEffect(() => {
+    if (isLoaded && !placeholderHidden) {
+      // Wait for animation to complete, then hide placeholder
+      const timer = setTimeout(() => {
+        setPlaceholderHidden(true);
+      }, CROSSFADE_DURATION * 1000 + 50); // Animation duration + small buffer
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoaded, placeholderHidden]);
+
+  // Determine if this is a fresh mount (use placeholder-based animation)
+  // vs a shuffle (use crossfade variants)
+  // Fresh mount: placeholder not yet hidden
+  // Shuffle: placeholder was immediately hidden
+  const isFreshMount = !placeholderHidden || !isLoaded;
+  const usePlaceholderAnimation = isFreshMount && !placeholderHidden;
+
+  // Determine if we should show blur placeholder
+  const hasPlaceholder = !!item.blurDataURL;
+
+  // Show placeholder on fresh mounts until animation completes
+  const showPlaceholder = hasPlaceholder && !placeholderHidden;
 
   return (
     <ItemWrapper
-      style={{ "--index": index }}
+      style={{
+        "--index": index,
+        // Show blur placeholder as background during reveal
+        ...(showPlaceholder && {
+          backgroundImage: `url(${item.blurDataURL})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }),
+      }}
       $paused={animationPaused}
       aria-hidden={item.isDuplicate ? "true" : undefined}
     >
@@ -294,8 +236,22 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
         <MediaLayer
           key={`${item.src}-${shuffleKey}`}
           variants={crossfadeVariants}
-          initial={skipEntryAnimation ? false : "initial"}
-          animate="animate"
+          // Fresh mount: start hidden, animate in when loaded
+          // Shuffle: use crossfade variants
+          initial={
+            usePlaceholderAnimation
+              ? hasPlaceholder
+                ? { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
+                : false
+              : "initial"
+          }
+          animate={
+            usePlaceholderAnimation
+              ? isLoaded || !hasPlaceholder
+                ? { opacity: 1, filter: "blur(0px)" }
+                : { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
+              : "animate"
+          }
           exit="exit"
           transition={crossfadeTransition}
         >
@@ -307,9 +263,15 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
               muted
               playsInline
               draggable={false}
+              onLoadedData={() => setIsLoaded(true)}
             />
           ) : (
-            <Img src={item.src} alt={item.alt || ""} draggable={false} />
+            <Img
+              src={item.src}
+              alt={item.alt || ""}
+              draggable={false}
+              onLoad={() => setIsLoaded(true)}
+            />
           )}
         </MediaLayer>
       </AnimatePresence>
@@ -359,6 +321,15 @@ function InfiniteMasonryRow({
 // Runs Matter.js HEADLESS (no canvas) with DOM elements
 // ============================================
 
+// Preload Matter.js on first shuffle click so it's ready by click 5
+let matterPreloadPromise = null;
+function preloadMatter() {
+  if (!matterPreloadPromise) {
+    matterPreloadPromise = import("matter-js").then((m) => m.default);
+  }
+  return matterPreloadPromise;
+}
+
 const CONTACT_BUTTON_URL =
   "https://twitter.com/messages/compose?recipient_id=841462952750325760";
 
@@ -390,11 +361,10 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
     let cleanupPhysics = null;
     let cancelled = false;
 
-    // Dynamically import Matter.js only when physics mode is activated
-    import("matter-js").then((MatterModule) => {
+    // Use preloaded Matter.js (started on first shuffle click)
+    preloadMatter().then((Matter) => {
       if (cancelled) return;
 
-      const Matter = MatterModule.default;
       matterRef.current = Matter;
 
       function startPhysics() {
@@ -893,6 +863,9 @@ export default function MasonryGrid({
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
+    // Preload Matter.js on first click so it's ready by click 5
+    preloadMatter();
+
     // Ignore clicks during animation (debounce without visual indicator)
     if (isRefreshing) return;
 
@@ -1103,6 +1076,7 @@ export default function MasonryGrid({
 const sharedMediaItemStyles = css`
   border-radius: 6px;
   overflow: hidden;
+  background: var(--color-bg-hover);
 `;
 
 const scrollLeft = keyframes`
