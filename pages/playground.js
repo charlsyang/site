@@ -111,12 +111,7 @@ export default function Playground() {
         </Sidebar>
 
         <GridArea>
-          <MasonryGrid
-            items={SAMPLE_MEDIA}
-            rows={3}
-            duration={40}
-            direction="left"
-          />
+          <MasonryGrid items={SAMPLE_MEDIA} />
         </GridArea>
       </Main>
     </>

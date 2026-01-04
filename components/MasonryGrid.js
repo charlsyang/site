@@ -240,6 +240,23 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 }
 
 // ============================================
+// Animation Configuration
+// ============================================
+
+// Duration calculation: seconds per item for consistent scroll speed
+// Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
+const SECONDS_PER_ITEM = 10;
+
+/**
+ * Calculate animation duration based on item count and row distribution
+ * This ensures consistent perceived scroll speed regardless of content count
+ */
+function calculateDuration(itemCount, rowCount) {
+  const itemsPerRow = Math.ceil(itemCount / rowCount);
+  return itemsPerRow * SECONDS_PER_ITEM;
+}
+
+// ============================================
 // Crossfade Configuration
 // ============================================
 const CROSSFADE_DURATION = 0.5; // seconds (for Motion)
@@ -729,13 +746,15 @@ const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
 export default function MasonryGrid({
   items,
   rows = 3,
-  duration = 30,
+  duration, // Optional: auto-calculated if not provided
   gap = 16,
   direction = "left",
   showPauseButton = true,
   showRefreshButton = true,
   className,
 }) {
+  // Calculate duration based on item count for consistent scroll speed
+  const effectiveDuration = duration ?? calculateDuration(items.length, rows);
   // Pause state (manual toggle only)
   const [userPaused, setUserPaused] = useState(false);
 
@@ -987,7 +1006,7 @@ export default function MasonryGrid({
             key={rowIndex}
             items={rowItems}
             count={rowItems.length}
-            duration={duration}
+            duration={effectiveDuration}
             offset={getRowOffset(rowIndex)}
             direction={direction}
             animationPaused={userPaused}
@@ -1082,7 +1101,7 @@ export default function MasonryGrid({
 
 // Shared styles for media item containers (used by both ItemWrapper and PhysicsItem)
 const sharedMediaItemStyles = css`
-  border-radius: 16px;
+  border-radius: 6px;
   overflow: hidden;
 `;
 
