@@ -175,6 +175,10 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
 
+  // Refs for checking if media is already loaded (cached)
+  const imgRef = useRef(null);
+  const videoRef = useRef(null);
+
   // Track if this is the first render of this component instance
   // Fresh mount = true, re-render (shuffle) = false
   const isFirstRenderRef = useRef(true);
@@ -192,6 +196,23 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
     }
     setIsLoaded(false);
   }, [item.src, shuffleKey]);
+
+  // Check if media is already loaded from cache on mount
+  // This handles the case where onLoad fires before React attaches the listener
+  useEffect(() => {
+    // For images: check if already complete (cached)
+    if (item.type !== "video" && imgRef.current) {
+      if (imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+        setIsLoaded(true);
+      }
+    }
+    // For videos: check if enough data is loaded (readyState >= 2 means HAVE_CURRENT_DATA)
+    if (item.type === "video" && videoRef.current) {
+      if (videoRef.current.readyState >= 2) {
+        setIsLoaded(true);
+      }
+    }
+  }, [item.src, item.type, shuffleKey]);
 
   // Hide placeholder after unblur animation completes
   useEffect(() => {
@@ -257,6 +278,7 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
         >
           {item.type === "video" ? (
             <Video
+              ref={videoRef}
               src={item.src}
               autoPlay={prefersReducedMotion === false}
               loop
@@ -267,6 +289,7 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
             />
           ) : (
             <Img
+              ref={imgRef}
               src={item.src}
               alt={item.alt || ""}
               draggable={false}
@@ -950,7 +973,7 @@ export default function MasonryGrid({
   // Calculate offset for each row to create stagger
   const getRowOffset = (rowIndex) => {
     const baseOffset = 1;
-    return baseOffset + rowIndex * 0.3;
+    return baseOffset + rowIndex * 0.4;
   };
 
   // Handle empty state

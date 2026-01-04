@@ -180,23 +180,23 @@ const GlobalStyles = createGlobalStyle`
     }
 
     :root {
-        --color-theme: ${THEME.colors.violet11};
-        --color-bg-base: ${THEME.colors.mauve1};
-        --color-bg-solid: ${THEME.colors.mauve2};
-        --color-bg-interactive: ${THEME.colors.mauve3};
-        --color-bg-hover: ${THEME.colors.mauve4};
-        --color-bg-selected: ${THEME.colors.violet5};
-        --color-text-base: ${THEME.colors.mauve12};
-        --color-text-article: ${DARKTHEME.colors.mauve6};
-        --color-text-muted: ${THEME.colors.mauve11};
-        --color-text-faint: ${THEME.colors.mauve9};
-        --color-border: ${THEME.colors.mauve6};
-        --color-link-border: ${THEME.colors.mauve8};
+        --color-theme: ${THEME.colors.tomato11};
+        --color-bg-base: ${THEME.colors.sand1};
+        --color-bg-solid: ${THEME.colors.sand2};
+        --color-bg-interactive: ${THEME.colors.sand3};
+        --color-bg-hover: ${THEME.colors.sand4};
+        --color-bg-selected: ${THEME.colors.tomato5};
+        --color-text-base: ${THEME.colors.sand12};
+        --color-text-article: ${DARKTHEME.colors.sand6};
+        --color-text-muted: ${THEME.colors.sand11};
+        --color-text-faint: ${THEME.colors.sand9};
+        --color-border: ${THEME.colors.sand6};
+        --color-link-border: ${THEME.colors.sand8};
         --color-link-hover: var(--color-theme);
         --color-constant-white: #FFF;
 
-        --color-bg-inverted: ${DARKTHEME.colors.mauve1};
-        --color-text-inverted: ${THEME.colors.mauve1};
+        --color-bg-inverted: ${DARKTHEME.colors.sand1};
+        --color-text-inverted: ${THEME.colors.sand1};
 
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
@@ -206,7 +206,7 @@ const GlobalStyles = createGlobalStyle`
 
         /* Button */
 
-        --btn-primary-bg: ${THEME.colors.violet11};
+        --btn-primary-bg: ${THEME.colors.tomato11};
 
         --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 10%);
         --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 8%);
@@ -231,22 +231,22 @@ const GlobalStyles = createGlobalStyle`
     }
 
     [data-theme='dark'] {
-        --color-theme: ${DARKTHEME.colors.violet11};
-        --color-bg-base: ${DARKTHEME.colors.mauve1};
-        --color-bg-solid: ${DARKTHEME.colors.mauve2};
-        --color-bg-interactive: ${DARKTHEME.colors.mauve3};
-        --color-bg-hover: ${DARKTHEME.colors.mauve4};
-        --color-bg-selected: ${DARKTHEME.colors.violet5};
-        --color-text-base: ${DARKTHEME.colors.mauve12};
-        --color-text-article: ${THEME.colors.mauve8};
-        --color-text-muted: ${DARKTHEME.colors.mauve11};
-        --color-text-faint: ${DARKTHEME.colors.mauve9};
-        --color-border: ${DARKTHEME.colors.mauve6};
-        --color-link-border: ${DARKTHEME.colors.mauve8};
+        --color-theme: ${DARKTHEME.colors.tomato11};
+        --color-bg-base: ${DARKTHEME.colors.sand1};
+        --color-bg-solid: ${DARKTHEME.colors.sand2};
+        --color-bg-interactive: ${DARKTHEME.colors.sand3};
+        --color-bg-hover: ${DARKTHEME.colors.sand4};
+        --color-bg-selected: ${DARKTHEME.colors.tomato5};
+        --color-text-base: ${DARKTHEME.colors.sand12};
+        --color-text-article: ${THEME.colors.sand8};
+        --color-text-muted: ${DARKTHEME.colors.sand11};
+        --color-text-faint: ${DARKTHEME.colors.sand9};
+        --color-border: ${DARKTHEME.colors.sand6};
+        --color-link-border: ${DARKTHEME.colors.sand8};
         --color-link-hover: var(--color-theme);
 
-        --color-bg-inverted: ${THEME.colors.mauve1};
-        --color-text-inverted: ${DARKTHEME.colors.mauve1};
+        --color-bg-inverted: ${THEME.colors.sand1};
+        --color-text-inverted: ${DARKTHEME.colors.sand1};
 
         --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 4%);
         --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 6%);

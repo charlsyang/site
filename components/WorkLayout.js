@@ -172,7 +172,7 @@ const ContentArea = styled.main`
   overflow: hidden;
   margin: var(--spacing-1x);
   margin-left: 0;
-  border-radius: 24px;
+  border-radius: 16px;
   background-color: var(--color-bg-solid);
   border: 1px solid var(--color-border);
 `;
@@ -229,10 +229,6 @@ const ContactLinks = styled.div`
   & p {
     color: var(--color-text-muted);
     margin-bottom: var(--spacing-xs);
-  }
-
-  & a {
-    color: var(--color-text-base);
   }
 `;
 
