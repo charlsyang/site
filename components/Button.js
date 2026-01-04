@@ -106,7 +106,7 @@ export const buttonStyles = css`
     background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
   }
 
   &:disabled {
@@ -141,6 +141,11 @@ const variantStyles = {
     }
   `,
 
+  primary: css`
+    background: var(--btn-primary-bg);
+    color: var(--color-constant-white);
+  `,
+
   secondary: css`
     background: var(--color-bg-hover);
     color: var(--color-text-muted);
@@ -161,13 +166,16 @@ const variantStyles = {
     background: var(--btn-elevated-bg);
     backdrop-filter: blur(12px);
     color: var(--color-text-inverted);
-    /* border: 0.5px solid var(--btn-elevated-border); */
     box-shadow: var(--btn-elevated-border), var(--shadow-elevation-medium);
 
     @media (hover: hover) {
       &:hover {
         background: var(--btn-elevated-bg-hover);
       }
+    }
+
+    &:active {
+      background: var(--btn-elevated-bg-active);
     }
   `,
 };

@@ -1,6 +1,7 @@
 import styled, { keyframes, css } from "styled-components";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import Icon from "./Icon";
 import Button from "./Button";
 
@@ -260,6 +261,8 @@ const crossfadeTransition = {
 // ============================================
 
 function MasonryItem({ item, index, animationPaused, shuffleKey }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   // Skip ENTRY animation on initial mount (shuffleKey === 0)
   // But always enable EXIT animation so crossfade works on first refresh click
   const skipEntryAnimation = shuffleKey === 0;
@@ -282,7 +285,7 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
           {item.type === "video" ? (
             <Video
               src={item.src}
-              autoPlay
+              autoPlay={prefersReducedMotion === false}
               loop
               muted
               playsInline
@@ -343,6 +346,7 @@ const CONTACT_BUTTON_URL =
   "https://twitter.com/messages/compose?recipient_id=841462952750325760";
 
 function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const engineRef = useRef(null);
   const runnerRef = useRef(null);
   const matterRef = useRef(null); // Store Matter.js module reference
@@ -689,7 +693,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
             <Video
               src={item.src}
               poster={item.posterDataUrl || undefined}
-              autoPlay
+              autoPlay={prefersReducedMotion === false}
               loop
               muted
               playsInline
@@ -752,6 +756,12 @@ export default function MasonryGrid({
   // Icon flip animation state
   const [isFlipping, setIsFlipping] = useState(false);
 
+  // Shuffle button visibility state (delayed for normal users, immediate for reduced motion)
+  const [shuffleButtonVisible, setShuffleButtonVisible] = useState(false);
+
+  // Track if user prefers reduced motion (using Motion's built-in hook)
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   // Easter egg state
   const [isBroken, setIsBroken] = useState(false);
   const [capturedPositions, setCapturedPositions] = useState(null);
@@ -766,6 +776,61 @@ export default function MasonryGrid({
     setShuffledItems(shuffleArray(items));
     setMounted(true);
   }, [items]);
+
+  // Handle shuffle button visibility with delay for normal users
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (prefersReducedMotion) {
+      // For reduced motion users: show shuffle button immediately
+      setShuffleButtonVisible(true);
+    } else {
+      // For normal users: show shuffle button after 5 seconds
+      // TODO: Restore to 5000 after animation tweaking
+      const timeoutId = setTimeout(() => {
+        setShuffleButtonVisible(true);
+        // Trigger the icon flip animation on initial reveal
+        setIsFlipping(true);
+      }, 5000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [mounted, prefersReducedMotion]);
+
+  // Pause/resume videos when reduced motion preference changes (WCAG 2.2.2)
+  // Using our own listener to ensure DevTools emulation is detected
+  // Also re-runs on shuffle to catch newly rendered videos
+  useEffect(() => {
+    if (!mounted || !gridRef.current) return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const updateVideos = (shouldReduce) => {
+      const videos = gridRef.current?.querySelectorAll("video");
+      if (!videos) return;
+
+      videos.forEach((video) => {
+        if (shouldReduce) {
+          video.pause();
+        } else {
+          video.play().catch(() => {});
+        }
+      });
+    };
+
+    // Initial check (and after shuffle)
+    // Small delay to ensure new videos have rendered
+    const timeoutId = setTimeout(() => updateVideos(mediaQuery.matches), 50);
+
+    // Listen for changes (DevTools emulation or system settings)
+    const handleChange = (e) => updateVideos(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      clearTimeout(timeoutId);
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, [mounted, shuffleVersion]);
 
   // Pre-capture video frames once after videos load (for easter egg poster fallback)
   useEffect(() => {
@@ -931,29 +996,68 @@ export default function MasonryGrid({
         ))}
       {!isBroken && (
         <ButtonGroup>
-          {showRefreshButton && (
-            <Button
-              size="lg"
-              variant="elevated"
-              startIcon={
-                <RefreshIcon
-                  name="refresh"
-                  $flipping={isFlipping}
-                  onAnimationEnd={() => setIsFlipping(false)}
-                />
-              }
-              onClick={handleRefresh}
-              aria-label="Shuffle media"
-            >
-              Shuffle
-            </Button>
-          )}
+          <AnimatePresence>
+            {showRefreshButton && shuffleButtonVisible && (
+              <ShuffleButtonWrapper
+                key="shuffle-button"
+                initial={prefersReducedMotion ? false : { width: 40 }}
+                animate={{ width: "auto" }}
+                transition={{
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 15,
+                }}
+              >
+                <Button
+                  size="lg"
+                  variant="elevated"
+                  startIcon={
+                    <RefreshIcon
+                      name="refresh"
+                      $flipping={isFlipping}
+                      onAnimationEnd={() => setIsFlipping(false)}
+                    />
+                  }
+                  onClick={handleRefresh}
+                  aria-label="Shuffle media"
+                >
+                  <ShuffleText
+                    initial={
+                      prefersReducedMotion
+                        ? false
+                        : { opacity: 0, filter: "blur(8px)" }
+                    }
+                    animate={{ opacity: 1, filter: "blur(0px)" }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.05,
+                      ease: [0.25, 0.1, 0.25, 1],
+                    }}
+                  >
+                    Shuffle
+                  </ShuffleText>
+                </Button>
+              </ShuffleButtonWrapper>
+            )}
+          </AnimatePresence>
           {showPauseButton && (
-            <Button
+            <PauseButton
               iconOnly
               size="lg"
               variant="elevated"
-              icon={<Icon name={userPaused ? "play" : "pause"} />}
+              icon={
+                <AnimatePresence initial={false}>
+                  <IconCrossfade
+                    key={userPaused ? "play" : "pause"}
+                    initial={{ opacity: 0, filter: "blur(2px)" }}
+                    animate={{ opacity: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, filter: "blur(2px)" }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    <Icon name={userPaused ? "play" : "pause"} />
+                  </IconCrossfade>
+                </AnimatePresence>
+              }
               onClick={() => setUserPaused(!userPaused)}
               aria-label={userPaused ? "Resume animation" : "Pause animation"}
               aria-pressed={userPaused}
@@ -976,6 +1080,12 @@ export default function MasonryGrid({
 // Styled Components
 // ============================================
 
+// Shared styles for media item containers (used by both ItemWrapper and PhysicsItem)
+const sharedMediaItemStyles = css`
+  border-radius: 16px;
+  overflow: hidden;
+`;
+
 const scrollLeft = keyframes`
   100% {
     translate: var(--destination-x) 0;
@@ -983,9 +1093,8 @@ const scrollLeft = keyframes`
 `;
 
 const ItemWrapper = styled.li`
+  ${sharedMediaItemStyles}
   flex-shrink: 0;
-  border-radius: 8px;
-  overflow: hidden;
 
   /* Size based on row height, width derived from aspect ratio */
   height: 100%;
@@ -1091,11 +1200,6 @@ const ButtonGroup = styled.div`
 
   display: flex;
   gap: 12px;
-
-  /* Hide when reduced motion is preferred (no animation to control) */
-  @media (prefers-reduced-motion: reduce) {
-    display: none;
-  }
 `;
 
 const EmptyState = styled.div`
@@ -1130,6 +1234,29 @@ const FadeIn = keyframes`
   }
   to {
     opacity: 1;
+  }
+`;
+
+// Motion wrapper for shuffle button expansion animation
+const ShuffleButtonWrapper = styled(motion.div)`
+  display: inline-flex;
+`;
+
+// Motion text for fade/blur reveal
+const ShuffleText = styled(motion.span)``;
+
+// Wrapper for play/pause icon crossfade animation
+const IconCrossfade = styled(motion.span)`
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+// Pause button - hidden via CSS when reduced motion is preferred
+const PauseButton = styled(Button)`
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
   }
 `;
 
@@ -1170,6 +1297,10 @@ const RefreshIcon = styled(Icon)`
     css`
       animation: ${Flip} 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `;
 
 const BrokenMessage = styled.div`
@@ -1185,11 +1316,10 @@ const ContactButton = styled(Button)`
 `;
 
 const PhysicsItem = styled.div`
+  ${sharedMediaItemStyles}
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   /* Now using pointer-events: auto for DOM-based dragging! */
   pointer-events: auto;

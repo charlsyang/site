@@ -193,6 +193,7 @@ const GlobalStyles = createGlobalStyle`
         --color-border: ${THEME.colors.mauve6};
         --color-link-border: ${THEME.colors.mauve8};
         --color-link-hover: var(--color-theme);
+        --color-constant-white: #FFF;
 
         --color-bg-inverted: ${DARKTHEME.colors.mauve1};
         --color-text-inverted: ${THEME.colors.mauve1};
@@ -203,8 +204,13 @@ const GlobalStyles = createGlobalStyle`
 
         --font-weight-serif: ${WEIGHTS.normal};
 
-        --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 20%);
-        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 12%);
+        /* Button */
+
+        --btn-primary-bg: ${THEME.colors.violet11};
+
+        --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 10%);
+        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 8%);
+        --btn-elevated-bg-active:  color-mix(in srgb, var(--color-bg-inverted), transparent 10%);
         --btn-elevated-border:  0 0 0 1px color-mix(in srgb, var(--color-border), transparent 80%);
 
         --shadow-color: 0deg 0% 0%;
@@ -243,8 +249,9 @@ const GlobalStyles = createGlobalStyle`
         --color-text-inverted: ${DARKTHEME.colors.mauve1};
 
         --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 4%);
-        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 4%);
+        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 6%);
         --btn-elevated-border:  0 0 0 1px color-mix(in srgb, var(--color-border), transparent 90%);
+        --btn-elevated-bg-active:  color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 12%);
 
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};

@@ -57,7 +57,7 @@ export default function WorkLayout({ children, allPostsData }) {
         </ContactLinks>
 
         {/* Project list - simplified from ProjectCard grid */}
-        <ProjectSection>
+        {/* <ProjectSection>
           <SectionHeading>Projects</SectionHeading>
           <ProjectList>
             {allPostsData?.map((project) => (
@@ -71,7 +71,7 @@ export default function WorkLayout({ children, allPostsData }) {
               </li>
             ))}
           </ProjectList>
-        </ProjectSection>
+        </ProjectSection> */}
       </Sidebar>
       <ContentArea>{children}</ContentArea>
     </Container>
@@ -170,8 +170,9 @@ const ContentArea = styled.main`
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  margin: var(--spacing-2x);
-  border-radius: 16px;
+  margin: var(--spacing-1x);
+  margin-left: 0;
+  border-radius: 24px;
   background-color: var(--color-bg-solid);
   border: 1px solid var(--color-border);
 `;
