@@ -171,7 +171,7 @@ const ContentArea = styled.main`
   min-width: 0;
   overflow: hidden;
   margin: var(--spacing-2x);
-  border-radius: 24px;
+  border-radius: 16px;
   background-color: var(--color-bg-solid);
   border: 1px solid var(--color-border);
 `;

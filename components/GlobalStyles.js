@@ -182,7 +182,8 @@ const GlobalStyles = createGlobalStyle`
     :root {
         --color-theme: ${THEME.colors.violet11};
         --color-bg-base: ${THEME.colors.mauve1};
-        --color-bg-solid: ${THEME.colors.mauve3};
+        --color-bg-solid: ${THEME.colors.mauve2};
+        --color-bg-interactive: ${THEME.colors.mauve3};
         --color-bg-hover: ${THEME.colors.mauve4};
         --color-bg-selected: ${THEME.colors.violet5};
         --color-text-base: ${THEME.colors.mauve12};
@@ -193,17 +194,41 @@ const GlobalStyles = createGlobalStyle`
         --color-link-border: ${THEME.colors.mauve8};
         --color-link-hover: var(--color-theme);
 
+        --color-bg-inverted: ${DARKTHEME.colors.mauve1};
+        --color-text-inverted: ${THEME.colors.mauve1};
+
         --font-weight-normal: ${THEME.weights.normal};
         --font-weight-medium: ${THEME.weights.medium};
         --font-weight-bold: ${THEME.weights.bold};
 
         --font-weight-serif: ${WEIGHTS.normal};
+
+        --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 20%);
+        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 12%);
+        --btn-elevated-border:  0 0 0 1px color-mix(in srgb, var(--color-border), transparent 80%);
+
+        --shadow-color: 0deg 0% 0%;
+        --shadow-elevation-low:
+            0px 0.3px 0.3px hsl(var(--shadow-color) / 0.09),
+            0px 0.6px 0.7px -1.2px hsl(var(--shadow-color) / 0.09),
+            0px 1.3px 1.5px -2.5px hsl(var(--shadow-color) / 0.09);
+        --shadow-elevation-medium:
+            0px 0.3px 0.3px hsl(var(--shadow-color) / 0.1),
+            0px 1.1px 1.2px -0.8px hsl(var(--shadow-color) / 0.1),
+            0px 2.7px 3px -1.7px hsl(var(--shadow-color) / 0.1),
+            0.1px 6.6px 7.4px -2.5px hsl(var(--shadow-color) / 0.1);
+        --shadow-elevation-high:
+            0px 0.5px 0.6px hsl(var(--shadow-color) / 0.1),
+            0px 1.7px 1.9px -0.8px hsl(var(--shadow-color) / 0.1),
+            0px 4.3px 4.8px -1.7px hsl(var(--shadow-color) / 0.1),
+            -0.1px 10.4px 11.7px -2.5px hsl(var(--shadow-color) / 0.1s);
     }
 
     [data-theme='dark'] {
         --color-theme: ${DARKTHEME.colors.violet11};
         --color-bg-base: ${DARKTHEME.colors.mauve1};
-        --color-bg-solid: ${DARKTHEME.colors.mauve3};
+        --color-bg-solid: ${DARKTHEME.colors.mauve2};
+        --color-bg-interactive: ${DARKTHEME.colors.mauve3};
         --color-bg-hover: ${DARKTHEME.colors.mauve4};
         --color-bg-selected: ${DARKTHEME.colors.violet5};
         --color-text-base: ${DARKTHEME.colors.mauve12};
@@ -213,6 +238,13 @@ const GlobalStyles = createGlobalStyle`
         --color-border: ${DARKTHEME.colors.mauve6};
         --color-link-border: ${DARKTHEME.colors.mauve8};
         --color-link-hover: var(--color-theme);
+
+        --color-bg-inverted: ${THEME.colors.mauve1};
+        --color-text-inverted: ${DARKTHEME.colors.mauve1};
+
+        --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 4%);
+        --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 4%);
+        --btn-elevated-border:  0 0 0 1px color-mix(in srgb, var(--color-border), transparent 90%);
 
         --font-weight-normal: ${DARKTHEME.weights.normal};
         --font-weight-medium: ${DARKTHEME.weights.medium};

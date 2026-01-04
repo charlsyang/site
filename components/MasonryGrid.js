@@ -1,6 +1,8 @@
 import styled, { keyframes, css } from "styled-components";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import Icon from "./Icon";
+import Button from "./Button";
 
 // ============================================
 // Sample Media Data
@@ -235,41 +237,6 @@ function shuffleWithRowChange(currentRowData, rowCount) {
   // Shuffle within each row for extra randomness, then flatten
   return newRows.flatMap((row) => shuffleArray(row));
 }
-
-// ============================================
-// Icons
-// ============================================
-
-const PlayIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M4 2.5v11l9-5.5-9-5.5z" />
-  </svg>
-);
-
-const PauseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M4 2h3v12H4V2zm5 0h3v12H9V2z" />
-  </svg>
-);
-
-const RefreshIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M8 3a5 5 0 0 0-4.9 4H1l3 3.5L7 7H4.1a3.9 3.9 0 1 1 .73 3.36l-1.47 1.08A5.5 5.5 0 1 0 8 3z" />
-  </svg>
-);
-
-const FixIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <path
-      d="M11.5 1.5a2.5 2.5 0 0 1 3 3L12 7l3 3-7 5-.5-4-4-.5 5-7 3-2.5zM2.5 13.5L6 10"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 // ============================================
 // Crossfade Configuration
@@ -690,13 +657,17 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
         <p>Your love for my work has broken through.</p>
         <p>Break the ice next?</p>
       </BrokenMessage>
-      <ContactButtonLink
+      <ContactButton
+        variant="secondary"
+        size="sm"
+        endIcon={<Icon name="arrowUpRight" />}
+        forwardedAs="a"
         href={CONTACT_BUTTON_URL}
         target="_blank"
         rel="noopener noreferrer"
       >
-        Slide into DM
-      </ContactButtonLink>
+        Send DM on X
+      </ContactButton>
 
       {/* Physics items as DOM elements - draggable via pointer events */}
       {displayBodies.map((item) => (
@@ -717,6 +688,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
           {item.isVideo ? (
             <Video
               src={item.src}
+              poster={item.posterDataUrl || undefined}
               autoPlay
               loop
               muted
@@ -728,10 +700,14 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
           )}
         </PhysicsItem>
       ))}
-      <FixButton onClick={onReset}>
-        <FixIcon />
-        <span>Fix it</span>
-      </FixButton>
+      <FixButtonStyled
+        iconOnly
+        variant="elevated"
+        size="lg"
+        icon={<Icon name="fix" />}
+        onClick={onReset}
+        aria-label="Fix layout"
+      />
     </PhysicsOverlay>
   );
 }
@@ -744,7 +720,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 
 // Threshold for triggering the easter egg
 const EASTER_EGG_CLICKS = 5;
-const EASTER_EGG_WINDOW = 10000; // 5 seconds in ms
+const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
 
 export default function MasonryGrid({
   items,
@@ -773,17 +749,57 @@ export default function MasonryGrid({
   // Button disabled state during animation
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Icon flip animation state
+  const [isFlipping, setIsFlipping] = useState(false);
+
   // Easter egg state
   const [isBroken, setIsBroken] = useState(false);
   const [capturedPositions, setCapturedPositions] = useState(null);
   const clickTimestampsRef = useRef([]);
   const gridRef = useRef(null);
 
+  // Pre-captured video frames (captured during idle time, not during easter egg trigger)
+  const videoFramesRef = useRef(new Map());
+
   useEffect(() => {
     // Shuffle once on mount
     setShuffledItems(shuffleArray(items));
     setMounted(true);
   }, [items]);
+
+  // Pre-capture video frames once after videos load (for easter egg poster fallback)
+  useEffect(() => {
+    if (!mounted || !gridRef.current) return;
+
+    const captureVideoFrames = () => {
+      const container = gridRef.current;
+      if (!container) return;
+
+      const videoElements = container.querySelectorAll("video");
+      videoElements.forEach((videoEl) => {
+        const src = videoEl.src;
+        // Skip if already captured or video not ready
+        if (videoFramesRef.current.has(src) || !videoEl.videoWidth) return;
+
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = videoEl.videoWidth;
+          canvas.height = videoEl.videoHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          videoFramesRef.current.set(src, dataUrl);
+        } catch (e) {
+          // Ignore capture failures
+        }
+      });
+    };
+
+    // Capture once after videos have had time to load
+    const timeoutId = setTimeout(captureVideoFrames, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [mounted]);
 
   // Distribute items across rows
   const rowData = useMemo(() => {
@@ -793,6 +809,12 @@ export default function MasonryGrid({
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
+    // Ignore clicks during animation (debounce without visual indicator)
+    if (isRefreshing) return;
+
+    // Trigger icon flip animation
+    setIsFlipping(true);
+
     // Track click timestamps for easter egg
     const now = Date.now();
     clickTimestampsRef.current = [
@@ -811,6 +833,8 @@ export default function MasonryGrid({
         const mediaElements = container.querySelectorAll("li");
         const positions = [];
 
+        // Fast position capture - no canvas work here
+        // Video frames were pre-captured during idle time
         mediaElements.forEach((el, index) => {
           const elRect = el.getBoundingClientRect();
           const mediaSrc =
@@ -818,6 +842,11 @@ export default function MasonryGrid({
           const isVideo = !!el.querySelector("video");
 
           if (mediaSrc) {
+            // Look up pre-captured video frame (no capture during easter egg)
+            const posterDataUrl = isVideo
+              ? videoFramesRef.current.get(mediaSrc) || null
+              : null;
+
             positions.push({
               id: index,
               x: elRect.left - rect.left + elRect.width / 2,
@@ -826,6 +855,7 @@ export default function MasonryGrid({
               height: elRect.height,
               src: mediaSrc,
               isVideo,
+              posterDataUrl,
               angle: 0,
             });
           }
@@ -849,7 +879,7 @@ export default function MasonryGrid({
     setShuffledItems(newShuffle);
     // Re-enable button after animation completes
     setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
-  }, [items, rowData, rows]);
+  }, [isRefreshing, items, rowData, rows]);
 
   // Handle reset from broken mode
   const handleFixBroken = useCallback(() => {
@@ -902,24 +932,32 @@ export default function MasonryGrid({
       {!isBroken && (
         <ButtonGroup>
           {showRefreshButton && (
-            <ControlButton
+            <Button
+              size="lg"
+              variant="elevated"
+              startIcon={
+                <RefreshIcon
+                  name="refresh"
+                  $flipping={isFlipping}
+                  onAnimationEnd={() => setIsFlipping(false)}
+                />
+              }
               onClick={handleRefresh}
               aria-label="Shuffle media"
-              disabled={isRefreshing}
             >
-              <RefreshIconWrapper $spinning={isRefreshing}>
-                <RefreshIcon />
-              </RefreshIconWrapper>
-            </ControlButton>
+              Shuffle
+            </Button>
           )}
           {showPauseButton && (
-            <ControlButton
+            <Button
+              iconOnly
+              size="lg"
+              variant="elevated"
+              icon={<Icon name={userPaused ? "play" : "pause"} />}
               onClick={() => setUserPaused(!userPaused)}
               aria-label={userPaused ? "Resume animation" : "Pause animation"}
               aria-pressed={userPaused}
-            >
-              {userPaused ? <PlayIcon /> : <PauseIcon />}
-            </ControlButton>
+            />
           )}
         </ButtonGroup>
       )}
@@ -1052,74 +1090,11 @@ const ButtonGroup = styled.div`
   z-index: 10;
 
   display: flex;
-  gap: 8px;
+  gap: 12px;
 
   /* Hide when reduced motion is preferred (no animation to control) */
   @media (prefers-reduced-motion: reduce) {
     display: none;
-  }
-`;
-
-const spinAnimation = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-`;
-
-const RefreshIconWrapper = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: ${({ $spinning }) => ($spinning ? spinAnimation : "none")} 0.5s
-    ease-in-out;
-`;
-
-const ControlButton = styled.button`
-  /* Circular button */
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-
-  /* Reset button styles */
-  border: none;
-  padding: 0;
-  margin: 0;
-
-  /* Subtle glass effect */
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-
-  /* Center icon */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Color */
-  color: rgba(255, 255, 255, 1);
-
-  /* Cursor */
-  cursor: pointer;
-
-  /* Transitions */
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.7;
-  }
-
-  /* Accessible focus state */
-  &:focus-visible {
-    outline: 2px solid var(--color-accent, #6366f1);
-    outline-offset: 2px;
   }
 `;
 
@@ -1141,71 +1116,72 @@ const PhysicsOverlay = styled.div`
   inset: 0;
   z-index: 100;
   overflow: hidden;
-  background: var(--color-bg-solid, #0a0a0a);
+  background: var(--color-bg-solid);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 8%;
 `;
 
-// PhysicsCanvas removed - now running Matter.js headless!
+const FadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const Flip = keyframes`
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  20% {
+    /* Quick toss upward */
+    transform: translateY(-12px) rotate(100deg);
+  }
+  40% {
+    /* Peak - hangs in the air */
+    transform: translateY(-16px) rotate(200deg);
+  }
+  55% {
+    /* Still near peak, rotation continues */
+    transform: translateY(-14px) rotate(280deg);
+  }
+  75% {
+    /* Falling back down */
+    transform: translateY(-10px) rotate(340deg);
+  }
+  90% {
+    /* Almost landed, slight overshoot */
+    transform: translateY(3px) rotate(355deg);
+  }
+  100% {
+    /* Settle */
+    transform: translateY(0) rotate(360deg);
+  }
+`;
+
+const RefreshIcon = styled(Icon)`
+  transform-origin: center;
+  ${(props) =>
+    props.$flipping &&
+    css`
+      animation: ${Flip} 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    `}
+`;
 
 const BrokenMessage = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   color: var(--color-text-muted);
-  transform: translateY(150%);
+  animation: ${FadeIn} 0.3s ease-out 0.8s both;
 `;
 
-const contactButtonFadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(310%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(300%);
-  }
-`;
-
-// ContactButtonLink is now a real <a> tag - fully interactive without canvas blocking!
-const ContactButtonLink = styled.a`
-  position: relative;
-  margin: 0 auto;
-  transform: translateY(300%);
-  cursor: pointer;
-
-  /* Styling */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 16px;
-  border-radius: calc(infinity * 1px);
-  background: #fff;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #000;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  width: fit-content;
-  height: 32px;
-
-  /* Delayed fade-in animation */
-  opacity: 0;
-  animation: ${contactButtonFadeIn} 0.3s ease-out 0.8s forwards;
-
-  /* Hover state */
-  transition: background 0.15s ease, transform 0.15s ease;
-
-  &:hover {
-    color: #000;
-    background: #fff;
-  }
-
-  /* Accessible focus state */
-  &:focus-visible {
-    outline: 2px solid var(--color-accent, #6366f1);
-    outline-offset: 2px;
-  }
+const ContactButton = styled(Button)`
+  animation: ${FadeIn} 0.3s ease-out 0.8s both;
 `;
 
 const PhysicsItem = styled.div`
@@ -1227,71 +1203,13 @@ const PhysicsItem = styled.div`
   }
 `;
 
-const fixButtonSlideIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const FixButton = styled.button`
+// FixButtonStyled extends Button with positioning and animation
+const FixButtonStyled = styled(Button)`
   position: absolute;
-  bottom: 16px;
+  top: 16px;
   right: 16px;
   z-index: 10;
 
-  /* Pill button */
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: 24px;
-
-  /* Reset button styles */
-  border: none;
-  margin: 0;
-
-  /* Glass effect */
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-
-  /* Color */
-  color: rgba(255, 255, 255, 0.95);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-
-  /* Cursor */
-  cursor: pointer;
-
   /* Animation */
-  animation: ${fixButtonSlideIn} 0.4s ease-out 0.5s both;
-
-  /* Transitions */
-  transition: transform 0.15s ease, background 0.15s ease;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.02);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  /* Accessible focus state */
-  &:focus-visible {
-    outline: 2px solid var(--color-accent, #6366f1);
-    outline-offset: 2px;
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
+  animation: ${FadeIn} 0.3s ease-out 0.8s both;
 `;
