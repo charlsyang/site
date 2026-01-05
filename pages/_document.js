@@ -47,7 +47,7 @@ class MyDocument extends Document {
           <link
             rel="mask-icon"
             href="/favicons/safari-pinned-tab.svg"
-            color="#5746AF"
+            color="#E54D2E"
           />
           <link
             rel="apple-touch-icon"

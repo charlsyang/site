@@ -18,9 +18,9 @@ const CodeSnippet = ({ children }) => {
         <CodeWrapper>
           <Pre className={className} style={{ ...style }}>
             {tokens.slice(0, -1).map((line, i) => (
-              <div {...getLineProps({ line, key: i })}>
-                {line.map((token, key) => (
-                  <span {...getTokenProps({ token, key })} />
+              <div key={i} {...getLineProps({ line })}>
+                {line.map((token, tokenKey) => (
+                  <span key={tokenKey} {...getTokenProps({ token })} />
                 ))}
               </div>
             ))}
@@ -48,7 +48,13 @@ const Pre = styled.pre`
   padding: var(--spacing-2x) var(--code-margin);
   overflow: auto;
   line-height: 1.2;
-  mask-image: linear-gradient(to right, transparent 0, #000 var(--code-margin), #000 calc(100% - var(--code-margin)), transparent 100%);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--code-margin),
+    #000 calc(100% - var(--code-margin)),
+    transparent 100%
+  );
   /* border: 1px solid var(--color-border); */ // too much? not sure
 
   & span {

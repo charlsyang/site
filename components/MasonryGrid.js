@@ -680,7 +680,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        Send DM on X
+        DM on Twitter
       </ContactButton>
 
       {/* Physics items as DOM elements - draggable via pointer events */}
@@ -733,7 +733,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // Easter egg configuration
 
 // Threshold for triggering the easter egg
-const EASTER_EGG_CLICKS = 5;
+const EASTER_EGG_CLICKS = 10;
 const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
 
 export default function MasonryGrid({
@@ -788,6 +788,40 @@ export default function MasonryGrid({
     setShuffledItems(shuffleArray(items));
     setMounted(true);
   }, [items]);
+
+  // Force animation restart on resize (Safari-only fix)
+  // Safari doesn't properly recalculate percentage-based translate values in running animations
+  useEffect(() => {
+    if (!mounted || !gridRef.current) return;
+
+    // Only apply workaround for Safari (not Chrome, which handles this correctly)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (!isSafari) return;
+
+    let resizeTimeout;
+    const handleResize = () => {
+      // Debounce: only trigger after resize stops
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        // Restart CSS animations via DOM (no React re-render needed)
+        const items = gridRef.current?.querySelectorAll("li");
+        if (!items) return;
+        items.forEach((el) => {
+          el.style.animation = "none";
+          el.offsetHeight; // Force reflow
+          el.style.animation = "";
+        });
+      }, 150);
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(gridRef.current);
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      resizeObserver.disconnect();
+    };
+  }, [mounted]);
 
   // Handle shuffle button visibility with delay for normal users
   useEffect(() => {
@@ -973,7 +1007,7 @@ export default function MasonryGrid({
   // Calculate offset for each row to create stagger
   const getRowOffset = (rowIndex) => {
     const baseOffset = 1;
-    return baseOffset + rowIndex * 0.4;
+    return baseOffset + rowIndex * 0.3;
   };
 
   // Handle empty state
@@ -1104,7 +1138,7 @@ const sharedMediaItemStyles = css`
 
 const scrollLeft = keyframes`
   100% {
-    translate: var(--destination-x) 0;
+    transform: translateX(var(--destination-x));
   }
 `;
 
@@ -1131,7 +1165,7 @@ const ItemWrapper = styled.li`
   );
 
   /* Initial position */
-  translate: var(--origin-x) 0;
+  transform: translateX(var(--origin-x));
 
   /* Animation */
   animation: ${scrollLeft} var(--duration)
@@ -1144,7 +1178,7 @@ const ItemWrapper = styled.li`
   /* Reduced motion fallback */
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    translate: 0 0;
+    transform: translateX(0);
   }
 `;
 
@@ -1171,7 +1205,7 @@ const RowWrapper = styled.ul`
 
   /* Reduced motion: add gap and stagger rows */
   @media (prefers-reduced-motion: reduce) {
-    gap: 0.6vw;
+    gap: 0.9vh;
     /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
     transform: translateX(calc((var(--offset) - 1) * -15%));
   }
@@ -1181,7 +1215,7 @@ const GridWrapper = styled.section`
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.45vw;
+  gap: 0.9vh;
   width: 100%;
   height: 100%;
   overflow: hidden;

@@ -141,9 +141,9 @@ const GlobalStyles = createGlobalStyle`
         --transition-default: 240ms;
         --transition-slow: 320ms;
         --duration-load: 600ms;
-        --stagger-1: 50ms;
-        --stagger-2: 100ms;
-        --stagger-3: 150ms;
+        --stagger-1: 40ms;
+        --stagger-2: 80ms;
+        --stagger-3: 120ms;
         --ease-in-out: cubic-bezier(0.65,0.05,0.36,1);
         --ease-out: cubic-bezier(0.17,0.84,0.44,1);
 
@@ -151,7 +151,7 @@ const GlobalStyles = createGlobalStyle`
 
     @keyframes onload-fade {
         from {
-            translate: 0 32px;
+            translate: 0 20px;
             opacity: 0;
         }
         to {
@@ -180,7 +180,7 @@ const GlobalStyles = createGlobalStyle`
     }
 
     :root {
-        --color-theme: ${THEME.colors.tomato11};
+        --color-theme: ${THEME.colors.tomato9};
         --color-bg-base: ${THEME.colors.sand1};
         --color-bg-solid: ${THEME.colors.sand2};
         --color-bg-interactive: ${THEME.colors.sand3};
@@ -206,7 +206,7 @@ const GlobalStyles = createGlobalStyle`
 
         /* Button */
 
-        --btn-primary-bg: ${THEME.colors.tomato11};
+        --btn-primary-bg: ${THEME.colors.tomato9};
 
         --btn-elevated-bg: color-mix(in srgb, var(--color-bg-inverted), transparent 10%);
         --btn-elevated-bg-hover: color-mix(in srgb, var(--btn-elevated-bg), var(--color-bg-base) 8%);
@@ -231,7 +231,7 @@ const GlobalStyles = createGlobalStyle`
     }
 
     [data-theme='dark'] {
-        --color-theme: ${DARKTHEME.colors.tomato11};
+        --color-theme: ${DARKTHEME.colors.tomato10};
         --color-bg-base: ${DARKTHEME.colors.sand1};
         --color-bg-solid: ${DARKTHEME.colors.sand2};
         --color-bg-interactive: ${DARKTHEME.colors.sand3};

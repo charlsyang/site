@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,6 +9,26 @@ import { keyframes } from "styled-components";
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
   const currentSlug = router.query.slug;
+  const [time, setTime] = useState(null);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      }).format(now);
+      setTime(formatted);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Container>
@@ -24,37 +45,37 @@ export default function WorkLayout({ children, allPostsData }) {
         {/* Intro - from current work/index.js */}
         <Intro>
           <Headline>
-            <p>
-              Charlsy designs visual and interactive experience for products
-              and&nbsp;brands.
-            </p>
-            <p>
-              He cares deeply about quality and holds craftsmanship dear
-              to&nbsp;heart.
-            </p>
+            <h1>Charlsy Yang</h1>
+            <p>Software Designer</p>
           </Headline>
-          {/* <Callout>
+          <Description>
             <p>
-              Learn more about{" "}
+              I design software with a high bar for visual craft, a bias for
+              prototyping, an affinity with code, and a lot of care. I am
+              passionate about toolmaking and storytelling on the web and new
+              computer interfaces.
+            </p>
+            <p>
+              Currently I am designing the shopping experience on Google Search.
+              Learn more about me{" "}
               <Link href="https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80">
-                Charlsy as a designer
+                as a designer
               </Link>
               .
             </p>
-          </Callout> */}
-        </Intro>
-
-        {/* Contact links - from current work/index.js */}
-        <ContactLinks>
-          <div>
-            <p>Email</p>
+          </Description>
+          <ContactLinks>
             <Link href="mailto:hi@charlsy.me">hi@charlsy.me</Link>
-          </div>
-          <div>
-            <p>Resume</p>
-            <Link href="https://charlsy.cv">charlsy.cv</Link>
-          </div>
-        </ContactLinks>
+            <span>/</span>
+            <Link href="https://x.com/imcharlsy" target="_blank">
+              twitter
+            </Link>
+            <span>/</span>
+            <Link href="https://linkedin.com/in/charlsyang" target="_blank">
+              linkedin
+            </Link>
+          </ContactLinks>
+        </Intro>
 
         {/* Project list - simplified from ProjectCard grid */}
         {/* <ProjectSection>
@@ -72,6 +93,11 @@ export default function WorkLayout({ children, allPostsData }) {
             ))}
           </ProjectList>
         </ProjectSection> */}
+
+        <Footer>
+          <p>{time ?? "—"}</p>
+          <p>San Francisco CA</p>
+        </Footer>
       </Sidebar>
       <ContentArea>{children}</ContentArea>
     </Container>
@@ -106,15 +132,8 @@ const StyledFleuron = styled(Fleuron)`
   display: block;
   transform: scale(0.9) translateY(-1px);
   & path {
-    fill: var(--color-text-muted);
+    fill: var(--color-theme);
     transition: var(--transition-slow);
-  }
-
-  &:hover {
-    & path {
-      fill: var(--color-text-base);
-      transition: var(--transition-default);
-    }
   }
 `;
 
@@ -123,6 +142,7 @@ const NavLinks = styled.nav`
   display: flex;
   gap: var(--spacing-4x);
   position: relative;
+  align-items: center;
 
   & a {
     font-size: var(--font-size-s);
@@ -131,7 +151,7 @@ const NavLinks = styled.nav`
   }
 
   & a:hover {
-    color: var(--color-text-base);
+    color: var(--color-theme);
   }
 
   @media ${QUERIES.phoneAndBelow} {
@@ -146,22 +166,25 @@ const Container = styled.div`
 `;
 
 const Sidebar = styled.aside`
-  flex: 0 0 28%;
-  /* max-width: 400px; */
-  min-width: 280px;
-  padding: var(--spacing-4x);
+  flex: 0 0 32%;
+  max-width: 480px;
+  min-width: 320px;
+  padding: var(--spacing-3x) var(--spacing-4x);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4x);
+  align-items: flex-start;
+  justify-content: space-between;
 
   @media ${QUERIES.tabletAndBelow} {
     flex: 0 0 40%;
-    min-width: 240px;
+    min-width: 320px;
   }
 
   @media ${QUERIES.phoneAndBelow} {
-    display: none; /* Hide sidebar on mobile for now */
+    flex: 1;
+    padding: var(--spacing-2x);
+    max-width: revert;
   }
 `;
 
@@ -175,52 +198,65 @@ const ContentArea = styled.main`
   border-radius: 16px;
   background-color: var(--color-bg-solid);
   border: 1px solid var(--color-border);
+
+  @media ${QUERIES.phoneAndBelow} {
+    display: none; /* Hide sidebar on mobile for now */
+  }
 `;
 
 const Intro = styled.section`
-  animation: onload-fade var(--duration-load) var(--ease-out) both;
+  margin-top: var(--spacing-4x);
+  margin-bottom: 16vh;
 `;
 
 const Headline = styled.div`
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-normal);
+  font-size: 22px;
+  color: var(--color-text-base);
+  line-height: 1.2;
   margin-bottom: var(--spacing-3x);
+  animation: onload-fade var(--duration-load) var(--ease-out) both;
+
+  & h1 {
+    font-weight: var(--font-weight-normal);
+  }
 
   & p {
-    font-weight: var(--font-weight-normal);
-    font-size: var(--font-size-l);
-    line-height: 1.3;
-    color: var(--color-text-base);
-  }
-
-  & p + p {
-    text-indent: 2em;
-  }
-
-  @media ${QUERIES.tabletAndBelow} {
-    & p {
-      font-size: var(--font-size-m);
-    }
+    color: var(--color-text-muted);
   }
 `;
 
-const Callout = styled.div`
-  padding: 16px 20px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-bg-solid);
-  color: var(--color-text-article);
-  font-weight: var(--font-weight-normal);
+const Description = styled.div`
+  margin-bottom: var(--spacing-5x);
 
   & p {
-    line-height: 1.4;
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-s);
+    line-height: 1.45;
+    color: var(--color-text-base);
+    margin-bottom: var(--spacing-1x);
+    text-wrap: pretty;
+    hyphens: auto;
+  }
+
+  & p:first-of-type {
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-1);
+  }
+
+  & p:last-of-type {
+    animation: onload-fade var(--duration-load) var(--ease-out) both;
+    animation-delay: var(--stagger-2);
   }
 `;
 
 const ContactLinks = styled.div`
   display: flex;
-  gap: var(--spacing-4x);
+  gap: var(--spacing-s);
   font-weight: var(--font-weight-normal);
   animation: onload-fade var(--duration-load) var(--ease-out) both;
-  animation-delay: var(--stagger-1);
+  animation-delay: var(--stagger-3);
 
   & > div {
     flex: 1;
@@ -230,6 +266,19 @@ const ContactLinks = styled.div`
     color: var(--color-text-muted);
     margin-bottom: var(--spacing-xs);
   }
+
+  & span {
+    color: var(--color-theme);
+  }
+`;
+
+const Footer = styled.footer`
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xxs);
+  color: var(--color-theme);
+  /* margin-top: auto;/ */
 `;
 
 const ProjectSection = styled.section`
