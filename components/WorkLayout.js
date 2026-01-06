@@ -211,7 +211,7 @@ const Intro = styled.section`
 
 const Headline = styled.div`
   font-family: var(--font-serif);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-serif);
   font-size: 22px;
   color: var(--color-text-base);
   line-height: 1.2;
@@ -219,7 +219,7 @@ const Headline = styled.div`
   animation: onload-fade var(--duration-load) var(--ease-out) both;
 
   & h1 {
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--font-weight-serif);
   }
 
   & p {

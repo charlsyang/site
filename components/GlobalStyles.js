@@ -46,60 +46,8 @@ const GlobalStyles = createGlobalStyle`
         border-spacing: 0;
     }
 
-    @font-face {
-        font-family: 'Diatype';
-        font-weight: 100 700;
-        font-display: fallback;
-        src: url(/fonts/ABCDiatypeVariable.woff2) format('woff2');
-    }
-
-    @font-face {
-        font-family: 'Marat';
-        font-weight: 400;
-        font-style: normal;
-        font-display: fallback;
-        src: url(/fonts/Marat-Regular.woff2) format('woff2');
-    }
-    
-    @font-face {
-        font-family: 'Marat';
-        font-weight: 400;
-        font-style: italic;
-        font-display: fallback;
-        src: url(/fonts/Marat-RegularItalic.woff2) format('woff2');
-    }
-
-    @font-face {
-        font-family: 'Marat';
-        font-weight: 300;
-        font-style: normal;
-        font-display: fallback;
-        src: url(/fonts/Marat-Light.woff2) format('woff2');
-    }
-    
-    @font-face {
-        font-family: 'Marat';
-        font-weight: 300;
-        font-style: italic;
-        font-display: fallback;
-        src: url(/fonts/Marat-LightItalic.woff2) format('woff2');
-    }
-
-    @font-face {
-        font-family: 'Adjusted Arial';
-        src: local(Arial);
-        size-adjust: 98%;
-        ascent-override: 94%;
-        descent-override: 31%;
-    }  
-
-    @font-face {
-        font-family: 'Adjusted Georgia';
-        src: local(Georgia);
-        size-adjust: 87%;
-        ascent-override: 103%;
-        descent-override: 35%;
-    }  
+    /* @font-face declarations moved to _document.js - see proof in git history that
+       styled-components modifying style tag content causes browser to re-fetch fonts */
 
     /* DESIGN TOKENS */
 

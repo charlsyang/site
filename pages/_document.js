@@ -32,6 +32,32 @@ class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head>
+          {/* Font preloading for critical fonts */}
+          <link
+            rel="preload"
+            href="/fonts/Marat-Regular.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="/fonts/Marat-Light.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="/fonts/ABCDiatypeVariable.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+
+          {/* Static @font-face in separate CSS file - outside styled-components to prevent re-fetch */}
+          <link rel="stylesheet" href="/fonts.css" />
+
           <link
             href="https://fastly-cloud.typenetwork.com/projects/7347/fontface.css?64a210d9"
             rel="stylesheet"

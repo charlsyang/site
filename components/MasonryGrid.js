@@ -733,7 +733,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // Easter egg configuration
 
 // Threshold for triggering the easter egg
-const EASTER_EGG_CLICKS = 10;
+const EASTER_EGG_CLICKS = 6;
 const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
 
 export default function MasonryGrid({
@@ -837,7 +837,7 @@ export default function MasonryGrid({
         setShuffleButtonVisible(true);
         // Trigger the icon flip animation on initial reveal
         setIsFlipping(true);
-      }, 5000);
+      }, 3000);
 
       return () => clearTimeout(timeoutId);
     }

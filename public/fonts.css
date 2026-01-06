@@ -1,0 +1,56 @@
+/* Static @font-face declarations - outside styled-components to prevent re-fetch */
+
+@font-face {
+  font-family: "Diatype";
+  font-weight: 100 700;
+  font-display: swap;
+  src: url(/fonts/ABCDiatypeVariable.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Marat";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url(/fonts/Marat-Regular.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Marat";
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src: url(/fonts/Marat-RegularItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Marat";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url(/fonts/Marat-Light.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Marat";
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+  src: url(/fonts/Marat-LightItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Adjusted Arial";
+  src: local(Arial);
+  size-adjust: 98%;
+  ascent-override: 94%;
+  descent-override: 31%;
+}
+
+@font-face {
+  font-family: "Adjusted Georgia";
+  src: local(Georgia);
+  size-adjust: 87%;
+  ascent-override: 103%;
+  descent-override: 35%;
+}
