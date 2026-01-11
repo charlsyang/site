@@ -7,7 +7,9 @@ const Footer = () => {
     <FooterWrapper>
       <Divider />
       <FooterContent>
-        <Footnote>© 2025 · San Francisco</Footnote>
+        <Footnote>
+          © {new Date().getFullYear()} · With {"<"}3 from San Francisco
+        </Footnote>
         <Link href="/colophon" passHref legacyBehavior>
           <Colophon>Colophon</Colophon>
         </Link>
