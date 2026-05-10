@@ -1,0 +1,28 @@
+---
+title: 'Working on Search'
+date: '2026-05-09'
+tags: []
+excerpt: ''
+isPublished: true
+---
+
+Google Search is a weird product. You don’t interact with it that much. You see the search results and you either get the answer you need or you click on some links. Either way, you leave. And that’s about it. The interaction is so brief it almost feels like a static website. But at the same time, Search is also very utilitarian and invisible—people use it multiple times a day to get information but its existence is transparent. It’s some hybrid of [a functional application and a presentational website](/blog/app-site-spectrums).
+
+I worked on the shopping ads on Search, and its presentational nature was further intensified by the revenue pressure. Every click earned real money, so the incentive was to get you out to the advertisers’ websites; any friction in between that delayed clicks was discouraged. As a result, the UI *was* all the product was. This was both a blessing and a curse: everyone on the team agreed how every pixel counted, but also everyone owned how things should look—stakeholders giving prescriptive feedback on color and font size was not uncommon. 
+
+While it’s mentally exhausting that every minute design decision needed to be scrutinized and justified (save my critique for another essay), it’s also interesting how small changes like this could nudge behaviors at scale. A tiny change in the order of elements that challenges people’s reading habits would provoke a silent protest of lost clicks—like the flap of a butterfly’s wings, a subtle shift trickles, spreads, and multiplies into a sweeping storm; or like [acupuncture](https://farmerandfarmer.org/beauty/flow.html), small interventions redirect the flow of energy.
+
+Search also feels live in ways other software doesn’t. When you think about it, Search is such a dynamic, content-driven product that it’s probably the closest to non-deterministic UI before AI. So many features and formats have been built for each vertical in the past two decades to perfect the answer machine. Each query summons a different set to compose a unique layout for a given user in that moment. 
+
+In other products, I can follow a reliable path to see a particular piece of UI; but on Search, I couldn’t always trigger the things I want to see. For example, if I didn’t interact with ads from time to time, the system might have thought the ads were not effective and stopped showing them altogether. Over time, I learned about these quirks and came up with workarounds, much like getting to know the temper of a strange beast—[Marcin’s beautiful metaphor](https://unsung.aresluna.org/movie-review-koolhaas-houselife/#:~:text=Medium%E2%80%99s%20editor%20then,one%20controls%20them) for how it feels like maintaining sophisticated software.
+
+The volume and scale of Search perfectly exemplifies the difference between “products” and “programs”. As Dylan pointed out on [the problem with vibe coding](https://dylanbeattie.net/2025/04/11/the-problem-with-vibe-coding.html), programs are “works on my machine” code that solve a personal problem once on one computer, whereas products are software that you can reliably ship to others that handle a gazillion different environments and edge cases. While AI has made it easy to spin up software programs, it still takes a significant amount of labor and engineering expertise to make software products that are fast and reliable for people around the world.
+
+Speaking of fast—can we all take a moment to appreciate how fast Search is? I, for one, have taken it for granted over the years. Search [used to show](https://www.google.com/search?q=google+in+1998) how long it took to load the result but now it’s become table stakes and an ingrained part of user expectation. Compared to today’s LLM, having everything load within a fraction of a second is refreshing again. It came to my awareness because latency was an important metric with stringent requirements internally. [Increased latency makes users search less](https://research.google/blog/speed-matters/) and thus impacts revenue negatively. [Fast software is the best software](https://craigmod.com/essays/fast_software/) indeed, not just to the user but also to the business. 
+
+A design is only as good as the content—I learned this many years ago working on CMS templates. It’s even more challenging when designing for dynamic, content-driven product like Search when you have less direct editorial control over what fills in the container. Data coverage and quality very much determine how the UI could or should look. 
+
+A related side effect is what I call “creator blindness”. When I Google something and see the ads pop up, I often catch myself drifting to the form—the colors, fonts, spacing, imagery—the pixels instead of the content. I start to look at it as a creator instead of actually reading the words or evaluating the options from a shopper’s perspective. These are two very different states of mind. Looking only through the creator’s lens, it’s easy to miss what’s obvious to the consumer’s eye. 
+
+It was interesting to work on Google’s flagship property and witness it reinvent itself in the AI era. It’s inspiring to see Sergey and Search VPs active in dogfood channels testing products and giving feedback. Also in my opinion the organic Search team was genuinely packed with the most high-craft designers in the whole organization. I’ve been a fan and will continue to cheer them on as a user!
+
