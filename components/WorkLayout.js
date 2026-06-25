@@ -56,8 +56,11 @@ export default function WorkLayout({ children, allPostsData }) {
               computer interfaces.
             </p>
             <p>
-              Currently I am designing the shopping experience on Google Search.
-              Learn more about me{" "}
+              Currently I work on{" "}
+              <Link href="https://effects.youtube.com" target="_blank">
+                effects creation
+              </Link>{" "}
+              at YouTube. Learn more about me{" "}
               <Link href="https://charlsy.notion.site/Charlsy-as-a-Designer-d60da6d266e3419b861e422a6a910a80">
                 as a designer
               </Link>
