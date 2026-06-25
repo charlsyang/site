@@ -71,11 +71,11 @@ export default function WorkLayout({ children, allPostsData }) {
             <Link href="mailto:hi@charlsy.me">hi@charlsy.me</Link>
             <span>/</span>
             <Link href="https://x.com/imcharlsy" target="_blank">
-              twitter
+              X (Twitter)
             </Link>
             <span>/</span>
             <Link href="https://linkedin.com/in/charlsyang" target="_blank">
-              linkedin
+              LinkedIn
             </Link>
           </ContactLinks>
         </Intro>
