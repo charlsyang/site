@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { QUERIES } from "../utils/constants";
 import Fleuron from "../public/favicon.svg";
-import { keyframes } from "styled-components";
+import MasonryTune, { MASONRY_TUNE_DEFAULTS } from "./MasonryTune";
 
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
   const currentSlug = router.query.slug;
   // Case studies stay hidden on phone; only the /work index shows the grid.
   const showGridOnPhone = router.pathname === "/work";
+  const showTune =
+    showGridOnPhone &&
+    (router.query.tune === "1" || router.query.tune === "true");
   const [time, setTime] = useState(null);
 
   useEffect(() => {
@@ -34,10 +37,10 @@ export default function WorkLayout({ children, allPostsData }) {
 
   return (
     <Container>
-      {/* Same top blur/fade as site Nav — softens the grid seam under the nav */}
-      <NavBlur aria-hidden="true" />
+      {/* Same technique as components/Nav.js Blur — overlays grid on phone */}
+      {showGridOnPhone && <NavBlur aria-hidden="true" />}
       <Sidebar>
-        <NavWrapper>
+        <NavWrapper $overlayGrid={showGridOnPhone}>
           <NavLinks>
             <Home href="/">
               <StyledFleuron />
@@ -106,7 +109,12 @@ export default function WorkLayout({ children, allPostsData }) {
           <p>San Francisco CA</p>
         </Footer>
       </Sidebar>
-      <ContentArea $showOnPhone={showGridOnPhone}>{children}</ContentArea>
+      <ContentArea $showOnPhone={showGridOnPhone}>
+        {children}
+        {/* Bottom edge: same blur + mask + tint pattern as NavBlur, inverted */}
+        {showGridOnPhone && <GridBottomFade aria-hidden="true" />}
+      </ContentArea>
+      {showTune && <MasonryTune />}
     </Container>
   );
 }
@@ -125,7 +133,10 @@ const navFade = keyframes`
     }
 `;
 
-/* Matches components/Nav.js Blur — softens the grid seam under the nav on phone */
+/*
+ * Matches components/Nav.js Blur exactly:
+ * backdrop-filter + mask-image gradient + tinted bg gradient ::after
+ */
 const NavBlur = styled.div`
   display: none;
 
@@ -138,6 +149,7 @@ const NavBlur = styled.div`
     height: 48px;
     z-index: 3;
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
     pointer-events: none;
@@ -157,6 +169,57 @@ const NavBlur = styled.div`
   }
 `;
 
+/*
+ * Same Nav blur technique, flipped for the grid bottom.
+ * Tunable via CSS vars (see MasonryTune / ?tune=1).
+ */
+const GridBottomFade = styled.div`
+  display: none;
+
+  @media ${QUERIES.phoneAndBelow} {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    height: var(--masonry-fade-height, ${MASONRY_TUNE_DEFAULTS.fadeHeightPx}px);
+    backdrop-filter: blur(
+      var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
+    );
+    -webkit-backdrop-filter: blur(
+      var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
+    );
+    /* Opaque at bottom → transparent upward (mirror of nav's to-bottom mask) */
+    -webkit-mask-image: linear-gradient(
+      to top,
+      #000 0,
+      #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
+      transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+    );
+    mask-image: linear-gradient(
+      to top,
+      #000 0,
+      #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
+      transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+    );
+    pointer-events: none;
+    user-select: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        to top,
+        var(--color-bg-base) 0,
+        transparent 100%
+      );
+      opacity: var(--masonry-fade-tint, ${MASONRY_TUNE_DEFAULTS.fadeTint});
+    }
+  }
+`;
+
 const NavWrapper = styled.div`
   z-index: 2;
   height: var(--nav-height);
@@ -164,11 +227,20 @@ const NavWrapper = styled.div`
 
   @media ${QUERIES.phoneAndBelow} {
     order: 1;
-    position: relative;
-    z-index: 4;
     width: 100%;
     box-sizing: border-box;
     padding: var(--spacing-2x);
+
+    ${({ $overlayGrid }) =>
+      $overlayGrid &&
+      css`
+        /* Float over the grid so masonry runs underneath the nav */
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 4;
+      `}
   }
 `;
 
@@ -213,6 +285,7 @@ const Container = styled.div`
   overflow: hidden;
 
   @media ${QUERIES.phoneAndBelow} {
+    position: relative;
     flex-direction: column;
     height: auto;
     min-height: 100dvh;
@@ -258,28 +331,15 @@ const ContentArea = styled.main`
     order: 2;
     flex: none;
     width: 100%;
-    height: 55vh;
+    /* Starts at top of page — nav overlays this band */
+    height: var(
+      --masonry-grid-height,
+      ${MASONRY_TUNE_DEFAULTS.gridHeightVh}vh
+    );
     margin: 0;
     border: none;
     border-radius: 0;
     background-color: transparent;
-
-    /* Soft bottom dissolve into page bg — short fade, don't eat tiles */
-    &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 60px;
-      background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        var(--color-bg-base) 100%
-      );
-      pointer-events: none;
-      z-index: 5;
-    }
   }
 `;
 
@@ -299,11 +359,13 @@ const Intro = styled.section`
     /* Pull only the headline up onto the grid's soft bottom edge */
     ${({ $overlapGrid }) =>
       $overlapGrid &&
-      `
-      margin-top: -3.25rem;
-      position: relative;
-      z-index: 6;
-    `}
+      css`
+        margin-top: calc(
+          -1 * var(--masonry-headline-overlap, ${MASONRY_TUNE_DEFAULTS.headlineOverlapPx}px)
+        );
+        position: relative;
+        z-index: 6;
+      `}
   }
 `;
 

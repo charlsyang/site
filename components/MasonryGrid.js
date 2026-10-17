@@ -1279,7 +1279,7 @@ const ButtonGroup = styled.div`
 
   /* Sit above the soft bottom dissolve + headline overlap on phone */
   @media ${QUERIES.phoneAndBelow} {
-    bottom: 72px;
+    bottom: max(16px, calc(var(--masonry-fade-height, 120px) - 48px));
   }
 `;
 
