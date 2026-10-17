@@ -125,46 +125,34 @@ const navFade = keyframes`
     }
 `;
 
-/* Matches components/Nav.js Blur — dissolves content under the nav */
+/* Matches components/Nav.js Blur — softens the grid seam under the nav on phone */
 const NavBlur = styled.div`
   display: none;
 
   @media ${QUERIES.phoneAndBelow} {
     display: block;
-    position: sticky;
+    position: fixed;
     top: 0;
-    order: 0;
+    left: 0;
+    width: 100%;
+    height: 48px;
     z-index: 3;
-    height: 0;
+    backdrop-filter: blur(16px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
     pointer-events: none;
-
-    &::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 48px;
-      backdrop-filter: blur(16px);
-      -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
-      pointer-events: none;
-    }
+    user-select: none;
 
     &::after {
       content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 48px;
+      position: absolute;
+      inset: 0;
       background-image: linear-gradient(
         to bottom,
         var(--color-bg-base) 0,
         transparent 100%
       );
       opacity: 0.3;
-      pointer-events: none;
     }
   }
 `;
