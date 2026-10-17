@@ -831,13 +831,12 @@ export default function MasonryGrid({
       // For reduced motion users: show shuffle button immediately
       setShuffleButtonVisible(true);
     } else {
-      // For normal users: show shuffle button after 5 seconds
-      // TODO: Restore to 5000 after animation tweaking
+      // For normal users: show shuffle button after 1 second
       const timeoutId = setTimeout(() => {
         setShuffleButtonVisible(true);
         // Trigger the icon flip animation on initial reveal
         setIsFlipping(true);
-      }, 3000);
+      }, 1000);
 
       return () => clearTimeout(timeoutId);
     }
