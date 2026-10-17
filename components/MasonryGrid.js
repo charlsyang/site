@@ -344,7 +344,7 @@ function InfiniteMasonryRow({
 // Runs Matter.js HEADLESS (no canvas) with DOM elements
 // ============================================
 
-// Preload Matter.js on first shuffle click so it's ready by click 5
+// Preload Matter.js on first shuffle click so it's ready by the triggering click
 let matterPreloadPromise = null;
 function preloadMatter() {
   if (!matterPreloadPromise) {
@@ -733,7 +733,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // Easter egg configuration
 
 // Threshold for triggering the easter egg
-const EASTER_EGG_CLICKS = 6;
+const EASTER_EGG_CLICKS = 3;
 const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
 
 export default function MasonryGrid({
@@ -920,7 +920,7 @@ export default function MasonryGrid({
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
-    // Preload Matter.js on first click so it's ready by click 5
+    // Preload Matter.js on first click so it's ready by the triggering click
     preloadMatter();
 
     // Ignore clicks during animation (debounce without visual indicator)
