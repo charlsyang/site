@@ -1276,6 +1276,11 @@ const ButtonGroup = styled.div`
 
   display: flex;
   gap: 12px;
+
+  /* Sit above the soft bottom dissolve + headline overlap on phone */
+  @media ${QUERIES.phoneAndBelow} {
+    bottom: 72px;
+  }
 `;
 
 const EmptyState = styled.div`

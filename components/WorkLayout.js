@@ -34,6 +34,8 @@ export default function WorkLayout({ children, allPostsData }) {
 
   return (
     <Container>
+      {/* Same top blur/fade as site Nav — softens the grid seam under the nav */}
+      <NavBlur aria-hidden="true" />
       <Sidebar>
         <NavWrapper>
           <NavLinks>
@@ -45,7 +47,7 @@ export default function WorkLayout({ children, allPostsData }) {
           </NavLinks>
         </NavWrapper>
         {/* Intro - from current work/index.js */}
-        <Intro>
+        <Intro $overlapGrid={showGridOnPhone}>
           <Headline>
             <h1>Charlsy Yang</h1>
             <p>Software Designer</p>
@@ -123,6 +125,50 @@ const navFade = keyframes`
     }
 `;
 
+/* Matches components/Nav.js Blur — dissolves content under the nav */
+const NavBlur = styled.div`
+  display: none;
+
+  @media ${QUERIES.phoneAndBelow} {
+    display: block;
+    position: sticky;
+    top: 0;
+    order: 0;
+    z-index: 3;
+    height: 0;
+    pointer-events: none;
+
+    &::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      backdrop-filter: blur(16px);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+      pointer-events: none;
+    }
+
+    &::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background-image: linear-gradient(
+        to bottom,
+        var(--color-bg-base) 0,
+        transparent 100%
+      );
+      opacity: 0.3;
+      pointer-events: none;
+    }
+  }
+`;
+
 const NavWrapper = styled.div`
   z-index: 2;
   height: var(--nav-height);
@@ -130,6 +176,8 @@ const NavWrapper = styled.div`
 
   @media ${QUERIES.phoneAndBelow} {
     order: 1;
+    position: relative;
+    z-index: 4;
     width: 100%;
     box-sizing: border-box;
     padding: var(--spacing-2x);
@@ -222,10 +270,28 @@ const ContentArea = styled.main`
     order: 2;
     flex: none;
     width: 100%;
-    height: 50vh;
+    height: 55vh;
     margin: 0;
     border: none;
     border-radius: 0;
+    background-color: transparent;
+
+    /* Soft bottom dissolve into page bg — short fade, don't eat tiles */
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 60px;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--color-bg-base) 100%
+      );
+      pointer-events: none;
+      z-index: 5;
+    }
   }
 `;
 
@@ -238,8 +304,18 @@ const Intro = styled.section`
     width: 100%;
     box-sizing: border-box;
     padding: 0 var(--spacing-2x);
-    margin-top: var(--spacing-4x);
     margin-bottom: var(--spacing-4x);
+    /* Default: normal spacing when case study (no grid) */
+    margin-top: var(--spacing-4x);
+
+    /* Pull only the headline up onto the grid's soft bottom edge */
+    ${({ $overlapGrid }) =>
+      $overlapGrid &&
+      `
+      margin-top: -3.25rem;
+      position: relative;
+      z-index: 6;
+    `}
   }
 `;
 
@@ -258,6 +334,11 @@ const Headline = styled.div`
 
   & p {
     color: var(--color-text-muted);
+  }
+
+  @media ${QUERIES.phoneAndBelow} {
+    /* Keep name + role in the dissolve; bio starts on solid bg below */
+    margin-bottom: var(--spacing-4x);
   }
 `;
 
