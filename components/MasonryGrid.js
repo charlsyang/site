@@ -2,6 +2,8 @@ import styled, { keyframes, css } from "styled-components";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { QUERIES } from "../utils/constants";
 import Icon from "./Icon";
 import Button from "./Button";
 
@@ -774,6 +776,9 @@ export default function MasonryGrid({
   // Track if user prefers reduced motion (using Motion's built-in hook)
   const prefersReducedMotion = usePrefersReducedMotion();
 
+  // Phone layout: icon refresh only — no Shuffle label, pause, or easter egg
+  const isPhone = useMediaQuery(QUERIES.phoneAndBelow);
+
   // Easter egg state
   const [isBroken, setIsBroken] = useState(false);
   const [capturedPositions, setCapturedPositions] = useState(null);
@@ -823,15 +828,15 @@ export default function MasonryGrid({
     };
   }, [mounted]);
 
-  // Handle shuffle button visibility with delay for normal users
+  // Handle shuffle/refresh button visibility
   useEffect(() => {
     if (!mounted) return;
 
-    if (prefersReducedMotion) {
-      // For reduced motion users: show shuffle button immediately
+    if (isPhone || prefersReducedMotion) {
+      // Phone + reduced motion: show immediately (no expand animation on phone)
       setShuffleButtonVisible(true);
     } else {
-      // For normal users: show shuffle button after 1 second
+      // Desktop: show shuffle button after 1 second
       const timeoutId = setTimeout(() => {
         setShuffleButtonVisible(true);
         // Trigger the icon flip animation on initial reveal
@@ -840,7 +845,7 @@ export default function MasonryGrid({
 
       return () => clearTimeout(timeoutId);
     }
-  }, [mounted, prefersReducedMotion]);
+  }, [mounted, prefersReducedMotion, isPhone]);
 
   // Pause/resume videos when reduced motion preference changes (WCAG 2.2.2)
   // Using our own listener to ensure DevTools emulation is detected
@@ -878,8 +883,9 @@ export default function MasonryGrid({
   }, [mounted, shuffleVersion]);
 
   // Pre-capture video frames once after videos load (for easter egg poster fallback)
+  // Skip on phone — easter egg is disabled there.
   useEffect(() => {
-    if (!mounted || !gridRef.current) return;
+    if (!mounted || isPhone || !gridRef.current) return;
 
     const captureVideoFrames = () => {
       const container = gridRef.current;
@@ -909,7 +915,7 @@ export default function MasonryGrid({
     const timeoutId = setTimeout(captureVideoFrames, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [mounted]);
+  }, [mounted, isPhone]);
 
   // Distribute items across rows
   const rowData = useMemo(() => {
@@ -919,66 +925,69 @@ export default function MasonryGrid({
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
-    // Preload Matter.js on first click so it's ready by the triggering click
-    preloadMatter();
-
     // Ignore clicks during animation (debounce without visual indicator)
     if (isRefreshing) return;
 
     // Trigger icon flip animation
     setIsFlipping(true);
 
-    // Track click timestamps for easter egg
-    const now = Date.now();
-    clickTimestampsRef.current = [
-      ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
-      now,
-    ];
+    // Desktop only: Matter preload + easter egg click tracking
+    if (!isPhone) {
+      // Preload Matter.js on first click so it's ready by the triggering click
+      preloadMatter();
 
-    // Check if easter egg should trigger
-    if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
-      clickTimestampsRef.current = []; // Reset
+      // Track click timestamps for easter egg
+      const now = Date.now();
+      clickTimestampsRef.current = [
+        ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
+        now,
+      ];
 
-      // Capture item positions BEFORE hiding the grid
-      if (gridRef.current) {
-        const container = gridRef.current;
-        const rect = container.getBoundingClientRect();
-        const mediaElements = container.querySelectorAll("li");
-        const positions = [];
+      // Check if easter egg should trigger
+      if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
+        clickTimestampsRef.current = []; // Reset
 
-        // Fast position capture - no canvas work here
-        // Video frames were pre-captured during idle time
-        mediaElements.forEach((el, index) => {
-          const elRect = el.getBoundingClientRect();
-          const mediaSrc =
-            el.querySelector("img")?.src || el.querySelector("video")?.src;
-          const isVideo = !!el.querySelector("video");
+        // Capture item positions BEFORE hiding the grid
+        if (gridRef.current) {
+          const container = gridRef.current;
+          const rect = container.getBoundingClientRect();
+          const mediaElements = container.querySelectorAll("li");
+          const positions = [];
 
-          if (mediaSrc) {
-            // Look up pre-captured video frame (no capture during easter egg)
-            const posterDataUrl = isVideo
-              ? videoFramesRef.current.get(mediaSrc) || null
-              : null;
+          // Fast position capture - no canvas work here
+          // Video frames were pre-captured during idle time
+          mediaElements.forEach((el, index) => {
+            const elRect = el.getBoundingClientRect();
+            const mediaSrc =
+              el.querySelector("img")?.src || el.querySelector("video")?.src;
+            const isVideo = !!el.querySelector("video");
 
-            positions.push({
-              id: index,
-              x: elRect.left - rect.left + elRect.width / 2,
-              y: elRect.top - rect.top + elRect.height / 2,
-              width: elRect.width,
-              height: elRect.height,
-              src: mediaSrc,
-              isVideo,
-              posterDataUrl,
-              angle: 0,
-            });
-          }
-        });
+            if (mediaSrc) {
+              // Look up pre-captured video frame (no capture during easter egg)
+              const posterDataUrl = isVideo
+                ? videoFramesRef.current.get(mediaSrc) || null
+                : null;
 
-        setCapturedPositions(positions);
+              positions.push({
+                id: index,
+                x: elRect.left - rect.left + elRect.width / 2,
+                y: elRect.top - rect.top + elRect.height / 2,
+                width: elRect.width,
+                height: elRect.height,
+                src: mediaSrc,
+                isVideo,
+                posterDataUrl,
+                angle: 0,
+              });
+            }
+          });
+
+          setCapturedPositions(positions);
+        }
+
+        setIsBroken(true);
+        return;
       }
-
-      setIsBroken(true);
-      return;
     }
 
     setIsRefreshing(true);
@@ -992,7 +1001,7 @@ export default function MasonryGrid({
     setShuffledItems(newShuffle);
     // Re-enable button after animation completes
     setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
-  }, [isRefreshing, items, rowData, rows]);
+  }, [isRefreshing, items, rowData, rows, isPhone]);
 
   // Handle reset from broken mode
   const handleFixBroken = useCallback(() => {
@@ -1045,21 +1054,15 @@ export default function MasonryGrid({
       {!isBroken && (
         <ButtonGroup>
           <AnimatePresence>
-            {showRefreshButton && shuffleButtonVisible && (
-              <ShuffleButtonWrapper
-                key="shuffle-button"
-                initial={prefersReducedMotion ? false : { width: 40 }}
-                animate={{ width: "auto" }}
-                transition={{
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
-                }}
-              >
+            {showRefreshButton &&
+              shuffleButtonVisible &&
+              (isPhone ? (
                 <Button
+                  key="refresh-button"
+                  iconOnly
                   size="lg"
                   variant="elevated"
-                  startIcon={
+                  icon={
                     <RefreshIcon
                       name="refresh"
                       $flipping={isFlipping}
@@ -1067,28 +1070,52 @@ export default function MasonryGrid({
                     />
                   }
                   onClick={handleRefresh}
-                  aria-label="Shuffle media"
+                  aria-label="Refresh gallery"
+                />
+              ) : (
+                <ShuffleButtonWrapper
+                  key="shuffle-button"
+                  initial={prefersReducedMotion ? false : { width: 40 }}
+                  animate={{ width: "auto" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                  }}
                 >
-                  <ShuffleText
-                    initial={
-                      prefersReducedMotion
-                        ? false
-                        : { opacity: 0, filter: "blur(8px)" }
+                  <Button
+                    size="lg"
+                    variant="elevated"
+                    startIcon={
+                      <RefreshIcon
+                        name="refresh"
+                        $flipping={isFlipping}
+                        onAnimationEnd={() => setIsFlipping(false)}
+                      />
                     }
-                    animate={{ opacity: 1, filter: "blur(0px)" }}
-                    transition={{
-                      duration: 0.4,
-                      delay: 0.05,
-                      ease: [0.25, 0.1, 0.25, 1],
-                    }}
+                    onClick={handleRefresh}
+                    aria-label="Shuffle media"
                   >
-                    Shuffle
-                  </ShuffleText>
-                </Button>
-              </ShuffleButtonWrapper>
-            )}
+                    <ShuffleText
+                      initial={
+                        prefersReducedMotion
+                          ? false
+                          : { opacity: 0, filter: "blur(8px)" }
+                      }
+                      animate={{ opacity: 1, filter: "blur(0px)" }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 0.05,
+                        ease: [0.25, 0.1, 0.25, 1],
+                      }}
+                    >
+                      Shuffle
+                    </ShuffleText>
+                  </Button>
+                </ShuffleButtonWrapper>
+              ))}
           </AnimatePresence>
-          {showPauseButton && (
+          {showPauseButton && !isPhone && (
             <PauseButton
               iconOnly
               size="lg"
@@ -1113,7 +1140,7 @@ export default function MasonryGrid({
           )}
         </ButtonGroup>
       )}
-      {isBroken && capturedPositions && (
+      {!isPhone && isBroken && capturedPositions && (
         <BrokenPhysicsMode
           capturedPositions={capturedPositions}
           onReset={handleFixBroken}

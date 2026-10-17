@@ -9,6 +9,8 @@ import { keyframes } from "styled-components";
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
   const currentSlug = router.query.slug;
+  // Case studies stay hidden on phone; only the /work index shows the grid.
+  const showGridOnPhone = router.pathname === "/work";
   const [time, setTime] = useState(null);
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function WorkLayout({ children, allPostsData }) {
           <p>San Francisco CA</p>
         </Footer>
       </Sidebar>
-      <ContentArea>{children}</ContentArea>
+      <ContentArea $showOnPhone={showGridOnPhone}>{children}</ContentArea>
     </Container>
   );
 }
@@ -125,6 +127,13 @@ const NavWrapper = styled.div`
   z-index: 2;
   height: var(--nav-height);
   animation: ${navFade} var(--duration-load) var(--ease-out) both;
+
+  @media ${QUERIES.phoneAndBelow} {
+    order: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--spacing-2x);
+  }
 `;
 
 const Home = styled(Link)`
@@ -166,6 +175,13 @@ const Container = styled.div`
   display: flex;
   height: 100vh;
   overflow: hidden;
+
+  @media ${QUERIES.phoneAndBelow} {
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
 `;
 
 const Sidebar = styled.aside`
@@ -185,9 +201,8 @@ const Sidebar = styled.aside`
   }
 
   @media ${QUERIES.phoneAndBelow} {
-    flex: 1;
-    padding: var(--spacing-2x);
-    max-width: revert;
+    /* Flatten so nav / intro / footer can reorder around the grid band */
+    display: contents;
   }
 `;
 
@@ -203,13 +218,29 @@ const ContentArea = styled.main`
   border: 1px solid var(--color-border);
 
   @media ${QUERIES.phoneAndBelow} {
-    display: none; /* Hide sidebar on mobile for now */
+    display: ${({ $showOnPhone }) => ($showOnPhone ? "block" : "none")};
+    order: 2;
+    flex: none;
+    width: 100%;
+    height: 50vh;
+    margin: 0;
+    border: none;
+    border-radius: 0;
   }
 `;
 
 const Intro = styled.section`
   margin-top: var(--spacing-4x);
   margin-bottom: 16vh;
+
+  @media ${QUERIES.phoneAndBelow} {
+    order: 3;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 var(--spacing-2x);
+    margin-top: var(--spacing-4x);
+    margin-bottom: var(--spacing-4x);
+  }
 `;
 
 const Headline = styled.div`
@@ -282,6 +313,13 @@ const Footer = styled.footer`
   font-size: var(--font-size-xxs);
   color: var(--color-theme);
   /* margin-top: auto;/ */
+
+  @media ${QUERIES.phoneAndBelow} {
+    order: 4;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 var(--spacing-2x) var(--spacing-2x);
+  }
 `;
 
 const ProjectSection = styled.section`
