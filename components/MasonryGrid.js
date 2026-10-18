@@ -707,181 +707,301 @@ function PhysicsVideo(props) {
 const CONTACT_BUTTON_URL =
   "https://twitter.com/messages/compose?recipient_id=841462952750325760";
 
-function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
+/** Physics body footprint relative to the tile (rounded corners overlap visually) */
+const BODY_SCALE = 0.7;
+
+/** Fixed timestep and per-frame budget (same as Matter.Runner's defaults) */
+const PHYSICS_STEP_MS = 1000 / 60;
+const PHYSICS_MAX_STEPS_PER_FRAME = 2;
+
+const PHYSICS_BOUNDS = {
+  desktop: {
+    wallThickness: 60,
+    // Walls pushed out so tiles captured partly offscreen don't spawn inside them
+    wallOffset: 200,
+    groundInset: 0,
+    maxBodies: Infinity,
+    maxThrow: Infinity,
+    rescueEscaped: false,
+  },
+  phone: {
+    // Thick walls flush with the screen edges so flicks can't tunnel out
+    wallThickness: 200,
+    wallOffset: 0,
+    // Rest on the headline that overlaps the band (WorkLayout headlineOverlapPx)
+    groundInset: 56,
+    maxBodies: 8,
+    maxThrow: 30,
+    rescueEscaped: true,
+  },
+};
+
+const IDLE_DRAG = {
+  isDragging: false,
+  pointerId: null,
+  body: null,
+  constraint: null,
+  lastMouse: { x: 0, y: 0 },
+  velocity: { x: 0, y: 0 },
+};
+
+function tileTransform(x, y, angle, width, height) {
+  return `translate(${x - width / 2}px, ${
+    y - height / 2
+  }px) rotate(${angle}rad)`;
+}
+
+/**
+ * Phone: keep only on-screen tiles (most central first, capped) and pull
+ * their bodies inside the edge-to-edge walls.
+ */
+function fitItemsToBounds(items, bounds, width) {
+  if (!Number.isFinite(bounds.maxBodies)) return items;
+  return items
+    .filter(
+      (item) => item.x + item.width / 2 > 0 && item.x - item.width / 2 < width
+    )
+    .sort((a, b) => Math.abs(a.x - width / 2) - Math.abs(b.x - width / 2))
+    .slice(0, bounds.maxBodies)
+    .map((item) => {
+      const half = (item.width * BODY_SCALE) / 2;
+      return { ...item, x: Math.min(Math.max(item.x, half), width - half) };
+    });
+}
+
+function BrokenPhysicsMode({
+  capturedPositions,
+  onReset,
+  containerRef,
+  isPhone,
+}) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [bounds] = useState(() =>
+    isPhone ? PHYSICS_BOUNDS.phone : PHYSICS_BOUNDS.desktop
+  );
   const engineRef = useRef(null);
-  const runnerRef = useRef(null);
   const matterRef = useRef(null); // Store Matter.js module reference
   const groundRef = useRef(null); // Store ground body for resize updates
   const wallsRef = useRef({ left: null, right: null }); // Store wall bodies
-  const dragRef = useRef({
-    isDragging: false,
-    body: null,
-    constraint: null,
-    lastMouse: { x: 0, y: 0 },
-    velocity: { x: 0, y: 0 },
-  });
-  const [bodies, setBodies] = useState([]);
+  const sizeRef = useRef({ width: 0, height: 0 });
+  const bodiesRef = useRef(new Map()); // item id -> { body, item }
+  const elementsRef = useRef(new Map()); // item id -> PhysicsItem node
+  const dragRef = useRef(IDLE_DRAG);
 
-  // Use captured positions immediately for rendering
-  const itemData = capturedPositions || [];
+  // Frozen for this break; a breakpoint flip unmounts the egg instead
+  const [itemData] = useState(() =>
+    fitItemsToBounds(
+      capturedPositions || [],
+      bounds,
+      containerRef.current?.clientWidth ?? 0
+    )
+  );
 
   useEffect(() => {
-    if (!containerRef.current || itemData.length === 0) return;
-
     const container = containerRef.current;
-    const rect = container.getBoundingClientRect();
+    if (!container || itemData.length === 0) return;
 
-    let cleanupPhysics = null;
+    const rect = container.getBoundingClientRect();
+    sizeRef.current = { width: rect.width, height: rect.height };
+
     let cancelled = false;
+    let startTimeout = null;
+    let cleanupPhysics = null;
+
+    function startPhysics(Matter) {
+      // Headless engine: we step it ourselves and write transforms to the DOM
+      const engine = Matter.Engine.create({
+        gravity: { x: 0, y: 1.5 },
+      });
+      engineRef.current = engine;
+
+      const { wallThickness, wallOffset, groundInset } = bounds;
+      const ground = Matter.Bodies.rectangle(
+        rect.width / 2,
+        rect.height - groundInset + wallThickness / 2,
+        rect.width + wallOffset * 2,
+        wallThickness,
+        { isStatic: true }
+      );
+      const leftWall = Matter.Bodies.rectangle(
+        -wallOffset - wallThickness / 2,
+        rect.height / 2,
+        wallThickness,
+        rect.height * 2,
+        { isStatic: true }
+      );
+      const rightWall = Matter.Bodies.rectangle(
+        rect.width + wallOffset + wallThickness / 2,
+        rect.height / 2,
+        wallThickness,
+        rect.height * 2,
+        { isStatic: true }
+      );
+
+      groundRef.current = ground;
+      wallsRef.current = { left: leftWall, right: rightWall };
+      Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
+
+      itemData.forEach((item) => {
+        const body = Matter.Bodies.rectangle(
+          item.x,
+          item.y,
+          item.width * BODY_SCALE,
+          item.height * BODY_SCALE,
+          {
+            restitution: 0.2,
+            friction: 0.3,
+            frictionAir: 0.05,
+            chamfer: { radius: 50 }, // Rounded corners allow visual overlap
+          }
+        );
+        body.itemId = item.id;
+
+        // Upward burst only
+        Matter.Body.setVelocity(body, {
+          x: 0,
+          y: -4 - Math.random() * 6,
+        });
+
+        Matter.Composite.add(engine.world, body);
+        bodiesRef.current.set(item.id, { body, item });
+      });
+
+      const rescueIfEscaped = (body, item) => {
+        const { width, height } = sizeRef.current;
+        const { x, y } = body.position;
+        if (
+          x > -item.width &&
+          x < width + item.width &&
+          y > -height * 2 &&
+          y < height + item.height
+        ) {
+          return;
+        }
+        Matter.Body.setPosition(body, { x: width / 2, y: -item.height / 2 });
+        Matter.Body.setVelocity(body, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(body, 0);
+      };
+
+      const render = () => {
+        bodiesRef.current.forEach(({ body, item }, id) => {
+          if (bounds.rescueEscaped && body !== dragRef.current.body) {
+            rescueIfEscaped(body, item);
+          }
+          const el = elementsRef.current.get(id);
+          if (!el) return;
+          el.style.transform = tileTransform(
+            body.position.x,
+            body.position.y,
+            body.angle,
+            item.width,
+            item.height
+          );
+        });
+      };
+
+      // Single rAF loop: fixed steps, capped per frame, paused when unseen
+      let rafId = null;
+      let lastTime = null;
+      let accumulator = 0;
+      let onScreen = true;
+
+      const tick = (time) => {
+        rafId = requestAnimationFrame(tick);
+        const elapsed = lastTime === null ? PHYSICS_STEP_MS : time - lastTime;
+        lastTime = time;
+        accumulator = Math.min(
+          accumulator + elapsed,
+          PHYSICS_STEP_MS * PHYSICS_MAX_STEPS_PER_FRAME
+        );
+        let steps = 0;
+        // 1ms slack absorbs rAF jitter so 60Hz doesn't alternate 0/2 steps
+        while (
+          accumulator >= PHYSICS_STEP_MS - 1 &&
+          steps < PHYSICS_MAX_STEPS_PER_FRAME
+        ) {
+          Matter.Engine.update(engine, PHYSICS_STEP_MS);
+          accumulator -= PHYSICS_STEP_MS;
+          steps++;
+        }
+        if (steps > 0) render();
+      };
+
+      const stop = () => {
+        if (rafId === null) return;
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      };
+      const sync = () => {
+        if (!onScreen || document.hidden) {
+          stop();
+        } else if (rafId === null) {
+          lastTime = null;
+          accumulator = 0;
+          rafId = requestAnimationFrame(tick);
+        }
+      };
+
+      const intersectionObserver = new IntersectionObserver(([entry]) => {
+        onScreen = entry.isIntersecting;
+        sync();
+      });
+      intersectionObserver.observe(container);
+      document.addEventListener("visibilitychange", sync);
+
+      render();
+      sync();
+
+      return () => {
+        stop();
+        intersectionObserver.disconnect();
+        document.removeEventListener("visibilitychange", sync);
+        Matter.Composite.clear(engine.world, false);
+        Matter.Engine.clear(engine);
+        engineRef.current = null;
+        groundRef.current = null;
+        wallsRef.current = { left: null, right: null };
+        bodiesRef.current.clear();
+        dragRef.current = IDLE_DRAG;
+      };
+    }
 
     // Use preloaded Matter.js (started on first shuffle click)
     preloadMatter().then((Matter) => {
       if (cancelled) return;
-
       matterRef.current = Matter;
-
-      function startPhysics() {
-        // Create Matter.js engine (HEADLESS - no renderer!)
-        const engine = Matter.Engine.create({
-          gravity: { x: 0, y: 1.5 },
-        });
-        engineRef.current = engine;
-
-        // Create ground and walls
-        // Walls are pushed further out to avoid colliding with items
-        // that are partially scrolled off-screen when captured
-        const wallThickness = 60;
-        const wallOffset = 200; // Extra buffer for scrolled items
-        const ground = Matter.Bodies.rectangle(
-          rect.width / 2,
-          rect.height + wallThickness / 2,
-          rect.width + wallOffset * 2,
-          wallThickness,
-          { isStatic: true }
-        );
-        const leftWall = Matter.Bodies.rectangle(
-          -wallOffset - wallThickness / 2,
-          rect.height / 2,
-          wallThickness,
-          rect.height * 2,
-          { isStatic: true }
-        );
-        const rightWall = Matter.Bodies.rectangle(
-          rect.width + wallOffset + wallThickness / 2,
-          rect.height / 2,
-          wallThickness,
-          rect.height * 2,
-          { isStatic: true }
-        );
-
-        // Store refs for resize updates
-        groundRef.current = ground;
-        wallsRef.current = { left: leftWall, right: rightWall };
-
-        Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
-
-        // Create bodies for each media item
-        const mediaBodies = itemData.map((item, i) => {
-          const body = Matter.Bodies.rectangle(
-            item.x,
-            item.y,
-            item.width * 0.7,
-            item.height * 0.7,
-            {
-              restitution: 0.2,
-              friction: 0.3,
-              frictionAir: 0.05,
-              chamfer: { radius: 50 }, // Rounded corners allow visual overlap
-            }
-          );
-
-          // Store item data on the body for reference
-          body.itemId = item.id;
-
-          // Upward burst only
-          Matter.Body.setVelocity(body, {
-            x: 0,
-            y: -4 - Math.random() * 6,
-          });
-
-          return { body, ...item };
-        });
-
-        mediaBodies.forEach(({ body }) => {
-          Matter.Composite.add(engine.world, body);
-        });
-
-        setBodies(mediaBodies);
-
-        // Create runner
-        const runner = Matter.Runner.create();
-        runnerRef.current = runner;
-
-        // Start the engine (NO renderer - headless mode!)
-        Matter.Runner.run(runner, engine);
-
-        // Animation loop to sync DOM with physics bodies
-        let animationId;
-        const updateBodies = () => {
-          setBodies((prev) =>
-            prev.map((item) => ({
-              ...item,
-              x: item.body.position.x,
-              y: item.body.position.y,
-              angle: item.body.angle,
-            }))
-          );
-          animationId = requestAnimationFrame(updateBodies);
-        };
-        animationId = requestAnimationFrame(updateBodies);
-
-        // Return cleanup for startPhysics
-        return () => {
-          cancelAnimationFrame(animationId);
-          Matter.Runner.stop(runner);
-          Matter.Composite.clear(engine.world);
-          Matter.Engine.clear(engine);
-        };
-      } // end startPhysics
-
       // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        if (!cancelled) {
-          cleanupPhysics = startPhysics();
-        }
+      startTimeout = setTimeout(() => {
+        if (!cancelled) cleanupPhysics = startPhysics(Matter);
       }, 50);
     });
 
-    // Cleanup
     return () => {
       cancelled = true;
+      clearTimeout(startTimeout);
       if (cleanupPhysics) cleanupPhysics();
     };
-  }, [containerRef, itemData.length]);
+  }, [containerRef, itemData, bounds]);
 
   // Responsive ground/walls: update positions on container resize
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const wallThickness = 60;
-    const wallOffset = 200;
+    const { wallThickness, wallOffset, groundInset } = bounds;
 
     const handleResize = (entries) => {
+      const { width, height } = entries[0].contentRect;
+      sizeRef.current = { width, height };
+
       // Read Matter from ref inside callback (it's loaded async)
       const Matter = matterRef.current;
       if (!Matter || !groundRef.current) return;
 
-      const { width, height } = entries[0].contentRect;
-
-      // Update ground position
       Matter.Body.setPosition(groundRef.current, {
         x: width / 2,
-        y: height + wallThickness / 2,
+        y: height - groundInset + wallThickness / 2,
       });
-
-      // Update wall positions
       if (wallsRef.current.left) {
         Matter.Body.setPosition(wallsRef.current.left, {
           x: -wallOffset - wallThickness / 2,
@@ -902,14 +1022,15 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [containerRef]);
+  }, [containerRef, bounds]);
 
-  // Handle drag start on physics items
+  // Handle drag start on physics items (one pointer at a time)
   const handlePointerDown = useCallback(
     (e, item) => {
       const Matter = matterRef.current;
       const engine = engineRef.current;
-      if (!Matter || !engine) return;
+      const body = bodiesRef.current.get(item.id)?.body;
+      if (!Matter || !engine || !body || dragRef.current.isDragging) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -923,14 +1044,14 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 
       // Calculate offset from click point to body center
       // This keeps the card where the cursor grabbed it instead of snapping center to cursor
-      const offsetX = mouseX - item.body.position.x;
-      const offsetY = mouseY - item.body.position.y;
+      const offsetX = mouseX - body.position.x;
+      const offsetY = mouseY - body.position.y;
 
       // Create a constraint to drag the body
       // pointB is the offset from body center where we "grabbed" it
       const constraint = Matter.Constraint.create({
         pointA: { x: mouseX, y: mouseY },
-        bodyB: item.body,
+        bodyB: body,
         pointB: { x: offsetX, y: offsetY },
         stiffness: 0.2,
         length: 0,
@@ -940,23 +1061,23 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 
       dragRef.current = {
         isDragging: true,
-        body: item.body,
+        pointerId: e.pointerId,
+        body,
         constraint,
         lastMouse: { x: mouseX, y: mouseY },
         velocity: { x: 0, y: 0 },
       };
 
       // Capture pointer for smooth dragging even outside element
-      e.target.setPointerCapture(e.pointerId);
+      e.currentTarget.setPointerCapture(e.pointerId);
     },
     [containerRef]
   );
 
   const handlePointerMove = useCallback(
     (e) => {
-      const Matter = matterRef.current;
       const drag = dragRef.current;
-      if (!Matter || !drag.isDragging || !drag.constraint) return;
+      if (!drag.isDragging || e.pointerId !== drag.pointerId) return;
 
       const container = containerRef.current;
       if (!container) return;
@@ -980,40 +1101,34 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
     [containerRef]
   );
 
-  const handlePointerUp = useCallback((e) => {
-    const Matter = matterRef.current;
-    const engine = engineRef.current;
-    const drag = dragRef.current;
-    if (!Matter || !engine || !drag.isDragging) return;
+  const handlePointerUp = useCallback(
+    (e) => {
+      const Matter = matterRef.current;
+      const engine = engineRef.current;
+      const drag = dragRef.current;
+      if (!drag.isDragging || e.pointerId !== drag.pointerId) return;
 
-    // Remove constraint
-    if (drag.constraint) {
-      Matter.Composite.remove(engine.world, drag.constraint);
-    }
+      if (Matter && engine) {
+        Matter.Composite.remove(engine.world, drag.constraint);
 
-    // Apply throw velocity
-    if (drag.body) {
-      const throwMultiplier = 0.8;
-      Matter.Body.setVelocity(drag.body, {
-        x: drag.velocity.x * throwMultiplier,
-        y: drag.velocity.y * throwMultiplier,
-      });
-    }
+        // Apply throw velocity
+        const throwMultiplier = 0.8;
+        const clampThrow = (v) =>
+          Math.max(-bounds.maxThrow, Math.min(bounds.maxThrow, v));
+        Matter.Body.setVelocity(drag.body, {
+          x: clampThrow(drag.velocity.x * throwMultiplier),
+          y: clampThrow(drag.velocity.y * throwMultiplier),
+        });
+      }
 
-    dragRef.current = {
-      isDragging: false,
-      body: null,
-      constraint: null,
-      lastMouse: { x: 0, y: 0 },
-      velocity: { x: 0, y: 0 },
-    };
+      dragRef.current = IDLE_DRAG;
 
-    // Release pointer capture
-    e.target.releasePointerCapture(e.pointerId);
-  }, []);
-
-  // Use physics bodies if available, otherwise show initial static positions
-  const displayBodies = bodies.length > 0 ? bodies : itemData;
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    },
+    [bounds]
+  );
 
   return (
     <PhysicsOverlay>
@@ -1034,16 +1149,24 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
         DM on Twitter
       </ContactButton>
 
-      {/* Physics items as DOM elements - draggable via pointer events */}
-      {displayBodies.map((item) => (
+      {/* Physics items as DOM elements; the rAF loop writes their transforms */}
+      {itemData.map((item) => (
         <PhysicsItem
           key={item.id}
+          ref={(el) => {
+            if (el) elementsRef.current.set(item.id, el);
+            else elementsRef.current.delete(item.id);
+          }}
           style={{
             width: item.width,
             height: item.height,
-            transform: `translate(${item.x - item.width / 2}px, ${
-              item.y - item.height / 2
-            }px) rotate(${item.angle || 0}rad)`,
+            transform: tileTransform(
+              item.x,
+              item.y,
+              0,
+              item.width,
+              item.height
+            ),
           }}
           onPointerDown={(e) => handlePointerDown(e, item)}
           onPointerMove={handlePointerMove}
@@ -1065,14 +1188,17 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
           )}
         </PhysicsItem>
       ))}
-      <FixButtonStyled
-        iconOnly
-        variant="elevated"
-        size="lg"
-        icon={<Icon name="fix" />}
-        onClick={onReset}
-        aria-label="Fix layout"
-      />
+      {/* Phone renders its fix button in the Refresh slot instead */}
+      {!isPhone && (
+        <FixButtonStyled
+          iconOnly
+          variant="elevated"
+          size="lg"
+          icon={<Icon name="fix" />}
+          onClick={onReset}
+          aria-label="Fix layout"
+        />
+      )}
     </PhysicsOverlay>
   );
 }
@@ -1086,6 +1212,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
 // Threshold for triggering the easter egg
 const EASTER_EGG_CLICKS = 3;
 const EASTER_EGG_WINDOW = 10000; // 10 seconds in ms
+const PHONE_POSTER_MAX_WIDTH = 640;
 
 export default function MasonryGrid({
   items,
@@ -1128,7 +1255,7 @@ export default function MasonryGrid({
   // Track if user prefers reduced motion (using Motion's built-in hook)
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  // Phone layout: icon refresh only — no Shuffle label, pause, or easter egg
+  // Phone layout: icon refresh only — no Shuffle label or pause
   const isPhone = useMediaQuery(QUERIES.phoneAndBelow);
 
   // Easter egg state
@@ -1147,13 +1274,16 @@ export default function MasonryGrid({
     // Only a new item set reshuffles; a row count change re-deals in rowData
   }, [items]);
 
-  // Phone has no physics mode; clear a leftover desktop egg so the grid isn't empty
+  // Captured positions and physics bounds belong to one layout; restore the
+  // grid when the breakpoint flips (e.g. desktop egg resized down to phone)
+  const wasPhoneRef = useRef(isPhone);
   useEffect(() => {
-    if (!isPhone || !isBroken) return;
+    if (wasPhoneRef.current === isPhone) return;
+    wasPhoneRef.current = isPhone;
     setIsBroken(false);
     setCapturedPositions(null);
     clickTimestampsRef.current = [];
-  }, [isPhone, isBroken]);
+  }, [isPhone]);
 
   // Handle shuffle/refresh button visibility
   useEffect(() => {
@@ -1209,9 +1339,8 @@ export default function MasonryGrid({
   }, [mounted, shuffleVersion]);
 
   // Pre-capture video frames once after videos load (for easter egg poster fallback)
-  // Skip on phone — easter egg is disabled there.
   useEffect(() => {
-    if (!mounted || isPhone || !gridRef.current) return;
+    if (!mounted || !gridRef.current) return;
 
     const captureVideoFrames = () => {
       const container = gridRef.current;
@@ -1224,9 +1353,13 @@ export default function MasonryGrid({
         if (videoFramesRef.current.has(src) || !videoEl.videoWidth) return;
 
         try {
+          // Phone tiles are small; full-res frames are wasted canvas work
+          const scale = isPhone
+            ? Math.min(1, PHONE_POSTER_MAX_WIDTH / videoEl.videoWidth)
+            : 1;
           const canvas = document.createElement("canvas");
-          canvas.width = videoEl.videoWidth;
-          canvas.height = videoEl.videoHeight;
+          canvas.width = Math.round(videoEl.videoWidth * scale);
+          canvas.height = Math.round(videoEl.videoHeight * scale);
           const ctx = canvas.getContext("2d");
           ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
           const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
@@ -1296,65 +1429,62 @@ export default function MasonryGrid({
     // Trigger icon flip animation
     setIsFlipping(true);
 
-    // Desktop only: Matter preload + easter egg click tracking
-    if (!isPhone) {
-      // Preload Matter.js on first click so it's ready by the triggering click
-      preloadMatter();
+    // Preload Matter.js on first click so it's ready by the triggering click
+    preloadMatter();
 
-      // Track click timestamps for easter egg
-      const now = Date.now();
-      clickTimestampsRef.current = [
-        ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
-        now,
-      ];
+    // Track click timestamps for easter egg
+    const now = Date.now();
+    clickTimestampsRef.current = [
+      ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
+      now,
+    ];
 
-      // Check if easter egg should trigger
-      if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
-        clickTimestampsRef.current = []; // Reset
+    // Check if easter egg should trigger
+    if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
+      clickTimestampsRef.current = []; // Reset
 
-        // Capture item positions BEFORE hiding the grid
-        if (gridRef.current) {
-          const container = gridRef.current;
-          const rect = container.getBoundingClientRect();
-          const mediaElements = container.querySelectorAll("li");
-          const positions = [];
+      // Capture item positions BEFORE hiding the grid
+      if (gridRef.current) {
+        const container = gridRef.current;
+        const rect = container.getBoundingClientRect();
+        const mediaElements = container.querySelectorAll("li");
+        const positions = [];
 
-          // Fast position capture - no canvas work here
-          // Video frames were pre-captured during idle time
-          mediaElements.forEach((el, index) => {
-            const elRect = el.getBoundingClientRect();
-            const mediaSrc =
-              el.querySelector("video")?.src || el.querySelector("img")?.src;
-            const isVideo = !!el.querySelector("video");
+        // Fast position capture - no canvas work here
+        // Video frames were pre-captured during idle time
+        mediaElements.forEach((el, index) => {
+          const elRect = el.getBoundingClientRect();
+          const mediaSrc =
+            el.querySelector("video")?.src || el.querySelector("img")?.src;
+          const isVideo = !!el.querySelector("video");
 
-            if (mediaSrc) {
-              // Look up pre-captured video frame (no capture during easter egg)
-              const posterDataUrl = isVideo
-                ? videoFramesRef.current.get(mediaSrc) ||
-                  el.querySelector("img")?.getAttribute("src") ||
-                  null
-                : null;
+          if (mediaSrc) {
+            // Look up pre-captured video frame (no capture during easter egg)
+            const posterDataUrl = isVideo
+              ? videoFramesRef.current.get(mediaSrc) ||
+                el.querySelector("img")?.getAttribute("src") ||
+                null
+              : null;
 
-              positions.push({
-                id: index,
-                x: elRect.left - rect.left + elRect.width / 2,
-                y: elRect.top - rect.top + elRect.height / 2,
-                width: elRect.width,
-                height: elRect.height,
-                src: mediaSrc,
-                isVideo,
-                posterDataUrl,
-                angle: 0,
-              });
-            }
-          });
+            positions.push({
+              id: index,
+              x: elRect.left - rect.left + elRect.width / 2,
+              y: elRect.top - rect.top + elRect.height / 2,
+              width: elRect.width,
+              height: elRect.height,
+              src: mediaSrc,
+              isVideo,
+              posterDataUrl,
+              angle: 0,
+            });
+          }
+        });
 
-          setCapturedPositions(positions);
-        }
-
-        setIsBroken(true);
-        return;
+        setCapturedPositions(positions);
       }
+
+      setIsBroken(true);
+      return;
     }
 
     refreshLockedRef.current = true;
@@ -1366,7 +1496,7 @@ export default function MasonryGrid({
       unlockRefresh,
       CROSSFADE_DURATION * 1000 * 4
     );
-  }, [reshuffle, unlockRefresh, isPhone]);
+  }, [reshuffle, unlockRefresh]);
 
   useMarqueeAnimations({
     gridRef,
@@ -1504,12 +1634,25 @@ export default function MasonryGrid({
           )}
         </ButtonGroup>
       )}
-      {!isPhone && isBroken && capturedPositions && (
+      {isBroken && capturedPositions && (
         <BrokenPhysicsMode
           capturedPositions={capturedPositions}
           onReset={handleFixBroken}
           containerRef={gridRef}
+          isPhone={isPhone}
         />
+      )}
+      {isPhone && isBroken && (
+        <ButtonGroup>
+          <PhoneFixButton
+            iconOnly
+            size="lg"
+            variant="elevated"
+            icon={<Icon name="fix" />}
+            onClick={handleFixBroken}
+            aria-label="Fix layout"
+          />
+        </ButtonGroup>
       )}
     </GridWrapper>
   );
@@ -1670,6 +1813,14 @@ const PhysicsOverlay = styled.div`
   align-items: center;
   gap: 24px;
   padding-top: 8%;
+
+  @media ${QUERIES.phoneAndBelow} {
+    /* Stay under WorkLayout's nav and top/bottom fades, like the rows do */
+    z-index: 0;
+    background: var(--color-bg-base);
+    gap: 16px;
+    padding-top: 88px;
+  }
 `;
 
 const FadeIn = keyframes`
@@ -1678,6 +1829,18 @@ const FadeIn = keyframes`
   }
   to {
     opacity: 1;
+  }
+`;
+
+/* Also untappable until shown, so a 4th fast tap on Refresh can't hit it */
+const RevealIn = keyframes`
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
   }
 `;
 
@@ -1770,6 +1933,8 @@ const PhysicsItem = styled.div`
   will-change: transform;
   touch-action: none; /* Prevent scroll interference on touch devices */
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   cursor: grab;
 
   &:active {
@@ -1786,4 +1951,9 @@ const FixButtonStyled = styled(Button)`
 
   /* Animation */
   animation: ${FadeIn} 0.3s ease-out 0.8s both;
+`;
+
+/* Phone: takes the Refresh button's slot in ButtonGroup */
+const PhoneFixButton = styled(Button)`
+  animation: ${RevealIn} 0.3s ease-out 0.8s both;
 `;
