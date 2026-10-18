@@ -6,6 +6,7 @@ import {
   useMemo,
   useCallback,
   useRef,
+  forwardRef,
 } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
@@ -184,6 +185,47 @@ const crossfadeTransition = {
   ease: CROSSFADE_EASE,
 };
 
+/**
+ * A crossfade MediaLayer that releases its Web Animations on unmount.
+ * WebKit keeps an animation alive while it has a timeline, even once Motion
+ * has cancelled it, and with it the removed layer and the media inside. So
+ * every animation Motion starts on this layer is recorded and detached from
+ * the timeline on unmount. Its onfinish is cleared first: Chrome keeps an
+ * animation that has no timeline alive while it still has a finish listener.
+ */
+const CrossfadeLayer = forwardRef(function CrossfadeLayer(props, ref) {
+  const animationsRef = useRef(new Set());
+
+  useEffect(() => {
+    const animations = animationsRef.current;
+    return () => {
+      animations.forEach((animation) => {
+        animation.onfinish = null;
+        animation.cancel();
+        animation.timeline = null;
+      });
+      animations.clear();
+    };
+  }, []);
+
+  const setLayer = useCallback(
+    (el) => {
+      if (el && !Object.hasOwn(el, "animate")) {
+        el.animate = (...args) => {
+          const animation = Element.prototype.animate.apply(el, args);
+          animationsRef.current.add(animation);
+          return animation;
+        };
+      }
+      if (typeof ref === "function") ref(el);
+      else if (ref) ref.current = el;
+    },
+    [ref]
+  );
+
+  return <MediaLayer ref={setLayer} {...props} />;
+});
+
 // ============================================
 // MasonryItem Component (with blur placeholder support)
 // ============================================
@@ -285,7 +327,7 @@ function MasonryItem({ item, shuffleKey }) {
       aria-hidden={item.isDuplicate ? "true" : undefined}
     >
       <AnimatePresence mode="popLayout">
-        <MediaLayer
+        <CrossfadeLayer
           key={`${item.src}-${shuffleKey}`}
           variants={crossfadeVariants}
           // Fresh mount: start hidden, animate in when loaded
@@ -327,7 +369,7 @@ function MasonryItem({ item, shuffleKey }) {
               onLoad={() => setIsLoaded(true)}
             />
           )}
-        </MediaLayer>
+        </CrossfadeLayer>
       </AnimatePresence>
     </ItemWrapper>
   );
