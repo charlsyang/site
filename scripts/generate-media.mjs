@@ -164,7 +164,9 @@ async function main() {
     await execAsync("ffmpeg -version");
   } catch {
     ffmpegAvailable = false;
-    console.warn("⚠️  FFmpeg not found. Video placeholders will be skipped.");
+    console.warn(
+      "⚠️  FFmpeg not found. Using committed posters; videos without one will be skipped."
+    );
     console.warn("   Install with: brew install ffmpeg\n");
   }
 
@@ -241,7 +243,7 @@ async function main() {
         blurDataURL: null,
       });
       skippedCount++;
-      console.log(`  ⊘ ${file} (skipped - no FFmpeg)`);
+      console.log(`  ⊘ ${file} (skipped - no poster and no FFmpeg)`);
       continue;
     }
 
@@ -297,7 +299,7 @@ async function main() {
   console.log(`   ${newCount} new/updated`);
   console.log(`   ${cachedCount} cached`);
   if (skippedCount > 0) {
-    console.log(`   ${skippedCount} skipped (no FFmpeg)`);
+    console.log(`   ${skippedCount} skipped (no poster and no FFmpeg)`);
   }
   console.log();
 }
