@@ -177,6 +177,9 @@ const NavBlur = styled.div`
  * Top dissolve at the grid band’s top edge (mirror of bottom).
  * Lives on ContentArea so Nav stays untouched — grid runs under nav blur.
  * Opaque toward the top (`to top`); tune overwrites --masonry-top-fade-*.
+ *
+ * z-index MUST stay below NavWrapper (4) / NavBlur (3). A higher z-index
+ * paints the solid top of this fade over the Work/Blog links.
  */
 const GridTopFade = styled.div`
   display: none;
@@ -187,7 +190,7 @@ const GridTopFade = styled.div`
     left: 0;
     right: 0;
     top: 0;
-    z-index: 5;
+    z-index: 1;
     height: var(
       --masonry-top-fade-height,
       ${MASONRY_TUNE_DEFAULTS.topFadeHeightPx}px
@@ -301,8 +304,11 @@ const NavWrapper = styled.div`
     ${({ $overlayGrid }) =>
       $overlayGrid &&
       css`
-        /* Float over the grid so masonry runs underneath the nav */
-        position: absolute;
+        /*
+         * Pin to the viewport top (not just the document top) so the nav
+         * stays visible while scrolling. Above grid fades (z-index 1).
+         */
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
