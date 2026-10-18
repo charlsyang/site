@@ -240,6 +240,17 @@ function MasonryItem({ item, shuffleKey }) {
   const [posterReadyKey, setPosterReadyKey] = useState(null);
   const posterReady = posterReadyKey === mediaKey;
 
+  // A shuffled-in video tile shows only its poster until its crossfade has
+  // settled, so rapid shuffles never start decoders for tiles about to be
+  // replaced. The layer this instance mounted with keeps the fresh-load path.
+  const mountKeyRef = useRef(mediaKey);
+  const [settledKey, setSettledKey] = useState(null);
+  const deferVideo =
+    item.type === "video" &&
+    !!item.poster &&
+    mediaKey !== mountKeyRef.current &&
+    settledKey !== mediaKey;
+
   // Refs for checking if media is already loaded (cached)
   const imgRef = useRef(null);
   const posterRef = useRef(null);
@@ -350,6 +361,9 @@ function MasonryItem({ item, shuffleKey }) {
           }
           exit="exit"
           transition={crossfadeTransition}
+          onAnimationComplete={(definition) => {
+            if (definition === "animate") setSettledKey(mediaKey);
+          }}
         >
           {item.type === "video" ? (
             <VideoWithPoster
@@ -358,6 +372,7 @@ function MasonryItem({ item, shuffleKey }) {
               src={item.src}
               poster={item.poster}
               autoPlay={prefersReducedMotion === false}
+              deferVideo={deferVideo}
               onReady={handlePosterReady}
             />
           ) : (
@@ -383,29 +398,39 @@ const VIDEO_RETRY_DELAY_MS = 1000;
  * Drops the source when the video unmounts so its decoder and buffers are
  * freed right away; WebKit can otherwise keep a removed video fully loaded.
  */
-function useReleaseVideoOnUnmount(videoRef) {
+function useReleaseVideoOnUnmount(videoRef, mounted = true) {
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!mounted || !video) return;
     return () => {
       video.pause();
       video.removeAttribute("src");
       video.load();
     };
-  }, [videoRef]);
+  }, [videoRef, mounted]);
 }
 
 /**
  * The first-frame poster <img> always stays underneath; the video covers it
  * only while frames are actually advancing. Errors, aborts, resets and stalls
  * hide the video again (it may paint black or nothing) and retry once.
+ * While `deferVideo` is set only the poster renders; the <video> mounts later.
  */
-function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }) {
+function VideoWithPoster({
+  posterRef,
+  videoRef,
+  src,
+  poster,
+  autoPlay,
+  deferVideo,
+  onReady,
+}) {
   const [isPainting, setIsPainting] = useState(false);
   // A broken poster can't back the video, so fall back to a plain video tile
   // that counts as loaded on its first frame.
   const [posterFailed, setPosterFailed] = useState(false);
   const hasPoster = !!poster && !posterFailed;
+  const showVideo = !deferVideo || !hasPoster;
 
   const handlePosterError = () => {
     setPosterFailed(true);
@@ -473,10 +498,10 @@ function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }
       video.removeEventListener("play", onPlay);
       failEvents.forEach((e) => video.removeEventListener(e, fail));
     };
-  }, [hasPoster, autoPlay, videoRef]);
+  }, [hasPoster, autoPlay, videoRef, showVideo]);
 
   // Declared after the watchdog so its listeners and retry timer go first
-  useReleaseVideoOnUnmount(videoRef);
+  useReleaseVideoOnUnmount(videoRef, showVideo);
 
   return (
     <>
@@ -491,18 +516,20 @@ function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }
           onError={handlePosterError}
         />
       )}
-      <Video
-        ref={videoRef}
-        src={src}
-        autoPlay={autoPlay}
-        loop
-        muted
-        playsInline
-        draggable={false}
-        data-over-poster={hasPoster ? "" : undefined}
-        data-painting={isPainting ? "" : undefined}
-        onLoadedData={hasPoster ? undefined : onReady}
-      />
+      {showVideo && (
+        <Video
+          ref={videoRef}
+          src={src}
+          autoPlay={autoPlay}
+          loop
+          muted
+          playsInline
+          draggable={false}
+          data-over-poster={hasPoster ? "" : undefined}
+          data-painting={isPainting ? "" : undefined}
+          onLoadedData={hasPoster ? undefined : onReady}
+        />
+      )}
     </>
   );
 }
