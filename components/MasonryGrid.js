@@ -143,7 +143,7 @@ const SECONDS_PER_ITEM = 10;
 /** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
 const MASONRY_ROW_GAP = "0.9vh";
 /** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
-const MASONRY_ROW_GAP_PHONE = "8px";
+const MASONRY_ROW_GAP_PHONE = "4px";
 /** Item aspect-ratio width/height (matches ItemWrapper) */
 const ITEM_ASPECT = 3 / 2;
 
