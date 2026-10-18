@@ -767,10 +767,19 @@ const WALL_CATEGORY = 0x0002;
 /** Fraction of an edge tile's remaining overhang closed per frame */
 const EDGE_SETTLE_RATE = 0.06;
 
+/** Gravity at full lean (straight down stays BODY_PHYSICS.gravity) */
+const TILT_GRAVITY = 3.5;
+/** Lean from straight down (rad) at which tilt gravity is full strength */
+const TILT_FULL_LEAN = Math.PI / 4;
+/** Gravity's downward share (sin of its angle) that adds / removes the ceiling */
+const CEILING_ON_SHARE = 0.3;
+const CEILING_OFF_SHARE = 0.6;
+/** Gravity's sideways share above which edge tiles get their walls back */
+const TILT_SIDEWAYS_SHARE = 0.3;
 /** Per-frame easing of gravity toward the tilt direction */
-const TILT_SMOOTHING = 0.2;
-/** Max gravity turn per frame (rad): a full flip takes ~1/3 s */
-const TILT_MAX_TURN = 0.15;
+const TILT_SMOOTHING = 0.6;
+/** Max gravity turn per frame (rad): a full flip takes ~5 frames */
+const TILT_MAX_TURN = 0.6;
 /** Below this in-plane share of g the phone is ~flat: keep the last direction */
 const TILT_FLAT = 0.2;
 /** Tilt is reported unavailable if no reading arrives in time */
@@ -808,8 +817,21 @@ function canTilt() {
   );
 }
 
-// Survives re-breaks so a denied prompt isn't shown again this session
+// Survive re-breaks: a denied prompt isn't shown again, a granted one skipped
 let tiltDenied = false;
+let tiltGranted = false;
+// The pre-break probe saw real readings (already granted, or no prompt needed)
+let tiltReadable = false;
+
+/** Decided before the break renders, so the tilt button never pops in late */
+function tiltAtBreak() {
+  if (tiltReadable || tiltGranted) return { tilt: "listening", button: false };
+  if (tiltDenied) return { tilt: "unavailable", button: true };
+  if (typeof window.DeviceOrientationEvent?.requestPermission === "function") {
+    return { tilt: "prompt", button: true };
+  }
+  return { tilt: "none", button: false };
+}
 
 /** Signed px to move a body so it's fully inside [0, width]; 0 when inside */
 function edgeOverlap(body, width) {
@@ -880,7 +902,9 @@ function BrokenPhysicsMode({
   containerRef,
   isPhone,
   tiltOn = false,
-  onTiltUnavailable,
+  tiltEpoch = 0,
+  onTiltNoData,
+  onTiltWorking,
 }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const bounds = isPhone ? PHYSICS_BOUNDS.phone : PHYSICS_BOUNDS.desktop;
@@ -998,6 +1022,7 @@ function BrokenPhysicsMode({
       });
 
       let hasCeiling = false;
+      let tiltSideways = false;
       let gravityAngle = DOWN_ANGLE;
 
       const rescueIfEscaped = (body, item) => {
@@ -1023,7 +1048,11 @@ function BrokenPhysicsMode({
       const settleInside = (body) => {
         const { width } = sizeRef.current;
         const over = edgeOverlap(body, width);
-        if (over === 0) {
+        // Under sideways tilt the pile would push it out, so walls catch it
+        // as soon as more than half of it is inside
+        const caught =
+          tiltSideways && body.position.x > 0 && body.position.x < width;
+        if (over === 0 || caught) {
           body.collisionFilter.mask = ~0;
           edgeBodies.delete(body);
           return;
@@ -1057,14 +1086,9 @@ function BrokenPhysicsMode({
         });
       };
 
-      // Ease gravity toward the tilt (or back down), magnitude held constant
+      // Turn gravity toward the tilt; stronger the further it leans
       const updateGravity = () => {
         const tilt = tiltRef.current;
-        if (tilt.active !== hasCeiling) {
-          hasCeiling = tilt.active;
-          if (hasCeiling) Matter.Composite.add(engine.world, ceiling);
-          else Matter.Composite.remove(engine.world, ceiling);
-        }
         const target = tilt.active
           ? tiltDirection(tilt.beta, tilt.gamma, screenAngle())
           : DOWN_ANGLE;
@@ -1076,13 +1100,51 @@ function BrokenPhysicsMode({
             -TILT_MAX_TURN,
             Math.min(TILT_MAX_TURN, delta * TILT_SMOOTHING)
           );
-          gravityAngle = Math.abs(delta) < 1e-3 ? target : gravityAngle + turn;
+          gravityAngle =
+            Math.abs(delta) < 1e-3
+              ? target
+              : Math.atan2(
+                  Math.sin(gravityAngle + turn),
+                  Math.cos(gravityAngle + turn)
+                );
         }
+        // Held upright it's the tuned fall; leaning away ramps up to full tilt
+        const lean = Math.min(
+          1,
+          Math.abs(gravityAngle - DOWN_ANGLE) / TILT_FULL_LEAN
+        );
+        const strength =
+          bounds.gravity + (TILT_GRAVITY - bounds.gravity) * lean;
         const down = gravityAngle === DOWN_ANGLE;
-        engine.gravity.x = down ? 0 : Math.cos(gravityAngle) * bounds.gravity;
-        engine.gravity.y = down
-          ? bounds.gravity
-          : Math.sin(gravityAngle) * bounds.gravity;
+        engine.gravity.x = down ? 0 : Math.cos(gravityAngle) * strength;
+        engine.gravity.y = down ? strength : Math.sin(gravityAngle) * strength;
+
+        // Ceiling only once gravity is ~sideways or up, so the default
+        // upward burst still flies past the band top
+        tiltSideways =
+          tilt.active && Math.abs(Math.cos(gravityAngle)) > TILT_SIDEWAYS_SHARE;
+        const downShare = Math.sin(gravityAngle);
+        const wantCeiling =
+          tilt.active &&
+          downShare < (hasCeiling ? CEILING_OFF_SHARE : CEILING_ON_SHARE);
+        if (wantCeiling !== hasCeiling) {
+          hasCeiling = wantCeiling;
+          if (hasCeiling) Matter.Composite.add(engine.world, ceiling);
+          else Matter.Composite.remove(engine.world, ceiling);
+        }
+      };
+
+      // Stronger tilt gravity: never faster than a throw, so nothing tunnels
+      const clampSpeed = () => {
+        bodiesRef.current.forEach(({ body }) => {
+          const speed = Math.hypot(body.velocity.x, body.velocity.y);
+          if (speed <= bounds.maxThrow || body === dragRef.current.body) return;
+          const scale = bounds.maxThrow / speed;
+          Matter.Body.setVelocity(body, {
+            x: body.velocity.x * scale,
+            y: body.velocity.y * scale,
+          });
+        });
       };
 
       // Single rAF loop: fixed steps, capped per frame, paused when unseen
@@ -1107,6 +1169,7 @@ function BrokenPhysicsMode({
           steps < PHYSICS_MAX_STEPS_PER_FRAME
         ) {
           Matter.Engine.update(engine, PHYSICS_STEP_MS);
+          if (tiltRef.current.active) clampSpeed();
           accumulator -= PHYSICS_STEP_MS;
           steps++;
         }
@@ -1217,7 +1280,7 @@ function BrokenPhysicsMode({
   }, [containerRef, bounds]);
 
   // Tilt: the listener only stores readings; the physics loop applies them.
-  // Off while the tab is hidden, and on Fix / navigation via unmount.
+  // Off while the tab is hidden; stays on until Fix / navigation (unmount).
   useEffect(() => {
     if (!tiltOn) return;
     const tilt = tiltRef.current;
@@ -1230,13 +1293,14 @@ function BrokenPhysicsMode({
       if (!tilt.active) {
         tilt.active = true;
         clearTimeout(noDataTimer);
+        onTiltWorking?.();
       }
     };
     const listen = () => {
       window.addEventListener("deviceorientation", onOrientation);
       clearTimeout(noDataTimer);
       if (!tilt.active) {
-        noDataTimer = setTimeout(() => onTiltUnavailable?.(), TILT_NO_DATA_MS);
+        noDataTimer = setTimeout(() => onTiltNoData?.(), TILT_NO_DATA_MS);
       }
     };
     const unlisten = () => {
@@ -1252,7 +1316,7 @@ function BrokenPhysicsMode({
       document.removeEventListener("visibilitychange", onVisibility);
       tilt.active = false;
     };
-  }, [tiltOn, onTiltUnavailable]);
+  }, [tiltOn, tiltEpoch, onTiltNoData, onTiltWorking]);
 
   // Handle drag start on physics items (one pointer at a time)
   const handlePointerDown = useCallback(
@@ -1494,34 +1558,46 @@ export default function MasonryGrid({
   const clickTimestampsRef = useRef([]);
   const gridRef = useRef(null);
 
-  // Phone tilt-to-move while broken: "off" | "on" | "unavailable"
+  // Phone tilt-to-move while broken. The button only exists to ask iOS for
+  // motion access; it's decided at break time and shows with Fix.
+  // "listening" | "working" | "prompt" | "none" (no sensor) | "unavailable"
   const [tiltSupported, setTiltSupported] = useState(false);
-  const [tilt, setTilt] = useState(() => (tiltDenied ? "unavailable" : "off"));
+  const [tilt, setTilt] = useState("none");
+  const [tiltButton, setTiltButton] = useState(false);
+  // Bumped after a grant so the listener re-attaches and re-arms its timer
+  const [tiltEpoch, setTiltEpoch] = useState(0);
   const tiltRequestRef = useRef(0);
   useEffect(() => setTiltSupported(canTilt()), []);
-  const handleTiltUnavailable = useCallback(() => setTilt("unavailable"), []);
+  // Probe before any break: real readings mean no prompt will be needed
+  useEffect(() => {
+    if (!isPhone || !tiltSupported || isBroken || tiltReadable) return;
+    const onReading = (event) => {
+      if (event.beta === null || event.gamma === null) return;
+      tiltReadable = true;
+      window.removeEventListener("deviceorientation", onReading);
+    };
+    window.addEventListener("deviceorientation", onReading, { passive: true });
+    return () => window.removeEventListener("deviceorientation", onReading);
+  }, [isPhone, tiltSupported, isBroken]);
+  const handleTiltWorking = useCallback(() => setTilt("working"), []);
+  // Granted but silent: dim the button. Without one, stay quietly as is.
+  const handleTiltNoData = useCallback(
+    () => setTilt(tiltButton ? "unavailable" : "none"),
+    [tiltButton]
+  );
   const handleTilt = useCallback(() => {
-    if (tilt === "on") {
-      setTilt("off");
-      return;
-    }
-    if (tilt !== "off") return;
-    const requestPermission = window.DeviceOrientationEvent?.requestPermission;
-    if (typeof requestPermission !== "function") {
-      setTilt("on");
-      return;
-    }
-    // iOS 13+: must be called inside the tap
+    if (tilt !== "prompt") return;
+    // Must be called inside the tap
     const request = ++tiltRequestRef.current;
-    requestPermission
-      .call(window.DeviceOrientationEvent)
+    window.DeviceOrientationEvent.requestPermission()
       .then((state) => state === "granted")
       .catch(() => false)
       .then((granted) => {
-        if (!granted) tiltDenied = true;
-        if (request === tiltRequestRef.current) {
-          setTilt(granted ? "on" : "unavailable");
-        }
+        if (granted) tiltGranted = true;
+        else tiltDenied = true;
+        if (request !== tiltRequestRef.current) return;
+        setTilt(granted ? "listening" : "unavailable");
+        if (granted) setTiltEpoch((epoch) => epoch + 1);
       });
   }, [tilt]);
 
@@ -1711,6 +1787,9 @@ export default function MasonryGrid({
         );
       }
 
+      const next = tiltAtBreak();
+      setTilt(next.tilt);
+      setTiltButton(next.button);
       setIsBroken(true);
       return;
     }
@@ -1740,7 +1819,6 @@ export default function MasonryGrid({
     setIsBroken(false);
     setCapturedPositions(null);
     tiltRequestRef.current++;
-    setTilt(tiltDenied ? "unavailable" : "off");
     // Reshuffle items when fixing
     reshuffle();
   }, [reshuffle]);
@@ -1870,13 +1948,19 @@ export default function MasonryGrid({
           onReset={handleFixBroken}
           containerRef={gridRef}
           isPhone={isPhone}
-          tiltOn={isPhone && tilt === "on"}
-          onTiltUnavailable={handleTiltUnavailable}
+          tiltOn={
+            isPhone &&
+            tiltSupported &&
+            (tilt === "listening" || tilt === "working" || tilt === "none")
+          }
+          tiltEpoch={tiltEpoch}
+          onTiltNoData={handleTiltNoData}
+          onTiltWorking={handleTiltWorking}
         />
       )}
       {isPhone && isBroken && (
         <ButtonGroup>
-          {tiltSupported && (
+          {tiltSupported && tiltButton && (
             <TiltButton
               iconOnly
               size="lg"
@@ -1884,7 +1968,7 @@ export default function MasonryGrid({
               icon={<Icon name="tilt" />}
               onClick={handleTilt}
               disabled={tilt === "unavailable"}
-              aria-pressed={tilt === "on"}
+              $gone={tilt === "working"}
               aria-label={
                 tilt === "unavailable" ? "Tilt unavailable" : "Tilt to move"
               }
@@ -2204,17 +2288,22 @@ const PhoneFixButton = styled(Button)`
   animation: ${RevealIn} 0.3s ease-out 0.8s both;
 `;
 
-/* Sits left of the fix button; inverted while tilt is on */
-const TiltButton = styled(PhoneFixButton)`
-  &[aria-pressed="true"],
-  &[aria-pressed="true"]:active {
-    background: var(--color-text-inverted);
-    color: var(--color-bg-inverted);
+const FadeAway = keyframes`
+  from {
+    opacity: 1;
+    visibility: visible;
   }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+`;
 
-  @media (hover: hover) {
-    &[aria-pressed="true"]:hover {
-      background: var(--color-text-inverted);
-    }
-  }
+/* Sits left of the fix button; fades once tilt is working */
+const TiltButton = styled(PhoneFixButton)`
+  ${(props) =>
+    props.$gone &&
+    css`
+      animation: ${FadeAway} 0.2s ease-out both;
+    `}
 `;
