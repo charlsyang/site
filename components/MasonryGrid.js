@@ -20,12 +20,6 @@ import {
   shuffleWithRowChange,
   layoutItems,
 } from "../utils/masonryLayout";
-import {
-  EggTunePanel,
-  subscribeEggTuneLive,
-  useEggTune,
-  withEggTune,
-} from "./EggTune"; // EggTune: temporary
 
 // ============================================
 // Animation Configuration
@@ -751,8 +745,8 @@ const PHYSICS_BOUNDS = {
     wallThickness: 200,
     wallSpan: 4,
     wallOffset: 0,
-    // Rest on the headline that overlaps the band (WorkLayout headlineOverlapPx)
-    groundInset: 56,
+    // Below the band's bottom edge; the band clips the overhang
+    groundInset: -72,
     maxBodies: 8,
     minVisible: 0.001, // any visible part
     maxThrow: 30,
@@ -843,12 +837,7 @@ function BrokenPhysicsMode({
   isPhone,
 }) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  // Per-break copy (EggTune mutates it live)
-  const [bounds] = useState(() =>
-    isPhone
-      ? withEggTune({ ...PHYSICS_BOUNDS.phone })
-      : { ...PHYSICS_BOUNDS.desktop }
-  );
+  const bounds = isPhone ? PHYSICS_BOUNDS.phone : PHYSICS_BOUNDS.desktop;
   const engineRef = useRef(null);
   const matterRef = useRef(null); // Store Matter.js module reference
   const groundRef = useRef(null); // Store ground body for resize updates
@@ -1055,20 +1044,7 @@ function BrokenPhysicsMode({
       render();
       sync();
 
-      const unsubscribeTune = bounds.fitToScreen // EggTune: temporary (phone)
-        ? subscribeEggTuneLive({
-            Matter,
-            engine,
-            bounds,
-            ground,
-            walls: wallsRef.current,
-            bodiesRef,
-            sizeRef,
-          })
-        : () => {};
-
       return () => {
-        unsubscribeTune();
         stop();
         intersectionObserver.disconnect();
         document.removeEventListener("visibilitychange", sync);
@@ -1597,25 +1573,6 @@ export default function MasonryGrid({
     reshuffle();
   }, [reshuffle]);
 
-  // EggTune: temporary — restore (if broken) then break again
-  const eggTune = useEggTune();
-  const retriggerRef = useRef(null);
-  const retriggerEgg = useCallback(() => {
-    if (retriggerRef.current) return;
-    preloadMatter();
-    setIsBroken(false);
-    setCapturedPositions(null);
-    retriggerRef.current = setTimeout(() => {
-      retriggerRef.current = null;
-      if (!gridRef.current) return;
-      setCapturedPositions(
-        captureTilePositions(gridRef.current, videoFramesRef.current)
-      );
-      setIsBroken(true);
-    }, 150);
-  }, []);
-  useEffect(() => () => clearTimeout(retriggerRef.current), []);
-
   // Handle empty state
   if (!items || items.length === 0) {
     return (
@@ -1752,11 +1709,9 @@ export default function MasonryGrid({
             icon={<Icon name="fix" />}
             onClick={handleFixBroken}
             aria-label="Fix layout"
-            style={eggTune && { animationDelay: `${eggTune.fixDelay}ms` }}
           />
         </ButtonGroup>
       )}
-      {isPhone && eggTune && <EggTunePanel onRetrigger={retriggerEgg} />}
     </GridWrapper>
   );
 }
