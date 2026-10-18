@@ -13,16 +13,21 @@ import {
   buildTwoStopFadeGradient,
 } from "../utils/easedGradient";
 
-/** Defaults: nav-height is 56px → top inset ≈ half = 28px */
+/**
+ * Defaults: nav-height is 56px → top inset ≈ half = 28px.
+ * easeA (fadeEasing) shapes alpha; easePos stays linear so the dissolve
+ * curve is visible (identical easePos+easeA collapses to a linear ramp).
+ */
 export const MASONRY_TUNE_DEFAULTS = {
   gridHeightVh: 55,
   topInsetPx: 28,
   fadeHeightPx: 140,
-  fadeSolidPct: 18,
-  fadeBlurPx: 16,
+  fadeSolidPct: 12,
+  fadeBlurPx: 10,
   fadeTint: 1,
   fadeStops: 16,
-  fadeEasing: "ease-in-out",
+  fadeEasing: "ease-in-out", // easeA — alpha channel
+  fadePosEasing: "linear", // easePos — stop packing (keep linear!)
   headlineOverlapPx: 56,
   /** Debug: force harsh 2-stop gradient for A/B */
   fadeTwoStop: 0,
@@ -77,9 +82,9 @@ function formatVar(key, value) {
 
 export function buildFadeGradients(values) {
   const steps = values.fadeStops;
-  const easing = values.fadeEasing;
+  const easeA = values.fadeEasing;
+  const easePos = values.fadePosEasing || "linear";
   const solidPct = values.fadeSolidPct;
-  const maxAlpha = values.fadeTint;
 
   if (values.fadeTwoStop) {
     const tint = buildTwoStopFadeGradient({ solidPct });
@@ -91,8 +96,8 @@ export function buildFadeGradients(values) {
   }
 
   return {
-    tint: buildFadeTintGradient({ steps, easing, solidPct, maxAlpha: 1 }),
-    mask: buildFadeMaskGradient({ steps, easing, solidPct }),
+    tint: buildFadeTintGradient({ steps, easeA, easePos, solidPct, maxAlpha: 1 }),
+    mask: buildFadeMaskGradient({ steps, easeA, easePos, solidPct }),
   };
 }
 
@@ -107,6 +112,10 @@ export function applyMasonryTuneVars(values) {
   root.style.setProperty("--masonry-fade-mask-gradient", mask);
   root.style.setProperty("--masonry-fade-stops", String(values.fadeStops));
   root.style.setProperty("--masonry-fade-easing", values.fadeEasing);
+  root.style.setProperty(
+    "--masonry-fade-pos-easing",
+    values.fadePosEasing || "linear"
+  );
 }
 
 function clearVars() {
@@ -118,6 +127,7 @@ function clearVars() {
   root.style.removeProperty("--masonry-fade-mask-gradient");
   root.style.removeProperty("--masonry-fade-stops");
   root.style.removeProperty("--masonry-fade-easing");
+  root.style.removeProperty("--masonry-fade-pos-easing");
 }
 
 /** Default gradient strings for CSS fallbacks (no tune widget). */
@@ -145,8 +155,9 @@ export default function MasonryTune() {
       ([key, cssVar]) => `${cssVar}: ${formatVar(key, values[key])};`
     ),
     `--masonry-fade-stops: ${values.fadeStops};`,
-    `--masonry-fade-easing: ${values.fadeEasing};`,
-    `/* tint gradient (${values.fadeTwoStop ? "2-stop" : "eased"}) */`,
+    `--masonry-fade-easing: ${values.fadeEasing}; /* easeA */`,
+    `--masonry-fade-pos-easing: ${values.fadePosEasing || "linear"}; /* easePos */`,
+    `/* tint (${values.fadeTwoStop ? "2-stop" : "eased multi-stop"}) */`,
     `--masonry-fade-tint-gradient: ${buildFadeGradients(values).tint};`,
   ].join("\n");
 
@@ -207,11 +218,31 @@ export default function MasonryTune() {
       {!collapsed && (
         <Body>
           <EasingRow>
-            <span>Easing</span>
+            <span title="Alpha easing (easeA) — shapes the dissolve">Alpha</span>
             <select
               value={values.fadeEasing}
               onChange={(e) =>
                 setValues((prev) => ({ ...prev, fadeEasing: e.target.value }))
+              }
+            >
+              {EASING_PRESET_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+          </EasingRow>
+          <EasingRow>
+            <span title="Position easing (easePos) — keep linear or curve collapses">
+              Pos
+            </span>
+            <select
+              value={values.fadePosEasing || "linear"}
+              onChange={(e) =>
+                setValues((prev) => ({
+                  ...prev,
+                  fadePosEasing: e.target.value,
+                }))
               }
             >
               {EASING_PRESET_KEYS.map((key) => (
