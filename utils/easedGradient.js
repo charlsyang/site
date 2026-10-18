@@ -137,8 +137,9 @@ export function easedAlphaGradient({
   return `linear-gradient(${direction}, ${stops.join(", ")})`;
 }
 
-/** Tint dissolve into page background (opaque at bottom). */
+/** Tint dissolve into page background. Default: opaque at bottom (`to bottom`). */
 export function buildFadeTintGradient({
+  direction = "to bottom",
   steps,
   easeA,
   easePos,
@@ -147,7 +148,7 @@ export function buildFadeTintGradient({
   maxAlpha = 1,
 } = {}) {
   return easedAlphaGradient({
-    direction: "to bottom",
+    direction,
     color: "var(--color-bg-base)",
     steps,
     easeA: easeA ?? easing ?? "ease-in-out",
@@ -157,8 +158,9 @@ export function buildFadeTintGradient({
   });
 }
 
-/** Matching mask for blur layer (opaque blur at bottom). */
+/** Matching mask for blur layer. Default: opaque blur at bottom (`to bottom`). */
 export function buildFadeMaskGradient({
+  direction = "to bottom",
   steps,
   easeA,
   easePos,
@@ -166,7 +168,7 @@ export function buildFadeMaskGradient({
   solidPct,
 } = {}) {
   return easedAlphaGradient({
-    direction: "to bottom",
+    direction,
     color: "#000",
     steps,
     easeA: easeA ?? easing ?? "ease-in-out",
@@ -178,10 +180,11 @@ export function buildFadeMaskGradient({
 
 /** Harsh 2-stop reference (for before/compare). */
 export function buildTwoStopFadeGradient({
+  direction = "to bottom",
   solidPct = 22,
   color = "var(--color-bg-base)",
 } = {}) {
   const solid = clamp01(solidPct / 100);
   const solidPos = +((1 - solid) * 100).toFixed(2);
-  return `linear-gradient(to bottom, transparent 0%, ${color} ${solidPos}%, ${color} 100%)`;
+  return `linear-gradient(${direction}, transparent 0%, ${color} ${solidPos}%, ${color} 100%)`;
 }

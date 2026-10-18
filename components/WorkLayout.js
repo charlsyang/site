@@ -114,7 +114,8 @@ export default function WorkLayout({ children, allPostsData }) {
       </Sidebar>
       <ContentArea $showOnPhone={showGridOnPhone}>
         {children}
-        {/* Bottom edge: same blur + mask + tint pattern as NavBlur, inverted */}
+        {/* Top/bottom edge dissolves — eased multi-stop (see MasonryTune) */}
+        {showGridOnPhone && <GridTopFade aria-hidden="true" />}
         {showGridOnPhone && <GridBottomFade aria-hidden="true" />}
       </ContentArea>
       {showTune && <MasonryTune />}
@@ -168,6 +169,64 @@ const NavBlur = styled.div`
         transparent 100%
       );
       opacity: 0.3;
+    }
+  }
+`;
+
+/*
+ * Top dissolve at the grid band’s top edge (mirror of bottom).
+ * Lives on ContentArea so Nav stays untouched — grid runs under nav blur.
+ * Opaque toward the top (`to top`); tune overwrites --masonry-top-fade-*.
+ */
+const GridTopFade = styled.div`
+  display: none;
+
+  @media ${QUERIES.phoneAndBelow} {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 5;
+    height: var(
+      --masonry-top-fade-height,
+      ${MASONRY_TUNE_DEFAULTS.topFadeHeightPx}px
+    );
+    pointer-events: none;
+    user-select: none;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(
+        var(--masonry-top-fade-blur, ${MASONRY_TUNE_DEFAULTS.topFadeBlurPx}px)
+      );
+      -webkit-backdrop-filter: blur(
+        var(--masonry-top-fade-blur, ${MASONRY_TUNE_DEFAULTS.topFadeBlurPx}px)
+      );
+      -webkit-mask-image: var(
+        --masonry-top-fade-mask-gradient,
+        ${DEFAULT_FADE_GRADIENTS.topMask}
+      );
+      mask-image: var(
+        --masonry-top-fade-mask-gradient,
+        ${DEFAULT_FADE_GRADIENTS.topMask}
+      );
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(
+        --masonry-top-fade-tint-gradient,
+        ${DEFAULT_FADE_GRADIENTS.topTint}
+      );
+      opacity: var(
+        --masonry-top-fade-tint,
+        ${MASONRY_TUNE_DEFAULTS.topFadeTint}
+      );
     }
   }
 `;

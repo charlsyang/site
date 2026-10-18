@@ -1277,9 +1277,15 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 12px;
 
-  /* Sit above the soft bottom dissolve + headline overlap on phone */
+  /*
+   * Phone: optically center the 40px refresh with the "Charlsy Yang" name line.
+   * Intro pulls up by --masonry-headline-overlap; name is 22px / lh 1.2 at the
+   * top of that overlap zone. Align button center to name optical center.
+   */
   @media ${QUERIES.phoneAndBelow} {
-    bottom: max(16px, calc(var(--masonry-fade-height, 120px) - 48px));
+    bottom: calc(
+      var(--masonry-headline-overlap, 56px) - (22px * 1.2 / 2) - (40px / 2)
+    );
   }
 `;
 

@@ -2,6 +2,12 @@
  * TEMPORARY phone masonry tune panel — remove before merge (or keep behind ?tune=1).
  * Open: /work?tune=1 at ≤550px.
  * Compact by default so the grid dissolve stays visible while dragging.
+ *
+ * Locked bottom defaults (Charlsy-approved):
+ *   Alpha ease-in-out · Pos linear · Fade h 140 · Solid 12% · Stops 16
+ *   Blur 2 · Strength 1 · Overlap 56 · Top inset 28
+ *
+ * Top fade starts as a slightly shorter mirror; dial via Top section.
  */
 import { useEffect, useState } from "react";
 import styled from "styled-components";
@@ -21,19 +27,25 @@ import {
 export const MASONRY_TUNE_DEFAULTS = {
   gridHeightVh: 55,
   topInsetPx: 28,
+  /* —— Bottom (locked) —— */
   fadeHeightPx: 140,
   fadeSolidPct: 12,
-  fadeBlurPx: 10,
+  fadeBlurPx: 2,
   fadeTint: 1,
   fadeStops: 16,
   fadeEasing: "ease-in-out", // easeA — alpha channel
   fadePosEasing: "linear", // easePos — stop packing (keep linear!)
   headlineOverlapPx: 56,
+  /* —— Top (mirror, slightly shorter) —— */
+  topFadeHeightPx: 88,
+  topFadeSolidPct: 12,
+  topFadeBlurPx: 2,
+  topFadeTint: 1,
   /** Debug: force harsh 2-stop gradient for A/B */
   fadeTwoStop: 0,
 };
 
-const VAR_MAP = {
+const LAYOUT_VAR_MAP = {
   gridHeightVh: "--masonry-grid-height",
   topInsetPx: "--masonry-top-inset",
   fadeHeightPx: "--masonry-fade-height",
@@ -41,24 +53,34 @@ const VAR_MAP = {
   fadeBlurPx: "--masonry-fade-blur",
   fadeTint: "--masonry-fade-tint",
   headlineOverlapPx: "--masonry-headline-overlap",
+  topFadeHeightPx: "--masonry-top-fade-height",
+  topFadeSolidPct: "--masonry-top-fade-solid",
+  topFadeBlurPx: "--masonry-top-fade-blur",
+  topFadeTint: "--masonry-top-fade-tint",
 };
 
-/** Fade-focused controls shown in compact mode (default) */
-const FADE_KEYS = [
+const BOTTOM_FADE_KEYS = [
   "fadeHeightPx",
   "fadeSolidPct",
-  "fadeStops",
   "fadeBlurPx",
   "fadeTint",
   "headlineOverlapPx",
 ];
+
+const TOP_FADE_KEYS = [
+  "topFadeHeightPx",
+  "topFadeSolidPct",
+  "topFadeBlurPx",
+  "topFadeTint",
+];
+
+const LAYOUT_KEYS = ["gridHeightVh", "topInsetPx"];
 
 const ALL_SLIDERS = [
   { key: "gridHeightVh", label: "Grid h", unit: "vh", min: 40, max: 75, step: 1 },
   { key: "topInsetPx", label: "Top inset", unit: "px", min: 0, max: 64, step: 1 },
   { key: "fadeHeightPx", label: "Fade h", unit: "px", min: 48, max: 240, step: 1 },
   { key: "fadeSolidPct", label: "Solid %", unit: "%", min: 0, max: 80, step: 1 },
-  { key: "fadeStops", label: "Stops", unit: "", min: 4, max: 24, step: 1 },
   { key: "fadeBlurPx", label: "Blur", unit: "px", min: 0, max: 40, step: 1 },
   { key: "fadeTint", label: "Strength", unit: "", min: 0, max: 1, step: 0.05 },
   {
@@ -69,15 +91,51 @@ const ALL_SLIDERS = [
     max: 120,
     step: 1,
   },
+  {
+    key: "topFadeHeightPx",
+    label: "Fade h",
+    unit: "px",
+    min: 32,
+    max: 200,
+    step: 1,
+  },
+  {
+    key: "topFadeSolidPct",
+    label: "Solid %",
+    unit: "%",
+    min: 0,
+    max: 80,
+    step: 1,
+  },
+  {
+    key: "topFadeBlurPx",
+    label: "Blur",
+    unit: "px",
+    min: 0,
+    max: 40,
+    step: 1,
+  },
+  {
+    key: "topFadeTint",
+    label: "Strength",
+    unit: "",
+    min: 0,
+    max: 1,
+    step: 0.05,
+  },
 ];
 
 function formatVar(key, value) {
   if (key === "gridHeightVh") return `${value}vh`;
-  if (key === "fadeTint") return String(value);
-  if (key === "fadeSolidPct") return `${value}%`;
+  if (key === "fadeTint" || key === "topFadeTint") return String(value);
+  if (key === "fadeSolidPct" || key === "topFadeSolidPct") return `${value}%`;
   if (key === "fadeStops" || key === "fadeTwoStop") return String(value);
-  if (key === "fadeEasing") return String(value);
+  if (key === "fadeEasing" || key === "fadePosEasing") return String(value);
   return `${value}px`;
+}
+
+function sliderByKey(key) {
+  return ALL_SLIDERS.find((s) => s.key === key);
 }
 
 export function buildFadeGradients(values) {
@@ -85,31 +143,62 @@ export function buildFadeGradients(values) {
   const easeA = values.fadeEasing;
   const easePos = values.fadePosEasing || "linear";
   const solidPct = values.fadeSolidPct;
+  const topSolidPct = values.topFadeSolidPct ?? solidPct;
 
   if (values.fadeTwoStop) {
-    const tint = buildTwoStopFadeGradient({ solidPct });
-    const mask = buildTwoStopFadeGradient({
-      solidPct,
-      color: "#000",
-    });
-    return { tint, mask };
+    return {
+      tint: buildTwoStopFadeGradient({ solidPct }),
+      mask: buildTwoStopFadeGradient({ solidPct, color: "#000" }),
+      topTint: buildTwoStopFadeGradient({
+        direction: "to top",
+        solidPct: topSolidPct,
+      }),
+      topMask: buildTwoStopFadeGradient({
+        direction: "to top",
+        solidPct: topSolidPct,
+        color: "#000",
+      }),
+    };
   }
 
   return {
-    tint: buildFadeTintGradient({ steps, easeA, easePos, solidPct, maxAlpha: 1 }),
+    tint: buildFadeTintGradient({
+      steps,
+      easeA,
+      easePos,
+      solidPct,
+      maxAlpha: 1,
+    }),
     mask: buildFadeMaskGradient({ steps, easeA, easePos, solidPct }),
+    topTint: buildFadeTintGradient({
+      direction: "to top",
+      steps,
+      easeA,
+      easePos,
+      solidPct: topSolidPct,
+      maxAlpha: 1,
+    }),
+    topMask: buildFadeMaskGradient({
+      direction: "to top",
+      steps,
+      easeA,
+      easePos,
+      solidPct: topSolidPct,
+    }),
   };
 }
 
 /** Apply numeric layout vars + regenerated eased gradients to :root */
 export function applyMasonryTuneVars(values) {
   const root = document.documentElement;
-  Object.entries(VAR_MAP).forEach(([key, cssVar]) => {
+  Object.entries(LAYOUT_VAR_MAP).forEach(([key, cssVar]) => {
     root.style.setProperty(cssVar, formatVar(key, values[key]));
   });
-  const { tint, mask } = buildFadeGradients(values);
+  const { tint, mask, topTint, topMask } = buildFadeGradients(values);
   root.style.setProperty("--masonry-fade-tint-gradient", tint);
   root.style.setProperty("--masonry-fade-mask-gradient", mask);
+  root.style.setProperty("--masonry-top-fade-tint-gradient", topTint);
+  root.style.setProperty("--masonry-top-fade-mask-gradient", topMask);
   root.style.setProperty("--masonry-fade-stops", String(values.fadeStops));
   root.style.setProperty("--masonry-fade-easing", values.fadeEasing);
   root.style.setProperty(
@@ -120,11 +209,13 @@ export function applyMasonryTuneVars(values) {
 
 function clearVars() {
   const root = document.documentElement;
-  Object.values(VAR_MAP).forEach((cssVar) => {
+  Object.values(LAYOUT_VAR_MAP).forEach((cssVar) => {
     root.style.removeProperty(cssVar);
   });
   root.style.removeProperty("--masonry-fade-tint-gradient");
   root.style.removeProperty("--masonry-fade-mask-gradient");
+  root.style.removeProperty("--masonry-top-fade-tint-gradient");
+  root.style.removeProperty("--masonry-top-fade-mask-gradient");
   root.style.removeProperty("--masonry-fade-stops");
   root.style.removeProperty("--masonry-fade-easing");
   root.style.removeProperty("--masonry-fade-pos-easing");
@@ -150,15 +241,18 @@ export default function MasonryTune() {
     setValues((prev) => ({ ...prev, [key]: num }));
   };
 
+  const gradients = buildFadeGradients(values);
   const snippet = [
-    ...Object.entries(VAR_MAP).map(
+    ...Object.entries(LAYOUT_VAR_MAP).map(
       ([key, cssVar]) => `${cssVar}: ${formatVar(key, values[key])};`
     ),
     `--masonry-fade-stops: ${values.fadeStops};`,
     `--masonry-fade-easing: ${values.fadeEasing}; /* easeA */`,
     `--masonry-fade-pos-easing: ${values.fadePosEasing || "linear"}; /* easePos */`,
-    `/* tint (${values.fadeTwoStop ? "2-stop" : "eased multi-stop"}) */`,
-    `--masonry-fade-tint-gradient: ${buildFadeGradients(values).tint};`,
+    `/* bottom tint (${values.fadeTwoStop ? "2-stop" : "eased"}) */`,
+    `--masonry-fade-tint-gradient: ${gradients.tint};`,
+    `/* top tint */`,
+    `--masonry-top-fade-tint-gradient: ${gradients.topTint};`,
   ].join("\n");
 
   const copy = async () => {
@@ -171,9 +265,10 @@ export default function MasonryTune() {
     }
   };
 
-  const sliders = showAll
-    ? ALL_SLIDERS
-    : ALL_SLIDERS.filter((s) => FADE_KEYS.includes(s.key));
+  const bottomKeys = showAll
+    ? [...LAYOUT_KEYS, ...BOTTOM_FADE_KEYS]
+    : BOTTOM_FADE_KEYS;
+  const topKeys = TOP_FADE_KEYS;
 
   return (
     <Panel data-masonry-tune $collapsed={collapsed}>
@@ -217,8 +312,9 @@ export default function MasonryTune() {
       </Header>
       {!collapsed && (
         <Body>
+          <SectionLabel>Shared</SectionLabel>
           <EasingRow>
-            <span title="Alpha easing (easeA) — shapes the dissolve">Alpha</span>
+            <span title="Alpha easing (easeA) — shapes both fades">Alpha</span>
             <select
               value={values.fadeEasing}
               onChange={(e) =>
@@ -252,20 +348,59 @@ export default function MasonryTune() {
               ))}
             </select>
           </EasingRow>
+          <StopsRow>
+            <span>Stops</span>
+            <ValueReadout>{values.fadeStops}</ValueReadout>
+            <input
+              type="range"
+              min={4}
+              max={24}
+              step={1}
+              value={values.fadeStops}
+              onChange={(e) => set("fadeStops", e.target.value)}
+            />
+          </StopsRow>
+
+          <SectionLabel>Bottom</SectionLabel>
           <Grid>
-            {sliders.map((s) => (
-              <Slider
-                key={s.key}
-                label={s.label}
-                unit={s.unit}
-                min={s.min}
-                max={s.max}
-                step={s.step}
-                value={values[s.key]}
-                onChange={(v) => set(s.key, v)}
-              />
-            ))}
+            {bottomKeys.map((key) => {
+              const s = sliderByKey(key);
+              if (!s) return null;
+              return (
+                <Slider
+                  key={s.key}
+                  label={s.label}
+                  unit={s.unit}
+                  min={s.min}
+                  max={s.max}
+                  step={s.step}
+                  value={values[s.key]}
+                  onChange={(v) => set(s.key, v)}
+                />
+              );
+            })}
           </Grid>
+
+          <SectionLabel>Top</SectionLabel>
+          <Grid>
+            {topKeys.map((key) => {
+              const s = sliderByKey(key);
+              if (!s) return null;
+              return (
+                <Slider
+                  key={s.key}
+                  label={s.label}
+                  unit={s.unit}
+                  min={s.min}
+                  max={s.max}
+                  step={s.step}
+                  value={values[s.key]}
+                  onChange={(v) => set(s.key, v)}
+                />
+              );
+            })}
+          </Grid>
+
           <VarsToggle type="button" onClick={() => setShowVars((v) => !v)}>
             {showVars ? "Hide vars" : "Show vars"}
           </VarsToggle>
@@ -309,9 +444,9 @@ const Panel = styled.aside`
     right: 6px;
     bottom: 6px;
     left: auto;
-    width: min(52vw, 210px);
+    width: min(54vw, 220px);
     z-index: 9999;
-    max-height: ${({ $collapsed }) => ($collapsed ? "auto" : "32vh")};
+    max-height: ${({ $collapsed }) => ($collapsed ? "auto" : "42vh")};
     overflow: hidden;
     padding: 6px 8px;
     border-radius: 8px;
@@ -362,12 +497,25 @@ const Body = styled.div`
   }
 `;
 
+const SectionLabel = styled.div`
+  margin: 6px 0 3px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffb4a2;
+  opacity: 0.85;
+
+  &:first-child {
+    margin-top: 2px;
+  }
+`;
+
 const EasingRow = styled.label`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-size: 9px;
 
   select {
@@ -381,6 +529,23 @@ const EasingRow = styled.label`
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 4px;
     padding: 2px 4px;
+  }
+`;
+
+const StopsRow = styled.label`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 6px;
+  align-items: center;
+  margin-bottom: 2px;
+  font-size: 9px;
+
+  input[type="range"] {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 14px;
+    margin: 0;
+    padding: 0;
   }
 `;
 
