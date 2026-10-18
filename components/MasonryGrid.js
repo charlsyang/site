@@ -142,6 +142,8 @@ const SECONDS_PER_ITEM = 10;
 
 /** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
 const MASONRY_ROW_GAP = "0.9vh";
+/** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
+const MASONRY_ROW_GAP_PHONE = "8px";
 /** Item aspect-ratio width/height (matches ItemWrapper) */
 const ITEM_ASPECT = 3 / 2;
 
@@ -344,9 +346,11 @@ function InfiniteMasonryRow({
       const grid = rowEl.parentElement;
       if (!grid) return;
       const gapPx = parseFloat(getComputedStyle(grid).rowGap);
-      const rowHeight = rowEl.clientHeight;
-      if (!Number.isFinite(gapPx) || gapPx <= 0 || rowHeight <= 0) return;
-      const itemWidth = rowHeight * ITEM_ASPECT;
+      const firstItem = rowEl.querySelector(":scope > li");
+      const measuredW = firstItem?.getBoundingClientRect().width;
+      const itemWidth =
+        measuredW > 0 ? measuredW : rowEl.clientHeight * ITEM_ASPECT;
+      if (!Number.isFinite(gapPx) || gapPx <= 0 || itemWidth <= 0) return;
       const inset = insetForRowGap(gapPx, itemWidth, count);
       rowEl.style.setProperty("--inset", String(inset));
     };
@@ -1221,10 +1225,9 @@ const ItemWrapper = styled.li`
 
   /*
    * Inset controls visual gap between items (infinite path; no flex gap).
-   * Row sets --inset from MASONRY_ROW_GAP via insetForRowGap(); fallback matches legacy.
+   * MUST inherit --inset from RowWrapper (ResizeObserver). Do not redeclare
+   * --inset here — a local value shadows the synced gutter and breaks phone parity.
    */
-  --inset: -0.9;
-
   --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
   --destination-x: calc((var(--index) + 1) * -100%);
 
@@ -1261,6 +1264,9 @@ const MediaLayer = styled(motion.div)`
 `;
 
 const RowWrapper = styled.ul`
+  /* Fallback until ResizeObserver writes the synced value; inherited by items */
+  --inset: -0.9;
+
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   display: flex;
@@ -1290,6 +1296,10 @@ const GridWrapper = styled.section`
   height: 100%;
   overflow: hidden;
   padding: var(--spacing-1x) 0;
+
+  @media ${QUERIES.phoneAndBelow} {
+    --masonry-row-gap: ${MASONRY_ROW_GAP_PHONE};
+  }
 `;
 
 const Img = styled.img`
