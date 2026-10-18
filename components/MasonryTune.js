@@ -6,18 +6,21 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { QUERIES } from "../utils/constants";
 
+/** Defaults: nav-height is 56px → top inset ≈ half = 28px */
 export const MASONRY_TUNE_DEFAULTS = {
   gridHeightVh: 55,
-  fadeHeightPx: 120,
-  fadeSolidPct: 0,
+  topInsetPx: 28,
+  fadeHeightPx: 140,
+  fadeSolidPct: 22,
   fadeEndPct: 100,
   fadeBlurPx: 16,
-  fadeTint: 0.3,
-  headlineOverlapPx: 52,
+  fadeTint: 1,
+  headlineOverlapPx: 56,
 };
 
 const VAR_MAP = {
   gridHeightVh: "--masonry-grid-height",
+  topInsetPx: "--masonry-top-inset",
   fadeHeightPx: "--masonry-fade-height",
   fadeSolidPct: "--masonry-fade-solid",
   fadeEndPct: "--masonry-fade-end",
@@ -104,6 +107,15 @@ export default function MasonryTune() {
             onChange={(v) => set("gridHeightVh", v)}
           />
           <Slider
+            label="Top inset (half nav ≈ 28)"
+            unit="px"
+            min={0}
+            max={64}
+            step={1}
+            value={values.topInsetPx}
+            onChange={(v) => set("topInsetPx", v)}
+          />
+          <Slider
             label="Fade height"
             unit="px"
             min={48}
@@ -140,7 +152,7 @@ export default function MasonryTune() {
             onChange={(v) => set("fadeBlurPx", v)}
           />
           <Slider
-            label="Tint opacity"
+            label="Solid fade strength"
             unit=""
             min={0}
             max={1}

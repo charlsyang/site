@@ -170,8 +170,13 @@ const NavBlur = styled.div`
 `;
 
 /*
- * Same Nav blur technique, flipped for the grid bottom.
- * Tunable via CSS vars (see MasonryTune / ?tune=1).
+ * Bottom dissolve into page bg.
+ *
+ * Nav blur uses tint opacity 0.3 because it only softens content under the nav.
+ * Reusing that 0.3 alone here left tiles showing through at the band edge → hard
+ * seam against solid body bg. Fix: keep nav's blur+mask technique on ::before,
+ * and put a FULL-strength gradient to var(--color-bg-base) on ::after so the
+ * last pixels match the page background exactly.
  */
 const GridBottomFade = styled.div`
   display: none;
@@ -184,36 +189,46 @@ const GridBottomFade = styled.div`
     bottom: 0;
     z-index: 5;
     height: var(--masonry-fade-height, ${MASONRY_TUNE_DEFAULTS.fadeHeightPx}px);
-    backdrop-filter: blur(
-      var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
-    );
-    -webkit-backdrop-filter: blur(
-      var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
-    );
-    /* Opaque at bottom → transparent upward (mirror of nav's to-bottom mask) */
-    -webkit-mask-image: linear-gradient(
-      to top,
-      #000 0,
-      #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
-      transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
-    );
-    mask-image: linear-gradient(
-      to top,
-      #000 0,
-      #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
-      transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
-    );
     pointer-events: none;
     user-select: none;
 
+    /* Soften tiles — same stack as Nav.js Blur, flipped to-top */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(
+        var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
+      );
+      -webkit-backdrop-filter: blur(
+        var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
+      );
+      -webkit-mask-image: linear-gradient(
+        to top,
+        #000 0,
+        #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
+        transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+      );
+      mask-image: linear-gradient(
+        to top,
+        #000 0,
+        #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
+        transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+      );
+    }
+
+    /* Continuous dissolve into page bg (must reach opaque at bottom) */
     &::after {
       content: "";
       position: absolute;
       inset: 0;
       background-image: linear-gradient(
         to top,
-        var(--color-bg-base) 0,
-        transparent 100%
+        var(--color-bg-base) 0%,
+        var(--color-bg-base)
+          var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
+        transparent
+          var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
       );
       opacity: var(--masonry-fade-tint, ${MASONRY_TUNE_DEFAULTS.fadeTint});
     }
@@ -331,15 +346,24 @@ const ContentArea = styled.main`
     order: 2;
     flex: none;
     width: 100%;
-    /* Starts at top of page — nav overlays this band */
+    box-sizing: border-box;
+    /*
+     * Band still begins at the top of the page (nav overlays it), but tiles
+     * are inset ~half nav-height so the visible masonry starts mid-nav.
+     */
     height: var(
       --masonry-grid-height,
       ${MASONRY_TUNE_DEFAULTS.gridHeightVh}vh
     );
+    padding-top: var(
+      --masonry-top-inset,
+      ${MASONRY_TUNE_DEFAULTS.topInsetPx}px
+    );
     margin: 0;
     border: none;
     border-radius: 0;
-    background-color: transparent;
+    /* Match body so any gap under the fade is invisible */
+    background-color: var(--color-bg-base);
   }
 `;
 
