@@ -2,6 +2,8 @@ import styled, { keyframes, css } from "styled-components";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { QUERIES } from "../utils/constants";
 import Icon from "./Icon";
 import Button from "./Button";
 
@@ -137,6 +139,22 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 // Duration calculation: seconds per item for consistent scroll speed
 // Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
 const SECONDS_PER_ITEM = 10;
+
+/** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
+const MASONRY_ROW_GAP = "0.9vh";
+/** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
+const MASONRY_ROW_GAP_PHONE = "4px";
+/** Item aspect-ratio width/height (matches ItemWrapper) */
+const ITEM_ASPECT = 3 / 2;
+
+/**
+ * Intra-row visual gap from the infinite translate inset:
+ *   G ≈ ((1 + inset) / count) × itemWidth
+ * Set G = rowGap → inset = count × rowGap / itemWidth − 1
+ */
+function insetForRowGap(rowGapPx, itemWidthPx, count) {
+  return (count * rowGapPx) / itemWidthPx - 1;
+}
 
 /**
  * Calculate animation duration based on item count and row distribution
@@ -316,8 +334,36 @@ function InfiniteMasonryRow({
   shuffleKey = 0,
   className,
 }) {
+  const rowRef = useRef(null);
+
+  // Keep --inset in sync with GridWrapper’s row-gap token (no flex gap on animated rows)
+  useEffect(() => {
+    const rowEl = rowRef.current;
+    if (!rowEl) return;
+
+    const syncInset = () => {
+      const grid = rowEl.parentElement;
+      if (!grid) return;
+      const gapPx = parseFloat(getComputedStyle(grid).rowGap);
+      const firstItem = rowEl.querySelector(":scope > li");
+      const measuredW = firstItem?.getBoundingClientRect().width;
+      const itemWidth =
+        measuredW > 0 ? measuredW : rowEl.clientHeight * ITEM_ASPECT;
+      if (!Number.isFinite(gapPx) || gapPx <= 0 || itemWidth <= 0) return;
+      const inset = insetForRowGap(gapPx, itemWidth, count);
+      rowEl.style.setProperty("--inset", String(inset));
+    };
+
+    syncInset();
+    const ro = new ResizeObserver(syncInset);
+    ro.observe(rowEl);
+    if (rowEl.parentElement) ro.observe(rowEl.parentElement);
+    return () => ro.disconnect();
+  }, [count, shuffleKey]);
+
   return (
     <RowWrapper
+      ref={rowRef}
       style={{
         "--count": count,
         "--duration": `${duration}s`,
@@ -740,7 +786,6 @@ export default function MasonryGrid({
   items,
   rows = 3,
   duration, // Optional: auto-calculated if not provided
-  gap = 16,
   direction = "left",
   showPauseButton = true,
   showRefreshButton = true,
@@ -774,6 +819,9 @@ export default function MasonryGrid({
   // Track if user prefers reduced motion (using Motion's built-in hook)
   const prefersReducedMotion = usePrefersReducedMotion();
 
+  // Phone layout: icon refresh only — no Shuffle label, pause, or easter egg
+  const isPhone = useMediaQuery(QUERIES.phoneAndBelow);
+
   // Easter egg state
   const [isBroken, setIsBroken] = useState(false);
   const [capturedPositions, setCapturedPositions] = useState(null);
@@ -789,6 +837,14 @@ export default function MasonryGrid({
     setMounted(true);
   }, [items]);
 
+  // Phone has no physics mode; clear a leftover desktop egg so the grid isn't empty
+  useEffect(() => {
+    if (!isPhone || !isBroken) return;
+    setIsBroken(false);
+    setCapturedPositions(null);
+    clickTimestampsRef.current = [];
+  }, [isPhone, isBroken]);
+
   // Force animation restart on resize (Safari-only fix)
   // Safari doesn't properly recalculate percentage-based translate values in running animations
   useEffect(() => {
@@ -799,19 +855,51 @@ export default function MasonryGrid({
     if (!isSafari) return;
 
     let resizeTimeout;
-    const handleResize = () => {
-      // Debounce: only trigger after resize stops
+    let primed = false;
+    let prevWidth = 0;
+    let prevHeight = 0;
+
+    const restartAnimations = () => {
+      const root = gridRef.current;
+      const items = root?.querySelectorAll("li");
+      if (!root || !items?.length) return;
+
+      // Freeze each tile at its current painted position before clearing
+      // animation. A bare `animation: none` falls back to origin-x and reads
+      // as a snap-back on mount / nav (ResizeObserver fires on observe).
+      items.forEach((el) => {
+        const computed = getComputedStyle(el).transform;
+        if (computed && computed !== "none") {
+          el.style.transform = computed;
+        }
+        el.style.animation = "none";
+      });
+      void root.offsetHeight;
+      items.forEach((el) => {
+        el.style.animation = "";
+        el.style.transform = "";
+      });
+    };
+
+    const handleResize = (entries) => {
+      const { width, height } = entries[0].contentRect;
+      if (!primed) {
+        primed = true;
+        prevWidth = width;
+        prevHeight = height;
+        return;
+      }
+      if (
+        Math.abs(width - prevWidth) < 0.5 &&
+        Math.abs(height - prevHeight) < 0.5
+      ) {
+        return;
+      }
+      prevWidth = width;
+      prevHeight = height;
+
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        // Restart CSS animations via DOM (no React re-render needed)
-        const items = gridRef.current?.querySelectorAll("li");
-        if (!items) return;
-        items.forEach((el) => {
-          el.style.animation = "none";
-          el.offsetHeight; // Force reflow
-          el.style.animation = "";
-        });
-      }, 150);
+      resizeTimeout = setTimeout(restartAnimations, 150);
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
@@ -823,15 +911,14 @@ export default function MasonryGrid({
     };
   }, [mounted]);
 
-  // Handle shuffle button visibility with delay for normal users
+  // Handle shuffle/refresh button visibility
   useEffect(() => {
     if (!mounted) return;
 
-    if (prefersReducedMotion) {
-      // For reduced motion users: show shuffle button immediately
+    if (isPhone || prefersReducedMotion) {
       setShuffleButtonVisible(true);
     } else {
-      // For normal users: show shuffle button after 1 second
+      // Desktop: show shuffle button after 1 second
       const timeoutId = setTimeout(() => {
         setShuffleButtonVisible(true);
         // Trigger the icon flip animation on initial reveal
@@ -840,7 +927,7 @@ export default function MasonryGrid({
 
       return () => clearTimeout(timeoutId);
     }
-  }, [mounted, prefersReducedMotion]);
+  }, [mounted, prefersReducedMotion, isPhone]);
 
   // Pause/resume videos when reduced motion preference changes (WCAG 2.2.2)
   // Using our own listener to ensure DevTools emulation is detected
@@ -878,8 +965,9 @@ export default function MasonryGrid({
   }, [mounted, shuffleVersion]);
 
   // Pre-capture video frames once after videos load (for easter egg poster fallback)
+  // Skip on phone — easter egg is disabled there.
   useEffect(() => {
-    if (!mounted || !gridRef.current) return;
+    if (!mounted || isPhone || !gridRef.current) return;
 
     const captureVideoFrames = () => {
       const container = gridRef.current;
@@ -909,7 +997,7 @@ export default function MasonryGrid({
     const timeoutId = setTimeout(captureVideoFrames, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [mounted]);
+  }, [mounted, isPhone]);
 
   // Distribute items across rows
   const rowData = useMemo(() => {
@@ -919,66 +1007,69 @@ export default function MasonryGrid({
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
-    // Preload Matter.js on first click so it's ready by the triggering click
-    preloadMatter();
-
     // Ignore clicks during animation (debounce without visual indicator)
     if (isRefreshing) return;
 
     // Trigger icon flip animation
     setIsFlipping(true);
 
-    // Track click timestamps for easter egg
-    const now = Date.now();
-    clickTimestampsRef.current = [
-      ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
-      now,
-    ];
+    // Desktop only: Matter preload + easter egg click tracking
+    if (!isPhone) {
+      // Preload Matter.js on first click so it's ready by the triggering click
+      preloadMatter();
 
-    // Check if easter egg should trigger
-    if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
-      clickTimestampsRef.current = []; // Reset
+      // Track click timestamps for easter egg
+      const now = Date.now();
+      clickTimestampsRef.current = [
+        ...clickTimestampsRef.current.filter((t) => now - t < EASTER_EGG_WINDOW),
+        now,
+      ];
 
-      // Capture item positions BEFORE hiding the grid
-      if (gridRef.current) {
-        const container = gridRef.current;
-        const rect = container.getBoundingClientRect();
-        const mediaElements = container.querySelectorAll("li");
-        const positions = [];
+      // Check if easter egg should trigger
+      if (clickTimestampsRef.current.length >= EASTER_EGG_CLICKS) {
+        clickTimestampsRef.current = []; // Reset
 
-        // Fast position capture - no canvas work here
-        // Video frames were pre-captured during idle time
-        mediaElements.forEach((el, index) => {
-          const elRect = el.getBoundingClientRect();
-          const mediaSrc =
-            el.querySelector("img")?.src || el.querySelector("video")?.src;
-          const isVideo = !!el.querySelector("video");
+        // Capture item positions BEFORE hiding the grid
+        if (gridRef.current) {
+          const container = gridRef.current;
+          const rect = container.getBoundingClientRect();
+          const mediaElements = container.querySelectorAll("li");
+          const positions = [];
 
-          if (mediaSrc) {
-            // Look up pre-captured video frame (no capture during easter egg)
-            const posterDataUrl = isVideo
-              ? videoFramesRef.current.get(mediaSrc) || null
-              : null;
+          // Fast position capture - no canvas work here
+          // Video frames were pre-captured during idle time
+          mediaElements.forEach((el, index) => {
+            const elRect = el.getBoundingClientRect();
+            const mediaSrc =
+              el.querySelector("img")?.src || el.querySelector("video")?.src;
+            const isVideo = !!el.querySelector("video");
 
-            positions.push({
-              id: index,
-              x: elRect.left - rect.left + elRect.width / 2,
-              y: elRect.top - rect.top + elRect.height / 2,
-              width: elRect.width,
-              height: elRect.height,
-              src: mediaSrc,
-              isVideo,
-              posterDataUrl,
-              angle: 0,
-            });
-          }
-        });
+            if (mediaSrc) {
+              // Look up pre-captured video frame (no capture during easter egg)
+              const posterDataUrl = isVideo
+                ? videoFramesRef.current.get(mediaSrc) || null
+                : null;
 
-        setCapturedPositions(positions);
+              positions.push({
+                id: index,
+                x: elRect.left - rect.left + elRect.width / 2,
+                y: elRect.top - rect.top + elRect.height / 2,
+                width: elRect.width,
+                height: elRect.height,
+                src: mediaSrc,
+                isVideo,
+                posterDataUrl,
+                angle: 0,
+              });
+            }
+          });
+
+          setCapturedPositions(positions);
+        }
+
+        setIsBroken(true);
+        return;
       }
-
-      setIsBroken(true);
-      return;
     }
 
     setIsRefreshing(true);
@@ -992,7 +1083,7 @@ export default function MasonryGrid({
     setShuffledItems(newShuffle);
     // Re-enable button after animation completes
     setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
-  }, [isRefreshing, items, rowData, rows]);
+  }, [isRefreshing, items, rowData, rows, isPhone]);
 
   // Handle reset from broken mode
   const handleFixBroken = useCallback(() => {
@@ -1045,21 +1136,15 @@ export default function MasonryGrid({
       {!isBroken && (
         <ButtonGroup>
           <AnimatePresence>
-            {showRefreshButton && shuffleButtonVisible && (
-              <ShuffleButtonWrapper
-                key="shuffle-button"
-                initial={prefersReducedMotion ? false : { width: 40 }}
-                animate={{ width: "auto" }}
-                transition={{
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
-                }}
-              >
+            {showRefreshButton &&
+              shuffleButtonVisible &&
+              (isPhone ? (
                 <Button
+                  key="refresh-button"
+                  iconOnly
                   size="lg"
                   variant="elevated"
-                  startIcon={
+                  icon={
                     <RefreshIcon
                       name="refresh"
                       $flipping={isFlipping}
@@ -1067,28 +1152,52 @@ export default function MasonryGrid({
                     />
                   }
                   onClick={handleRefresh}
-                  aria-label="Shuffle media"
+                  aria-label="Refresh gallery"
+                />
+              ) : (
+                <ShuffleButtonWrapper
+                  key="shuffle-button"
+                  initial={prefersReducedMotion ? false : { width: 40 }}
+                  animate={{ width: "auto" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                  }}
                 >
-                  <ShuffleText
-                    initial={
-                      prefersReducedMotion
-                        ? false
-                        : { opacity: 0, filter: "blur(8px)" }
+                  <Button
+                    size="lg"
+                    variant="elevated"
+                    startIcon={
+                      <RefreshIcon
+                        name="refresh"
+                        $flipping={isFlipping}
+                        onAnimationEnd={() => setIsFlipping(false)}
+                      />
                     }
-                    animate={{ opacity: 1, filter: "blur(0px)" }}
-                    transition={{
-                      duration: 0.4,
-                      delay: 0.05,
-                      ease: [0.25, 0.1, 0.25, 1],
-                    }}
+                    onClick={handleRefresh}
+                    aria-label="Shuffle media"
                   >
-                    Shuffle
-                  </ShuffleText>
-                </Button>
-              </ShuffleButtonWrapper>
-            )}
+                    <ShuffleText
+                      initial={
+                        prefersReducedMotion
+                          ? false
+                          : { opacity: 0, filter: "blur(8px)" }
+                      }
+                      animate={{ opacity: 1, filter: "blur(0px)" }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 0.05,
+                        ease: [0.25, 0.1, 0.25, 1],
+                      }}
+                    >
+                      Shuffle
+                    </ShuffleText>
+                  </Button>
+                </ShuffleButtonWrapper>
+              ))}
           </AnimatePresence>
-          {showPauseButton && (
+          {showPauseButton && !isPhone && (
             <PauseButton
               iconOnly
               size="lg"
@@ -1113,7 +1222,7 @@ export default function MasonryGrid({
           )}
         </ButtonGroup>
       )}
-      {isBroken && capturedPositions && (
+      {!isPhone && isBroken && capturedPositions && (
         <BrokenPhysicsMode
           capturedPositions={capturedPositions}
           onReset={handleFixBroken}
@@ -1152,9 +1261,7 @@ const ItemWrapper = styled.li`
   /* Enable layering for crossfade */
   position: relative;
 
-  /* Inset: controls gap between items */
-  --inset: -0.9;
-
+  /* Intra-row gap via inherited --inset from RowWrapper (do not redeclare). */
   --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
   --destination-x: calc((var(--index) + 1) * -100%);
 
@@ -1191,6 +1298,9 @@ const MediaLayer = styled(motion.div)`
 `;
 
 const RowWrapper = styled.ul`
+  /* Fallback until ResizeObserver writes the synced value; inherited by items */
+  --inset: -0.9;
+
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   display: flex;
@@ -1202,23 +1312,28 @@ const RowWrapper = styled.ul`
   padding: 0;
   margin: 0;
 
-  /* Reduced motion: add gap and stagger rows */
+  /* Reduced motion: real gap (animation off) — same token as GridWrapper */
   @media (prefers-reduced-motion: reduce) {
-    gap: 0.9vh;
+    gap: var(--masonry-row-gap, ${MASONRY_ROW_GAP});
     /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
     transform: translateX(calc((var(--offset) - 1) * -15%));
   }
 `;
 
 const GridWrapper = styled.section`
+  --masonry-row-gap: ${MASONRY_ROW_GAP};
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.9vh;
+  gap: var(--masonry-row-gap);
   width: 100%;
   height: 100%;
   overflow: hidden;
   padding: var(--spacing-1x) 0;
+
+  @media ${QUERIES.phoneAndBelow} {
+    --masonry-row-gap: ${MASONRY_ROW_GAP_PHONE};
+  }
 `;
 
 const Img = styled.img`
@@ -1249,6 +1364,10 @@ const ButtonGroup = styled.div`
 
   display: flex;
   gap: 12px;
+
+  @media ${QUERIES.phoneAndBelow} {
+    bottom: 12px;
+  }
 `;
 
 const EmptyState = styled.div`
