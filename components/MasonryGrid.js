@@ -358,7 +358,14 @@ function resolveLength(token) {
  * Phase and speed match the former per-tile CSS animation: one pitch
  * (tile + gap) every `duration / count` seconds, rows staggered by ROW_STAGGER.
  */
-function useMarqueeLoop({ gridRef, enabled, paused, duration, direction, layoutKey }) {
+function useMarqueeLoop({
+  gridRef,
+  enabled,
+  paused,
+  duration,
+  direction,
+  layoutKey,
+}) {
   // Survives shuffles, easter-egg resets and pause so rows never jump back
   const elapsedRef = useRef(0);
 
@@ -385,10 +392,8 @@ function useMarqueeLoop({ gridRef, enabled, paused, duration, direction, layoutK
 
     const measure = () => {
       const cs = getComputedStyle(grid);
-      const gap = Math.max(
-        1,
-        Math.round(resolveLength(cs.getPropertyValue("--masonry-row-gap").trim()))
-      );
+      const gapToken = cs.getPropertyValue("--masonry-row-gap").trim();
+      const gap = Math.max(1, Math.round(resolveLength(gapToken)));
       const contentH =
         grid.clientHeight -
         parseFloat(cs.paddingTop) -
@@ -417,7 +422,8 @@ function useMarqueeLoop({ gridRef, enabled, paused, duration, direction, layoutK
           tiles,
           speed,
           // Former CSS delay: −count·0.5s, plus the row's offset fraction
-          phase: speed * tiles.length * 0.5 + loop * (getRowOffset(rowIndex) - 1),
+          phase:
+            speed * tiles.length * 0.5 + loop * (getRowOffset(rowIndex) - 1),
           loopD: loop * dpr,
           baseD: tiles.map((_, i) => Math.round(i * pitch * dpr)),
           lastD: new Array(tiles.length),
