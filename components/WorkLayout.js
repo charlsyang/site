@@ -9,10 +9,7 @@ import {
 } from "../utils/easedGradient";
 import Fleuron from "../public/favicon.svg";
 
-/**
- * Locked phone masonry values (Charlsy-approved).
- * Tune panel removed — these are the production defaults.
- */
+/** Phone masonry layout tokens. */
 const MASONRY_PHONE = {
   gridHeightVh: 55,
   topInsetPx: 20,
@@ -182,10 +179,7 @@ const navFade = keyframes`
     }
 `;
 
-/*
- * Matches components/Nav.js Blur exactly:
- * backdrop-filter + mask-image gradient + tinted bg gradient ::after
- */
+/* Phone-only top blur (same idea as Nav blur; fixed above the grid band). */
 const NavBlur = styled.div`
   display: none;
 
@@ -417,11 +411,7 @@ const ContentArea = styled.main`
     flex: none;
     width: 100%;
     box-sizing: border-box;
-    /*
-     * Offset the band ~half nav-height so visible tiles start mid-nav.
-     * (padding-top won't shift PageTransition's absolute child.)
-     * Nav still overlays the upper portion of this band.
-     */
+    /* Top inset under the fixed nav; padding-top won't shift PageTransition. */
     margin: 0;
     margin-top: ${MASONRY_PHONE.topInsetPx}px;
     height: ${MASONRY_PHONE.gridHeightVh}vh;

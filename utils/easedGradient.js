@@ -18,8 +18,6 @@ export const EASING_PRESETS = {
   "in-out-cubic": [0.65, 0, 0.35, 1],
 };
 
-export const EASING_PRESET_KEYS = Object.keys(EASING_PRESETS);
-
 function clamp01(x) {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
@@ -45,19 +43,11 @@ export function resolveEasing(easing = "ease-in-out") {
 
   const sampleX = (t) => ((ax * t + bx) * t + cx) * t;
   const sampleY = (t) => ((ay * t + by) * t + cy) * t;
-  const sampleDX = (t) => (3 * ax * t + 2 * bx) * t + cx;
 
   function solveX(x) {
-    let t = x;
-    for (let i = 0; i < 8; i++) {
-      const xErr = sampleX(t) - x;
-      const d = sampleDX(t);
-      if (Math.abs(xErr) < 1e-6 || Math.abs(d) < 1e-6) break;
-      t = clamp01(t - xErr / d);
-    }
     let t0 = 0;
     let t1 = 1;
-    t = x;
+    let t = x;
     for (let i = 0; i < 12; i++) {
       const x2 = sampleX(t);
       if (Math.abs(x2 - x) < 1e-6) break;
@@ -100,14 +90,12 @@ export function easedAlphaGradient({
   steps = 16,
   easeA = "ease-in-out",
   easePos = "linear",
-  /** @deprecated use easeA — kept so old call sites keep working */
-  easing,
   solidPct = 0,
   maxAlpha = 1,
 } = {}) {
   const n = Math.max(2, Math.round(steps));
-  const easeAlpha = resolveEasing(easeA ?? easing ?? "ease-in-out");
-  const easePosition = resolveEasing(easePos ?? "linear");
+  const easeAlpha = resolveEasing(easeA);
+  const easePosition = resolveEasing(easePos);
   const solid = clamp01(solidPct / 100);
   const fadeEnd = 1 - solid; // transition occupies [0, fadeEnd]
   const stops = [];
@@ -120,7 +108,7 @@ export function easedAlphaGradient({
   }
 
   for (let i = 0; i < n; i++) {
-    const t = n === 1 ? 1 : i / (n - 1);
+    const t = i / (n - 1);
     // Pen: tp = easePos(t), uA = easeA(t) — same master t, separate curves
     const tp = easePosition(t);
     const uA = easeAlpha(t);
@@ -143,7 +131,6 @@ export function buildFadeTintGradient({
   steps,
   easeA,
   easePos,
-  easing,
   solidPct,
   maxAlpha = 1,
 } = {}) {
@@ -151,7 +138,7 @@ export function buildFadeTintGradient({
     direction,
     color: "var(--color-bg-base)",
     steps,
-    easeA: easeA ?? easing ?? "ease-in-out",
+    easeA: easeA ?? "ease-in-out",
     easePos: easePos ?? "linear",
     solidPct,
     maxAlpha,
@@ -164,27 +151,15 @@ export function buildFadeMaskGradient({
   steps,
   easeA,
   easePos,
-  easing,
   solidPct,
 } = {}) {
   return easedAlphaGradient({
     direction,
     color: "#000",
     steps,
-    easeA: easeA ?? easing ?? "ease-in-out",
+    easeA: easeA ?? "ease-in-out",
     easePos: easePos ?? "linear",
     solidPct,
     maxAlpha: 1,
   });
-}
-
-/** Harsh 2-stop reference (for before/compare). */
-export function buildTwoStopFadeGradient({
-  direction = "to bottom",
-  solidPct = 22,
-  color = "var(--color-bg-base)",
-} = {}) {
-  const solid = clamp01(solidPct / 100);
-  const solidPos = +((1 - solid) * 100).toFixed(2);
-  return `linear-gradient(${direction}, transparent 0%, ${color} ${solidPos}%, ${color} 100%)`;
 }

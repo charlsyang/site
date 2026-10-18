@@ -153,7 +153,6 @@ const ITEM_ASPECT = 3 / 2;
  * Set G = rowGap → inset = count × rowGap / itemWidth − 1
  */
 function insetForRowGap(rowGapPx, itemWidthPx, count) {
-  if (!rowGapPx || !itemWidthPx || count < 1) return -0.9;
   return (count * rowGapPx) / itemWidthPx - 1;
 }
 
@@ -838,6 +837,14 @@ export default function MasonryGrid({
     setMounted(true);
   }, [items]);
 
+  // Phone has no physics mode; clear a leftover desktop egg so the grid isn't empty
+  useEffect(() => {
+    if (!isPhone || !isBroken) return;
+    setIsBroken(false);
+    setCapturedPositions(null);
+    clickTimestampsRef.current = [];
+  }, [isPhone, isBroken]);
+
   // Force animation restart on resize (Safari-only fix)
   // Safari doesn't properly recalculate percentage-based translate values in running animations
   useEffect(() => {
@@ -909,7 +916,6 @@ export default function MasonryGrid({
     if (!mounted) return;
 
     if (isPhone || prefersReducedMotion) {
-      // Phone + reduced motion: show immediately (no expand animation on phone)
       setShuffleButtonVisible(true);
     } else {
       // Desktop: show shuffle button after 1 second
@@ -1255,11 +1261,7 @@ const ItemWrapper = styled.li`
   /* Enable layering for crossfade */
   position: relative;
 
-  /*
-   * Inset controls visual gap between items (infinite path; no flex gap).
-   * MUST inherit --inset from RowWrapper (ResizeObserver). Do not redeclare
-   * --inset here — a local value shadows the synced gutter and breaks phone parity.
-   */
+  /* Intra-row gap via inherited --inset from RowWrapper (do not redeclare). */
   --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
   --destination-x: calc((var(--index) + 1) * -100%);
 
@@ -1363,7 +1365,6 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 12px;
 
-  /* Phone: Charlsy-locked — computed bottom must be 12px */
   @media ${QUERIES.phoneAndBelow} {
     bottom: 12px;
   }

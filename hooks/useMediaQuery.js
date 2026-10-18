@@ -4,7 +4,10 @@ const isRenderingOnServer = typeof window === "undefined";
 
 /**
  * Subscribe to a CSS media query.
- * SSR default is false (desktop-first) so layout/controls don't flash phone UI.
+ *
+ * Lazy init reads `matchMedia` on the client (SSR returns false). Prefer
+ * consumers that defer matched UI until after mount — e.g. MasonryGrid
+ * returns null until mounted — so hydration stays aligned.
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => {
