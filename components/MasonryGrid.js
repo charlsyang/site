@@ -1277,15 +1277,9 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 12px;
 
-  /*
-   * Phone: center the 40px refresh with the "Charlsy Yang" name line.
-   * Intro pulls up by --masonry-headline-overlap; name is 22px / lh 1.2.
-   * Align button geometric center to the name line-box center.
-   */
+  /* Phone: Charlsy-locked — computed bottom must be 12px */
   @media ${QUERIES.phoneAndBelow} {
-    bottom: calc(
-      var(--masonry-headline-overlap, 56px) - (22px * 1.2 / 2) - (40px / 2)
-    );
+    bottom: 12px;
   }
 `;
 
