@@ -198,8 +198,10 @@ function MasonryItem({ item, shuffleKey }) {
   const [posterReadyKey, setPosterReadyKey] = useState(null);
   const posterReady = posterReadyKey === mediaKey;
 
-  // Ref for checking if the image is already loaded (cached)
+  // Refs for checking if media is already loaded (cached)
   const imgRef = useRef(null);
+  const posterRef = useRef(null);
+  const videoRef = useRef(null);
 
   // Track if this is the first render of this component instance
   // Fresh mount = true, re-render (shuffle) = false
@@ -219,23 +221,29 @@ function MasonryItem({ item, shuffleKey }) {
     setIsLoaded(false);
   }, [item.src, shuffleKey]);
 
-  // Check if media is already loaded from cache on mount
-  // This handles the case where onLoad fires before React attaches the listener
-  useEffect(() => {
-    // For images: check if already complete (cached)
-    if (item.type !== "video" && imgRef.current) {
-      if (imgRef.current.complete && imgRef.current.naturalWidth > 0) {
-        setIsLoaded(true);
-      }
-    }
-  }, [item.src, item.type, shuffleKey]);
-
   // Videos are "loaded" once their first-frame poster <img> is ready, never on a
   // video event: iOS may never autoplay (Low Power Mode, deferred loads).
   const handlePosterReady = () => {
     setPosterReadyKey(mediaKey);
     setIsLoaded(true);
   };
+
+  // Check if media is already loaded from cache on mount. This handles the case
+  // where onLoad fired before React attached the listener; it must stay
+  // declared after the reset effect so it runs after setIsLoaded(false).
+  useEffect(() => {
+    const isReady = (img) => img && img.complete && img.naturalWidth > 0;
+    if (item.type !== "video") {
+      if (isReady(imgRef.current)) setIsLoaded(true);
+    } else if (
+      item.poster
+        ? isReady(posterRef.current)
+        : videoRef.current?.readyState >= 2
+    ) {
+      setPosterReadyKey(mediaKey);
+      setIsLoaded(true);
+    }
+  }, [mediaKey, item.type, item.poster]);
 
   // Hide placeholder after unblur animation completes
   useEffect(() => {
@@ -303,6 +311,8 @@ function MasonryItem({ item, shuffleKey }) {
         >
           {item.type === "video" ? (
             <VideoWithPoster
+              posterRef={posterRef}
+              videoRef={videoRef}
               src={item.src}
               poster={item.poster}
               autoPlay={prefersReducedMotion === false}
@@ -332,22 +342,21 @@ const VIDEO_RETRY_DELAY_MS = 1000;
  * only while frames are actually advancing. Errors, aborts, resets and stalls
  * hide the video again (it may paint black or nothing) and retry once.
  */
-function VideoWithPoster({ src, poster, autoPlay, onReady }) {
-  const videoRef = useRef(null);
-  const posterRef = useRef(null);
+function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }) {
   const [isPainting, setIsPainting] = useState(false);
+  // A broken poster can't back the video, so fall back to a plain video tile
+  // that counts as loaded on its first frame.
+  const [posterFailed, setPosterFailed] = useState(false);
+  const hasPoster = !!poster && !posterFailed;
+
+  const handlePosterError = () => {
+    setPosterFailed(true);
+    if (videoRef.current?.readyState >= 2) onReady();
+  };
 
   useEffect(() => {
-    const img = posterRef.current;
-    if (img && img.complete && img.naturalWidth > 0) onReady();
     const video = videoRef.current;
-    if (!poster && video && video.readyState >= 2) onReady();
-    // Mount-only: each shuffle mounts a fresh instance
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !poster) return;
+    if (!hasPoster || !video) return;
     let lastTime = video.currentTime;
     let lastProgress = performance.now();
     let retried = false;
@@ -371,8 +380,21 @@ function VideoWithPoster({ src, poster, autoPlay, onReady }) {
     const onPlay = () => {
       lastProgress = performance.now();
     };
+    // Offscreen tiles may legitimately stop advancing (iOS) without being
+    // paused; don't spend the one retry on them.
+    const isOnScreen = () => {
+      const band = video.closest("section")?.getBoundingClientRect();
+      const r = video.getBoundingClientRect();
+      return (
+        !!band &&
+        r.right > band.left &&
+        r.left < band.right &&
+        r.bottom > 0 &&
+        r.top < window.innerHeight
+      );
+    };
     const watchdog = setInterval(() => {
-      if (video.paused || document.hidden) {
+      if (video.paused || document.hidden || !isOnScreen()) {
         lastProgress = performance.now();
       } else if (performance.now() - lastProgress > VIDEO_STALL_MS) {
         lastProgress = performance.now();
@@ -391,11 +413,11 @@ function VideoWithPoster({ src, poster, autoPlay, onReady }) {
       video.removeEventListener("play", onPlay);
       failEvents.forEach((e) => video.removeEventListener(e, fail));
     };
-  }, [poster, autoPlay]);
+  }, [hasPoster, autoPlay, videoRef]);
 
   return (
     <>
-      {poster && (
+      {hasPoster && (
         <Img
           ref={posterRef}
           src={poster}
@@ -403,7 +425,7 @@ function VideoWithPoster({ src, poster, autoPlay, onReady }) {
           aria-hidden="true"
           draggable={false}
           onLoad={onReady}
-          onError={onReady}
+          onError={handlePosterError}
         />
       )}
       <Video
@@ -414,9 +436,9 @@ function VideoWithPoster({ src, poster, autoPlay, onReady }) {
         muted
         playsInline
         draggable={false}
-        data-over-poster={poster ? "" : undefined}
+        data-over-poster={hasPoster ? "" : undefined}
         data-painting={isPainting ? "" : undefined}
-        onLoadedData={poster ? undefined : onReady}
+        onLoadedData={hasPoster ? undefined : onReady}
       />
     </>
   );
@@ -463,8 +485,8 @@ const timelineNow = () => document.timeline.currentTime ?? performance.now();
  *
  * Animations are reused across shuffles and resizes (keyframes and timing are
  * updated in place), and pause/resume re-locks every tile to one startTime.
- * Phase and speed match the former per-tile CSS animation: one pitch every
- * `duration / count` seconds, rows staggered by ROW_STAGGER.
+ * Each row moves one pitch every `duration / count` seconds, starts half a
+ * loop in, and rows are staggered by ROW_STAGGER.
  */
 function useMarqueeAnimations({
   gridRef,
@@ -479,6 +501,12 @@ function useMarqueeAnimations({
   const elapsedRef = useRef(0);
   const startRef = useRef(null);
   const animsRef = useRef(new Map());
+  // Layout key each animation was last built for
+  const keysRef = useRef(new WeakMap());
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  // Re-evaluates run state without rebuilding animations or observers
+  const syncRef = useRef(null);
 
   useEffect(() => {
     const anims = animsRef.current;
@@ -489,8 +517,13 @@ function useMarqueeAnimations({
   }, []);
 
   useIsomorphicLayoutEffect(() => {
+    syncRef.current?.();
+  }, [paused]);
+
+  useIsomorphicLayoutEffect(() => {
     const grid = gridRef.current;
     const anims = animsRef.current;
+    const keys = keysRef.current;
     const rowEls = grid ? Array.from(grid.querySelectorAll(":scope > ul")) : [];
 
     const elapsedNow = () =>
@@ -545,7 +578,7 @@ function useMarqueeAnimations({
         const tiles = Array.from(row.querySelectorAll(":scope > li"));
         const loop = tiles.length * pitch;
         const speed = loop / duration; // px/s
-        // Former CSS delay (−count·0.5s) plus the row's offset fraction
+        // Half a loop in, plus the row's stagger fraction
         const phase = Math.round(
           speed * tiles.length * 0.5 + loop * (getRowOffset(rowIndex) - 1)
         );
@@ -570,11 +603,11 @@ function useMarqueeAnimations({
           if (!anim) {
             anim = el.animate(keyframes, timing);
             anims.set(el, anim);
-          } else if (anim.marqueeKey !== key) {
+          } else if (keys.get(anim) !== key) {
             anim.effect.setKeyframes(keyframes);
             anim.effect.updateTiming(timing);
           }
-          anim.marqueeKey = key;
+          keys.set(anim, key);
         });
       });
       cancelExcept(keep);
@@ -597,7 +630,7 @@ function useMarqueeAnimations({
 
     let onScreen = true;
     const sync = () => {
-      const run = !paused && onScreen && !document.hidden;
+      const run = !pausedRef.current && onScreen && !document.hidden;
       if (run && startRef.current === null) {
         startRef.current = timelineNow() - elapsedRef.current * 1000;
       } else if (!run && startRef.current !== null) {
@@ -609,6 +642,7 @@ function useMarqueeAnimations({
 
     apply();
     sync();
+    syncRef.current = sync;
 
     const resizeObserver = new ResizeObserver(() => {
       apply();
@@ -617,7 +651,9 @@ function useMarqueeAnimations({
     resizeObserver.observe(grid);
 
     const intersectionObserver = new IntersectionObserver((entries) => {
-      onScreen = entries[entries.length - 1].isIntersecting;
+      const next = entries[entries.length - 1].isIntersecting;
+      if (next === onScreen) return;
+      onScreen = next;
       sync();
       grid.querySelectorAll("video").forEach((video) => {
         if (onScreen) video.play().catch(() => {});
@@ -629,11 +665,12 @@ function useMarqueeAnimations({
     document.addEventListener("visibilitychange", sync);
 
     return () => {
+      syncRef.current = null;
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener("visibilitychange", sync);
     };
-  }, [gridRef, enabled, paused, duration, direction, layoutKey]);
+  }, [gridRef, enabled, duration, direction, layoutKey]);
 }
 
 // ============================================
@@ -1536,7 +1573,6 @@ const Video = styled.video`
   object-position: center;
   user-select: none;
   -webkit-user-drag: none;
-
 
   /* Over the poster <img>, same box and fit, shown only while painting */
   &[data-over-poster] {
