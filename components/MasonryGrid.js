@@ -721,6 +721,7 @@ const PHYSICS_BOUNDS = {
     wallOffset: 200,
     groundInset: 0,
     maxBodies: Infinity,
+    tileScale: 1,
     maxThrow: Infinity,
     rescueEscaped: false,
   },
@@ -731,6 +732,8 @@ const PHYSICS_BOUNDS = {
     // Rest on the headline that overlaps the band (WorkLayout headlineOverlapPx)
     groundInset: 56,
     maxBodies: 8,
+    // Full-size phone tiles (~2 per screen width) bury the band and the message
+    tileScale: 0.65,
     maxThrow: 30,
     rescueEscaped: true,
   },
@@ -752,8 +755,8 @@ function tileTransform(x, y, angle, width, height) {
 }
 
 /**
- * Phone: keep only on-screen tiles (most central first, capped) and pull
- * their bodies inside the edge-to-edge walls.
+ * Phone: keep only on-screen tiles (most central first, capped), shrink them,
+ * and pull their bodies inside the edge-to-edge walls.
  */
 function fitItemsToBounds(items, bounds, width) {
   if (!Number.isFinite(bounds.maxBodies)) return items;
@@ -764,8 +767,14 @@ function fitItemsToBounds(items, bounds, width) {
     .sort((a, b) => Math.abs(a.x - width / 2) - Math.abs(b.x - width / 2))
     .slice(0, bounds.maxBodies)
     .map((item) => {
-      const half = (item.width * BODY_SCALE) / 2;
-      return { ...item, x: Math.min(Math.max(item.x, half), width - half) };
+      const tileWidth = item.width * bounds.tileScale;
+      const half = (tileWidth * BODY_SCALE) / 2;
+      return {
+        ...item,
+        width: tileWidth,
+        height: item.height * bounds.tileScale,
+        x: Math.min(Math.max(item.x, half), width - half),
+      };
     });
 }
 
@@ -1158,6 +1167,7 @@ function BrokenPhysicsMode({
             else elementsRef.current.delete(item.id);
           }}
           style={{
+            "--settle-from": 1 / bounds.tileScale,
             width: item.width,
             height: item.height,
             transform: tileTransform(
@@ -1922,6 +1932,13 @@ const ContactButton = styled(Button)`
   animation: ${FadeIn} 0.3s ease-out 0.8s both;
 `;
 
+/* Shrinks from grid size to the (smaller) phone physics size; 1 on desktop */
+const SettleIn = keyframes`
+  from {
+    scale: var(--settle-from);
+  }
+`;
+
 const PhysicsItem = styled.div`
   ${sharedMediaItemStyles}
   position: absolute;
@@ -1936,6 +1953,10 @@ const PhysicsItem = styled.div`
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   cursor: grab;
+
+  @media ${QUERIES.phoneAndBelow} {
+    animation: ${SettleIn} 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 
   &:active {
     cursor: grabbing;
