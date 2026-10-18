@@ -192,10 +192,18 @@ function MasonryItem({ item, shuffleKey }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
+  // Keyed to the current media so a shuffle never inherits the previous
+  // item's ready state for a render before the reset effect runs.
+  const mediaKey = `${item.src}-${shuffleKey}`;
+  const [posterReadyKey, setPosterReadyKey] = useState(null);
+  const [playingKey, setPlayingKey] = useState(null);
+  const posterReady = posterReadyKey === mediaKey;
+  const isPlaying = playingKey === mediaKey;
 
   // Refs for checking if media is already loaded (cached)
   const imgRef = useRef(null);
   const videoRef = useRef(null);
+  const posterRef = useRef(null);
 
   // Track if this is the first render of this component instance
   // Fresh mount = true, re-render (shuffle) = false
@@ -224,27 +232,27 @@ function MasonryItem({ item, shuffleKey }) {
         setIsLoaded(true);
       }
     }
-    // For videos: check if enough data is loaded (readyState >= 2 means HAVE_CURRENT_DATA)
-    if (item.type === "video" && videoRef.current) {
-      if (videoRef.current.readyState >= 2) {
+    if (item.type === "video") {
+      const poster = posterRef.current;
+      if (poster && poster.complete && poster.naturalWidth > 0) {
+        setPosterReadyKey(mediaKey);
+        setIsLoaded(true);
+      }
+      const video = videoRef.current;
+      if (video && video.readyState >= 2 && !video.paused) {
+        setPlayingKey(mediaKey);
         setIsLoaded(true);
       }
     }
-  }, [item.src, item.type, shuffleKey]);
+  }, [item.src, item.type, shuffleKey, mediaKey]);
 
-  // Videos count as loaded once their first-frame poster is ready, so the tile
-  // unblurs even when autoplay is blocked (iOS Low Power Mode never fires
-  // loadeddata without playback).
-  useEffect(() => {
-    if (item.type !== "video" || !item.poster) return;
-    const poster = new Image();
-    poster.onload = () => setIsLoaded(true);
-    poster.src = item.poster;
-    if (poster.complete && poster.naturalWidth > 0) setIsLoaded(true);
-    return () => {
-      poster.onload = null;
-    };
-  }, [item.poster, item.type, shuffleKey]);
+  // Videos are "loaded" once their first-frame poster <img> is ready, never on a
+  // video event: iOS may never autoplay (Low Power Mode, deferred loads) and
+  // WebKit doesn't reliably paint a <video> poster while its load is pending.
+  const handlePosterReady = () => {
+    setPosterReadyKey(mediaKey);
+    setIsLoaded(true);
+  };
 
   // Hide placeholder after unblur animation completes
   useEffect(() => {
@@ -303,23 +311,43 @@ function MasonryItem({ item, shuffleKey }) {
               ? isLoaded || !hasPlaceholder
                 ? { opacity: 1, filter: "blur(0px)" }
                 : { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
-              : "animate"
+              : item.type === "video" && item.poster && !posterReady && !isPlaying
+                ? "initial"
+                : "animate"
           }
           exit="exit"
           transition={crossfadeTransition}
         >
           {item.type === "video" ? (
-            <Video
-              ref={videoRef}
-              src={item.src}
-              poster={item.poster}
-              autoPlay={prefersReducedMotion === false}
-              loop
-              muted
-              playsInline
-              draggable={false}
-              onLoadedData={() => setIsLoaded(true)}
-            />
+            <>
+              <Video
+                ref={videoRef}
+                src={item.src}
+                poster={item.poster}
+                autoPlay={prefersReducedMotion === false}
+                loop
+                muted
+                playsInline
+                draggable={false}
+                onPlaying={() => {
+                  setPlayingKey(mediaKey);
+                  setIsLoaded(true);
+                }}
+                onLoadedData={item.poster ? undefined : () => setIsLoaded(true)}
+              />
+              {item.poster && (
+                <PosterImg
+                  ref={posterRef}
+                  src={item.poster}
+                  alt=""
+                  aria-hidden="true"
+                  draggable={false}
+                  data-playing={isPlaying ? "" : undefined}
+                  onLoad={handlePosterReady}
+                  onError={handlePosterReady}
+                />
+              )}
+            </>
           ) : (
             <Img
               ref={imgRef}
@@ -1153,7 +1181,7 @@ export default function MasonryGrid({
           mediaElements.forEach((el, index) => {
             const elRect = el.getBoundingClientRect();
             const mediaSrc =
-              el.querySelector("img")?.src || el.querySelector("video")?.src;
+              el.querySelector("video")?.src || el.querySelector("img")?.src;
             const isVideo = !!el.querySelector("video");
 
             if (mediaSrc) {
@@ -1449,6 +1477,19 @@ const Video = styled.video`
   object-position: center;
   user-select: none;
   -webkit-user-drag: none;
+
+`;
+
+/* Covers the video (which stays visible, so autoplay heuristics still treat it
+   as on-screen) until frames are actually playing */
+const PosterImg = styled(Img)`
+  position: absolute;
+  inset: 0;
+  transition: opacity 200ms linear;
+
+  &[data-playing] {
+    opacity: 0;
+  }
 `;
 
 const ButtonGroup = styled.div`
