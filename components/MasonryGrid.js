@@ -338,6 +338,22 @@ const VIDEO_STALL_MS = 3000;
 const VIDEO_RETRY_DELAY_MS = 1000;
 
 /**
+ * Drops the source when the video unmounts so its decoder and buffers are
+ * freed right away; WebKit can otherwise keep a removed video fully loaded.
+ */
+function useReleaseVideoOnUnmount(videoRef) {
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    return () => {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    };
+  }, [videoRef]);
+}
+
+/**
  * The first-frame poster <img> always stays underneath; the video covers it
  * only while frames are actually advancing. Errors, aborts, resets and stalls
  * hide the video again (it may paint black or nothing) and retry once.
@@ -367,6 +383,8 @@ function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }
       if (retried) return;
       retried = true;
       retryTimer = setTimeout(() => {
+        // Never reload a video that was released on unmount
+        if (!video.hasAttribute("src")) return;
         lastProgress = performance.now();
         video.load();
       }, VIDEO_RETRY_DELAY_MS);
@@ -414,6 +432,9 @@ function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }
       failEvents.forEach((e) => video.removeEventListener(e, fail));
     };
   }, [hasPoster, autoPlay, videoRef]);
+
+  // Declared after the watchdog so its listeners and retry timer go first
+  useReleaseVideoOnUnmount(videoRef);
 
   return (
     <>
@@ -699,6 +720,12 @@ function preloadMatter() {
     matterPreloadPromise = import("matter-js").then((m) => m.default);
   }
   return matterPreloadPromise;
+}
+
+function PhysicsVideo(props) {
+  const videoRef = useRef(null);
+  useReleaseVideoOnUnmount(videoRef);
+  return <Video ref={videoRef} {...props} />;
 }
 
 const CONTACT_BUTTON_URL =
@@ -1048,7 +1075,7 @@ function BrokenPhysicsMode({ capturedPositions, onReset, containerRef }) {
           onPointerCancel={handlePointerUp}
         >
           {item.isVideo ? (
-            <Video
+            <PhysicsVideo
               src={item.src}
               poster={item.posterDataUrl || undefined}
               autoPlay={prefersReducedMotion === false}
