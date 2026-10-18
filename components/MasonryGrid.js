@@ -1,5 +1,12 @@
 import styled, { keyframes, css } from "styled-components";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -140,21 +147,14 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 // Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
 const SECONDS_PER_ITEM = 10;
 
-/** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
+/** Shared gutter token — between rows and between tiles (rounded to whole px) */
 const MASONRY_ROW_GAP = "0.9vh";
 /** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
 const MASONRY_ROW_GAP_PHONE = "4px";
 /** Item aspect-ratio width/height (matches ItemWrapper) */
 const ITEM_ASPECT = 3 / 2;
-
-/**
- * Intra-row visual gap from the infinite translate inset:
- *   G ≈ ((1 + inset) / count) × itemWidth
- * Set G = rowGap → inset = count × rowGap / itemWidth − 1
- */
-function insetForRowGap(rowGapPx, itemWidthPx, count) {
-  return (count * rowGapPx) / itemWidthPx - 1;
-}
+/** Fraction of a loop each successive row starts ahead of the previous one */
+const ROW_STAGGER = 0.3;
 
 /**
  * Calculate animation duration based on item count and row distribution
@@ -188,7 +188,7 @@ const crossfadeTransition = {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, index, animationPaused, shuffleKey }) {
+function MasonryItem({ item, shuffleKey }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
@@ -259,16 +259,16 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
 
   return (
     <ItemWrapper
-      style={{
-        "--index": index,
+      style={
         // Show blur placeholder as background during reveal
-        ...(showPlaceholder && {
-          backgroundImage: `url(${item.blurDataURL})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }),
-      }}
-      $paused={animationPaused}
+        showPlaceholder
+          ? {
+              backgroundImage: `url(${item.blurDataURL})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
       aria-hidden={item.isDuplicate ? "true" : undefined}
     >
       <AnimatePresence mode="popLayout">
@@ -321,65 +321,183 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
 }
 
 // ============================================
+// Marquee loop (one rAF loop per grid)
+// ============================================
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+/** Row offset (1.0, 1.3, 1.6, …) — loop phase and reduced-motion stagger */
+function getRowOffset(rowIndex) {
+  return 1 + rowIndex * ROW_STAGGER;
+}
+
+/** Resolve a px / vh / vw / rem token to CSS px */
+function resolveLength(token) {
+  const value = parseFloat(token);
+  if (!Number.isFinite(value)) return 0;
+  if (token.endsWith("vh")) return (value * window.innerHeight) / 100;
+  if (token.endsWith("vw")) return (value * window.innerWidth) / 100;
+  if (token.endsWith("rem")) {
+    const rootSize = getComputedStyle(document.documentElement).fontSize;
+    return value * parseFloat(rootSize);
+  }
+  return value;
+}
+
+/**
+ * Scrolls every row's tiles with one requestAnimationFrame loop, writing
+ * transforms straight to the DOM (no React state per frame).
+ *
+ * Geometry is whole CSS px (row height, tile width, gap) and the shared
+ * per-row scroll offset is snapped to device pixels before the modulo, so
+ * every tile in a row lands on the same device-pixel grid and the gaps can't
+ * drift apart on high-DPR screens. A tile leaving the left edge jumps by one
+ * loop width to the offscreen right — no animation restart, no clone track.
+ *
+ * Phase and speed match the former per-tile CSS animation: one pitch
+ * (tile + gap) every `duration / count` seconds, rows staggered by ROW_STAGGER.
+ */
+function useMarqueeLoop({ gridRef, enabled, paused, duration, direction, layoutKey }) {
+  // Survives shuffles, easter-egg resets and pause so rows never jump back
+  const elapsedRef = useRef(0);
+
+  useIsomorphicLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const rowEls = Array.from(grid.querySelectorAll(":scope > ul"));
+    if (rowEls.length === 0) return;
+
+    if (!enabled) {
+      delete grid.dataset.marquee;
+      rowEls.forEach((row) =>
+        row.querySelectorAll(":scope > li").forEach((li) => {
+          li.style.transform = "";
+        })
+      );
+      return;
+    }
+
+    const sign = direction === "right" ? -1 : 1;
+    let rows = [];
+    let dpr = 1;
+    let tileWd = 0;
+
+    const measure = () => {
+      const cs = getComputedStyle(grid);
+      const gap = Math.max(
+        1,
+        Math.round(resolveLength(cs.getPropertyValue("--masonry-row-gap").trim()))
+      );
+      const contentH =
+        grid.clientHeight -
+        parseFloat(cs.paddingTop) -
+        parseFloat(cs.paddingBottom);
+      const rowCount = rowEls.length;
+      // Even row height keeps the 3:2 tile width a whole px
+      const rowH = Math.max(
+        2,
+        Math.floor((contentH - (rowCount - 1) * gap) / rowCount / 2) * 2
+      );
+      const tileW = rowH * ITEM_ASPECT;
+      const pitch = tileW + gap;
+      dpr = window.devicePixelRatio || 1;
+      tileWd = Math.round(tileW * dpr);
+
+      grid.style.setProperty("--masonry-gap-px", `${gap}px`);
+      grid.style.setProperty("--masonry-row-h", `${rowH}px`);
+      grid.style.setProperty("--masonry-tile-w", `${tileW}px`);
+      grid.dataset.marquee = "";
+
+      rows = rowEls.map((row, rowIndex) => {
+        const tiles = Array.from(row.querySelectorAll(":scope > li"));
+        const loop = tiles.length * pitch;
+        const speed = loop / duration;
+        return {
+          tiles,
+          speed,
+          // Former CSS delay: −count·0.5s, plus the row's offset fraction
+          phase: speed * tiles.length * 0.5 + loop * (getRowOffset(rowIndex) - 1),
+          loopD: loop * dpr,
+          baseD: tiles.map((_, i) => Math.round(i * pitch * dpr)),
+          lastD: new Array(tiles.length),
+        };
+      });
+    };
+
+    const render = () => {
+      const t = elapsedRef.current;
+      for (const row of rows) {
+        const shiftD = Math.round(sign * (row.speed * t + row.phase) * dpr);
+        for (let i = 0; i < row.tiles.length; i++) {
+          const xD =
+            ((((row.baseD[i] - shiftD) % row.loopD) + row.loopD) % row.loopD) -
+            tileWd;
+          if (row.lastD[i] === xD) continue;
+          row.lastD[i] = xD;
+          row.tiles[i].style.transform = `translate3d(${xD / dpr}px, 0, 0)`;
+        }
+      }
+    };
+
+    let rafId = 0;
+    let lastTs = 0;
+    let onScreen = true;
+
+    const frame = (ts) => {
+      elapsedRef.current += Math.max(0, ts - lastTs) / 1000;
+      lastTs = ts;
+      render();
+      rafId = requestAnimationFrame(frame);
+    };
+
+    const sync = () => {
+      const shouldRun = !paused && onScreen && !document.hidden;
+      if (shouldRun && !rafId) {
+        lastTs = performance.now();
+        rafId = requestAnimationFrame(frame);
+      } else if (!shouldRun && rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    };
+
+    measure();
+    render();
+    sync();
+
+    const resizeObserver = new ResizeObserver(() => {
+      measure();
+      render();
+    });
+    resizeObserver.observe(grid);
+
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      sync();
+    });
+    intersectionObserver.observe(grid);
+
+    document.addEventListener("visibilitychange", sync);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [gridRef, enabled, paused, duration, direction, layoutKey]);
+}
+
+// ============================================
 // InfiniteMasonryRow Component
 // ============================================
 
-function InfiniteMasonryRow({
-  items,
-  count,
-  duration = 30,
-  offset = 1.2,
-  direction = "left",
-  animationPaused = false,
-  shuffleKey = 0,
-  className,
-}) {
-  const rowRef = useRef(null);
-
-  // Keep --inset in sync with GridWrapper’s row-gap token (no flex gap on animated rows)
-  useEffect(() => {
-    const rowEl = rowRef.current;
-    if (!rowEl) return;
-
-    const syncInset = () => {
-      const grid = rowEl.parentElement;
-      if (!grid) return;
-      const gapPx = parseFloat(getComputedStyle(grid).rowGap);
-      const firstItem = rowEl.querySelector(":scope > li");
-      const measuredW = firstItem?.getBoundingClientRect().width;
-      const itemWidth =
-        measuredW > 0 ? measuredW : rowEl.clientHeight * ITEM_ASPECT;
-      if (!Number.isFinite(gapPx) || gapPx <= 0 || itemWidth <= 0) return;
-      const inset = insetForRowGap(gapPx, itemWidth, count);
-      rowEl.style.setProperty("--inset", String(inset));
-    };
-
-    syncInset();
-    const ro = new ResizeObserver(syncInset);
-    ro.observe(rowEl);
-    if (rowEl.parentElement) ro.observe(rowEl.parentElement);
-    return () => ro.disconnect();
-  }, [count, shuffleKey]);
-
+function InfiniteMasonryRow({ items, offset = 1, shuffleKey = 0, className }) {
   return (
-    <RowWrapper
-      ref={rowRef}
-      style={{
-        "--count": count,
-        "--duration": `${duration}s`,
-        "--offset": offset,
-      }}
-      $direction={direction}
-      className={className}
-    >
+    <RowWrapper style={{ "--offset": offset }} className={className}>
       {items.map((item, index) => (
-        <MasonryItem
-          key={index}
-          item={item}
-          index={index}
-          animationPaused={animationPaused}
-          shuffleKey={shuffleKey}
-        />
+        <MasonryItem key={index} item={item} shuffleKey={shuffleKey} />
       ))}
     </RowWrapper>
   );
@@ -845,72 +963,6 @@ export default function MasonryGrid({
     clickTimestampsRef.current = [];
   }, [isPhone, isBroken]);
 
-  // Force animation restart on resize (Safari-only fix)
-  // Safari doesn't properly recalculate percentage-based translate values in running animations
-  useEffect(() => {
-    if (!mounted || !gridRef.current) return;
-
-    // Only apply workaround for Safari (not Chrome, which handles this correctly)
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (!isSafari) return;
-
-    let resizeTimeout;
-    let primed = false;
-    let prevWidth = 0;
-    let prevHeight = 0;
-
-    const restartAnimations = () => {
-      const root = gridRef.current;
-      const items = root?.querySelectorAll("li");
-      if (!root || !items?.length) return;
-
-      // Freeze each tile at its current painted position before clearing
-      // animation. A bare `animation: none` falls back to origin-x and reads
-      // as a snap-back on mount / nav (ResizeObserver fires on observe).
-      items.forEach((el) => {
-        const computed = getComputedStyle(el).transform;
-        if (computed && computed !== "none") {
-          el.style.transform = computed;
-        }
-        el.style.animation = "none";
-      });
-      void root.offsetHeight;
-      items.forEach((el) => {
-        el.style.animation = "";
-        el.style.transform = "";
-      });
-    };
-
-    const handleResize = (entries) => {
-      const { width, height } = entries[0].contentRect;
-      if (!primed) {
-        primed = true;
-        prevWidth = width;
-        prevHeight = height;
-        return;
-      }
-      if (
-        Math.abs(width - prevWidth) < 0.5 &&
-        Math.abs(height - prevHeight) < 0.5
-      ) {
-        return;
-      }
-      prevWidth = width;
-      prevHeight = height;
-
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(restartAnimations, 150);
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(gridRef.current);
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      resizeObserver.disconnect();
-    };
-  }, [mounted]);
-
   // Handle shuffle/refresh button visibility
   useEffect(() => {
     if (!mounted) return;
@@ -1085,6 +1137,15 @@ export default function MasonryGrid({
     setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
   }, [isRefreshing, items, rowData, rows, isPhone]);
 
+  useMarqueeLoop({
+    gridRef,
+    enabled: mounted && prefersReducedMotion === false,
+    paused: userPaused,
+    duration: effectiveDuration,
+    direction,
+    layoutKey: isBroken ? null : rowData,
+  });
+
   // Handle reset from broken mode
   const handleFixBroken = useCallback(() => {
     setIsBroken(false);
@@ -1093,12 +1154,6 @@ export default function MasonryGrid({
     setShuffleVersion((v) => v + 1);
     setShuffledItems(shuffleArray(items));
   }, [items]);
-
-  // Calculate offset for each row to create stagger
-  const getRowOffset = (rowIndex) => {
-    const baseOffset = 1;
-    return baseOffset + rowIndex * 0.3;
-  };
 
   // Handle empty state
   if (!items || items.length === 0) {
@@ -1125,11 +1180,7 @@ export default function MasonryGrid({
           <InfiniteMasonryRow
             key={rowIndex}
             items={rowItems}
-            count={rowItems.length}
-            duration={effectiveDuration}
             offset={getRowOffset(rowIndex)}
-            direction={direction}
-            animationPaused={userPaused}
             shuffleKey={shuffleVersion}
           />
         ))}
@@ -1244,47 +1295,23 @@ const sharedMediaItemStyles = css`
   background: var(--color-bg-hover);
 `;
 
-const scrollLeft = keyframes`
-  100% {
-    transform: translateX(var(--destination-x));
-  }
-`;
-
 const ItemWrapper = styled.li`
   ${sharedMediaItemStyles}
   flex-shrink: 0;
 
-  /* Size based on row height, width derived from aspect ratio */
+  /* Static layout (reduced motion): size from row height */
+  position: relative;
   height: 100%;
   aspect-ratio: 3 / 2;
 
-  /* Enable layering for crossfade */
-  position: relative;
-
-  /* Intra-row gap via inherited --inset from RowWrapper (do not redeclare). */
-  --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
-  --destination-x: calc((var(--index) + 1) * -100%);
-
-  --delay: calc(
-    (var(--duration) / var(--count)) *
-      (var(--index, 0) - (var(--count) * var(--offset)))
-  );
-
-  /* Initial position */
-  transform: translateX(var(--origin-x));
-
-  /* Animation */
-  animation: ${scrollLeft} var(--duration)
-    calc(var(--delay) - (var(--count) * 0.5s)) infinite linear;
-  animation-play-state: ${({ $paused }) => ($paused ? "paused" : "running")};
-
-  /* GPU acceleration */
-  will-change: transform;
-
-  /* Reduced motion fallback */
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    transform: translateX(0);
+  /* Marquee: whole-px box, x written each frame by useMarqueeLoop */
+  [data-marquee] & {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--masonry-tile-w);
+    height: var(--masonry-row-h);
+    will-change: transform;
   }
 `;
 
@@ -1298,23 +1325,23 @@ const MediaLayer = styled(motion.div)`
 `;
 
 const RowWrapper = styled.ul`
-  /* Fallback until ResizeObserver writes the synced value; inherited by items */
-  --inset: -0.9;
-
+  position: relative;
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: var(--masonry-row-gap);
 
   /* Reset list styles */
   list-style: none;
   padding: 0;
   margin: 0;
 
-  /* Reduced motion: real gap (animation off) — same token as GridWrapper */
+  [data-marquee] > & {
+    flex: 0 0 var(--masonry-row-h);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    gap: var(--masonry-row-gap, ${MASONRY_ROW_GAP});
     /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
     transform: translateX(calc((var(--offset) - 1) * -15%));
   }
@@ -1333,6 +1360,12 @@ const GridWrapper = styled.section`
 
   @media ${QUERIES.phoneAndBelow} {
     --masonry-row-gap: ${MASONRY_ROW_GAP_PHONE};
+  }
+
+  /* Whole-px rows and gap; leftover px split above and below */
+  &[data-marquee] {
+    gap: var(--masonry-gap-px);
+    justify-content: center;
   }
 `;
 
