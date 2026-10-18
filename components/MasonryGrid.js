@@ -848,19 +848,51 @@ export default function MasonryGrid({
     if (!isSafari) return;
 
     let resizeTimeout;
-    const handleResize = () => {
-      // Debounce: only trigger after resize stops
+    let primed = false;
+    let prevWidth = 0;
+    let prevHeight = 0;
+
+    const restartAnimations = () => {
+      const root = gridRef.current;
+      const items = root?.querySelectorAll("li");
+      if (!root || !items?.length) return;
+
+      // Freeze each tile at its current painted position before clearing
+      // animation. A bare `animation: none` falls back to origin-x and reads
+      // as a snap-back on mount / nav (ResizeObserver fires on observe).
+      items.forEach((el) => {
+        const computed = getComputedStyle(el).transform;
+        if (computed && computed !== "none") {
+          el.style.transform = computed;
+        }
+        el.style.animation = "none";
+      });
+      void root.offsetHeight;
+      items.forEach((el) => {
+        el.style.animation = "";
+        el.style.transform = "";
+      });
+    };
+
+    const handleResize = (entries) => {
+      const { width, height } = entries[0].contentRect;
+      if (!primed) {
+        primed = true;
+        prevWidth = width;
+        prevHeight = height;
+        return;
+      }
+      if (
+        Math.abs(width - prevWidth) < 0.5 &&
+        Math.abs(height - prevHeight) < 0.5
+      ) {
+        return;
+      }
+      prevWidth = width;
+      prevHeight = height;
+
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        // Restart CSS animations via DOM (no React re-render needed)
-        const items = gridRef.current?.querySelectorAll("li");
-        if (!items) return;
-        items.forEach((el) => {
-          el.style.animation = "none";
-          el.offsetHeight; // Force reflow
-          el.style.animation = "";
-        });
-      }, 150);
+      resizeTimeout = setTimeout(restartAnimations, 150);
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
