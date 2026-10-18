@@ -1278,9 +1278,9 @@ const ButtonGroup = styled.div`
   gap: 12px;
 
   /*
-   * Phone: optically center the 40px refresh with the "Charlsy Yang" name line.
-   * Intro pulls up by --masonry-headline-overlap; name is 22px / lh 1.2 at the
-   * top of that overlap zone. Align button center to name optical center.
+   * Phone: center the 40px refresh with the "Charlsy Yang" name line.
+   * Intro pulls up by --masonry-headline-overlap; name is 22px / lh 1.2.
+   * Align button geometric center to the name line-box center.
    */
   @media ${QUERIES.phoneAndBelow} {
     bottom: calc(
