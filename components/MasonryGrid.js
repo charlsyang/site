@@ -111,7 +111,7 @@ const CrossfadeLayer = forwardRef(function CrossfadeLayer(props, ref) {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, shuffleKey }) {
+function MasonryItem({ item, shuffleKey, onExitsCommitted }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
@@ -131,6 +131,18 @@ function MasonryItem({ item, shuffleKey }) {
     !!item.poster &&
     mediaKey !== mountKeyRef.current &&
     settledKey !== mediaKey;
+
+  // When AnimatePresence finishes an exit it queues a render with the
+  // children it held at that moment. A shuffle committed before that render
+  // gets overwritten: the new layer drops, then remounts and blurs in again
+  // over the same media. So the grid takes the next shuffle only once every
+  // tile's exits have committed.
+  const shuffleKeyRef = useRef(shuffleKey);
+  shuffleKeyRef.current = shuffleKey;
+  const [exitsDoneKey, setExitsDoneKey] = useState(null);
+  useEffect(() => {
+    if (exitsDoneKey !== null) onExitsCommitted?.(exitsDoneKey);
+  }, [exitsDoneKey, onExitsCommitted]);
 
   // Refs for checking if media is already loaded (cached)
   const imgRef = useRef(null);
@@ -218,7 +230,10 @@ function MasonryItem({ item, shuffleKey }) {
       }
       aria-hidden={item.isDuplicate ? "true" : undefined}
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence
+        mode="popLayout"
+        onExitComplete={() => setExitsDoneKey(shuffleKeyRef.current)}
+      >
         <CrossfadeLayer
           key={`${item.src}-${shuffleKey}`}
           variants={crossfadeVariants}
@@ -648,11 +663,22 @@ function useMarqueeAnimations({
 // InfiniteMasonryRow Component
 // ============================================
 
-function InfiniteMasonryRow({ items, offset = 1, shuffleKey = 0, className }) {
+function InfiniteMasonryRow({
+  items,
+  offset = 1,
+  shuffleKey = 0,
+  onExitsCommitted,
+  className,
+}) {
   return (
     <RowWrapper style={{ "--offset": offset }} className={className}>
       {items.map((item, index) => (
-        <MasonryItem key={index} item={item} shuffleKey={shuffleKey} />
+        <MasonryItem
+          key={index}
+          item={item}
+          shuffleKey={shuffleKey}
+          onExitsCommitted={onExitsCommitted}
+        />
       ))}
     </RowWrapper>
   );
@@ -1090,6 +1116,8 @@ export default function MasonryGrid({
   // Ignores clicks during the crossfade. A ref, so a second tap in the same
   // frame can never start a shuffle from a stale layout.
   const refreshLockedRef = useRef(false);
+  const unlockTimerRef = useRef(null);
+  const exitsRef = useRef({ key: null, count: 0 });
 
   // Icon flip animation state
   const [isFlipping, setIsFlipping] = useState(false);
@@ -1221,6 +1249,36 @@ export default function MasonryGrid({
     return distributeItems(layoutItems(layout), rows);
   }, [layout, rows]);
 
+  const shuffleVersionRef = useRef(shuffleVersion);
+  shuffleVersionRef.current = shuffleVersion;
+  const tileCountRef = useRef(0);
+  tileCountRef.current = rowData.reduce((n, row) => n + row.length, 0);
+
+  const unlockRefresh = useCallback(() => {
+    clearTimeout(unlockTimerRef.current);
+    refreshLockedRef.current = false;
+  }, []);
+
+  useEffect(() => () => clearTimeout(unlockTimerRef.current), []);
+
+  const handleExitsCommitted = useCallback(
+    (key) => {
+      const exits = exitsRef.current;
+      if (exits.key !== key) {
+        exits.key = key;
+        exits.count = 0;
+      }
+      exits.count++;
+      if (
+        key === shuffleVersionRef.current &&
+        exits.count >= tileCountRef.current
+      ) {
+        unlockRefresh();
+      }
+    },
+    [unlockRefresh]
+  );
+
   // Every item changes row and no slot keeps its media; against the latest
   // layout, not a render's closure
   const reshuffle = useCallback(() => {
@@ -1301,11 +1359,14 @@ export default function MasonryGrid({
 
     refreshLockedRef.current = true;
     reshuffle();
-    // Re-enable button after animation completes
-    setTimeout(() => {
-      refreshLockedRef.current = false;
-    }, CROSSFADE_DURATION * 1000);
-  }, [reshuffle, isPhone]);
+    // Re-enabled once every tile's crossfade exit has committed; the timer is
+    // only a backstop in case an exit never reports
+    clearTimeout(unlockTimerRef.current);
+    unlockTimerRef.current = setTimeout(
+      unlockRefresh,
+      CROSSFADE_DURATION * 1000 * 4
+    );
+  }, [reshuffle, unlockRefresh, isPhone]);
 
   useMarqueeAnimations({
     gridRef,
@@ -1351,6 +1412,7 @@ export default function MasonryGrid({
             items={rowItems}
             offset={getRowOffset(rowIndex)}
             shuffleKey={shuffleVersion}
+            onExitsCommitted={handleExitsCommitted}
           />
         ))}
       {!isBroken && (
