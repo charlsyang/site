@@ -20,6 +20,12 @@ import {
   shuffleWithRowChange,
   layoutItems,
 } from "../utils/masonryLayout";
+import {
+  EggTunePanel,
+  subscribeEggTuneLive,
+  useEggTune,
+  withEggTune,
+} from "./EggTune"; // EggTune: temporary
 
 // ============================================
 // Animation Configuration
@@ -714,26 +720,41 @@ const BODY_SCALE = 0.7;
 const PHYSICS_STEP_MS = 1000 / 60;
 const PHYSICS_MAX_STEPS_PER_FRAME = 2;
 
+const BODY_PHYSICS = {
+  gravity: 1.5,
+  burst: 1, // × upward launch speed
+  spread: 0, // outward launch speed
+  restitution: 0.2,
+  friction: 0.3,
+  frictionAir: 0.05,
+  density: 0.001, // Matter default
+  walls: true,
+};
+
 const PHYSICS_BOUNDS = {
   desktop: {
+    ...BODY_PHYSICS,
+    fitToScreen: false,
     wallThickness: 60,
+    wallSpan: 2, // wall height × band height
     // Walls pushed out so tiles captured partly offscreen don't spawn inside them
     wallOffset: 200,
     groundInset: 0,
     maxBodies: Infinity,
-    tileScale: 1,
     maxThrow: Infinity,
     rescueEscaped: false,
   },
   phone: {
+    ...BODY_PHYSICS,
+    fitToScreen: true,
     // Thick walls flush with the screen edges so flicks can't tunnel out
     wallThickness: 200,
+    wallSpan: 4,
     wallOffset: 0,
     // Rest on the headline that overlaps the band (WorkLayout headlineOverlapPx)
     groundInset: 56,
     maxBodies: 8,
-    // Full-size phone tiles (~2 per screen width) bury the band and the message
-    tileScale: 0.65,
+    minVisible: 0.6,
     maxThrow: 30,
     rescueEscaped: true,
   },
@@ -755,27 +776,58 @@ function tileTransform(x, y, angle, width, height) {
 }
 
 /**
- * Phone: keep only on-screen tiles (most central first, capped), shrink them,
- * and pull their bodies inside the edge-to-edge walls.
+ * Phone: only tiles mostly in view break (most central first, capped); the
+ * rest vanish with the grid. Bodies start where the tiles are.
  */
 function fitItemsToBounds(items, bounds, width) {
-  if (!Number.isFinite(bounds.maxBodies)) return items;
+  if (!bounds.fitToScreen) return items;
+  const visibleFraction = (item) =>
+    (Math.min(item.x + item.width / 2, width) -
+      Math.max(item.x - item.width / 2, 0)) /
+    item.width;
   return items
-    .filter(
-      (item) => item.x + item.width / 2 > 0 && item.x - item.width / 2 < width
-    )
+    .filter((item) => visibleFraction(item) >= bounds.minVisible)
     .sort((a, b) => Math.abs(a.x - width / 2) - Math.abs(b.x - width / 2))
     .slice(0, bounds.maxBodies)
     .map((item) => {
-      const tileWidth = item.width * bounds.tileScale;
-      const half = (tileWidth * BODY_SCALE) / 2;
-      return {
-        ...item,
-        width: tileWidth,
-        height: item.height * bounds.tileScale,
-        x: Math.min(Math.max(item.x, half), width - half),
-      };
+      if (!bounds.walls) return item;
+      const half = (item.width * BODY_SCALE) / 2;
+      return { ...item, x: Math.min(Math.max(item.x, half), width - half) };
     });
+}
+
+/**
+ * Snapshot every grid tile's box and media for the physics overlay.
+ * Fast: no canvas work (video frames are pre-captured during idle time).
+ */
+function captureTilePositions(container, videoFrames) {
+  const rect = container.getBoundingClientRect();
+  const positions = [];
+  container.querySelectorAll("li").forEach((el, index) => {
+    const elRect = el.getBoundingClientRect();
+    // The video, not its first-frame poster <img> underneath
+    const mediaSrc =
+      el.querySelector("video")?.src || el.querySelector("img")?.src;
+    const isVideo = !!el.querySelector("video");
+    if (!mediaSrc) return;
+    positions.push({
+      id: index,
+      x: elRect.left - rect.left + elRect.width / 2,
+      y: elRect.top - rect.top + elRect.height / 2,
+      width: elRect.width,
+      height: elRect.height,
+      src: mediaSrc,
+      isVideo,
+      // Look up pre-captured video frame (no capture during easter egg)
+      posterDataUrl: isVideo
+        ? videoFrames.get(mediaSrc) ||
+          el.querySelector("img")?.getAttribute("src") ||
+          null
+        : null,
+      angle: 0,
+    });
+  });
+  return positions;
 }
 
 function BrokenPhysicsMode({
@@ -785,8 +837,11 @@ function BrokenPhysicsMode({
   isPhone,
 }) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  // Per-break copy (EggTune mutates it live)
   const [bounds] = useState(() =>
-    isPhone ? PHYSICS_BOUNDS.phone : PHYSICS_BOUNDS.desktop
+    isPhone
+      ? withEggTune({ ...PHYSICS_BOUNDS.phone })
+      : { ...PHYSICS_BOUNDS.desktop }
   );
   const engineRef = useRef(null);
   const matterRef = useRef(null); // Store Matter.js module reference
@@ -796,6 +851,7 @@ function BrokenPhysicsMode({
   const bodiesRef = useRef(new Map()); // item id -> { body, item }
   const elementsRef = useRef(new Map()); // item id -> PhysicsItem node
   const dragRef = useRef(IDLE_DRAG);
+  const overlayRef = useRef(null);
 
   // Frozen for this break; a breakpoint flip unmounts the egg instead
   const [itemData] = useState(() =>
@@ -820,11 +876,11 @@ function BrokenPhysicsMode({
     function startPhysics(Matter) {
       // Headless engine: we step it ourselves and write transforms to the DOM
       const engine = Matter.Engine.create({
-        gravity: { x: 0, y: 1.5 },
+        gravity: { x: 0, y: bounds.gravity },
       });
       engineRef.current = engine;
 
-      const { wallThickness, wallOffset, groundInset } = bounds;
+      const { wallThickness, wallOffset, wallSpan, groundInset } = bounds;
       const ground = Matter.Bodies.rectangle(
         rect.width / 2,
         rect.height - groundInset + wallThickness / 2,
@@ -836,20 +892,23 @@ function BrokenPhysicsMode({
         -wallOffset - wallThickness / 2,
         rect.height / 2,
         wallThickness,
-        rect.height * 2,
+        rect.height * wallSpan,
         { isStatic: true }
       );
       const rightWall = Matter.Bodies.rectangle(
         rect.width + wallOffset + wallThickness / 2,
         rect.height / 2,
         wallThickness,
-        rect.height * 2,
+        rect.height * wallSpan,
         { isStatic: true }
       );
 
       groundRef.current = ground;
       wallsRef.current = { left: leftWall, right: rightWall };
-      Matter.Composite.add(engine.world, [ground, leftWall, rightWall]);
+      Matter.Composite.add(engine.world, ground);
+      if (bounds.walls) {
+        Matter.Composite.add(engine.world, [leftWall, rightWall]);
+      }
 
       itemData.forEach((item) => {
         const body = Matter.Bodies.rectangle(
@@ -858,18 +917,20 @@ function BrokenPhysicsMode({
           item.width * BODY_SCALE,
           item.height * BODY_SCALE,
           {
-            restitution: 0.2,
-            friction: 0.3,
-            frictionAir: 0.05,
+            restitution: bounds.restitution,
+            friction: bounds.friction,
+            frictionAir: bounds.frictionAir,
+            density: bounds.density,
             chamfer: { radius: 50 }, // Rounded corners allow visual overlap
           }
         );
         body.itemId = item.id;
 
-        // Upward burst only
+        // Upward burst, optionally pushed out from the centre
+        const fromCenter = (item.x - rect.width / 2) / (rect.width / 2);
         Matter.Body.setVelocity(body, {
-          x: 0,
-          y: -4 - Math.random() * 6,
+          x: bounds.spread * fromCenter,
+          y: -(4 + Math.random() * 6) * bounds.burst,
         });
 
         Matter.Composite.add(engine.world, body);
@@ -883,7 +944,7 @@ function BrokenPhysicsMode({
           x > -item.width &&
           x < width + item.width &&
           y > -height * 2 &&
-          y < height + item.height
+          y < height - bounds.groundInset + item.height
         ) {
           return;
         }
@@ -961,7 +1022,22 @@ function BrokenPhysicsMode({
       render();
       sync();
 
+      const unsubscribeTune = bounds.fitToScreen // EggTune: temporary (phone)
+        ? subscribeEggTuneLive({
+            Matter,
+            engine,
+            bounds,
+            ground,
+            walls: wallsRef.current,
+            bodiesRef,
+            sizeRef,
+            overlay: overlayRef.current,
+            container,
+          })
+        : () => {};
+
       return () => {
+        unsubscribeTune();
         stop();
         intersectionObserver.disconnect();
         document.removeEventListener("visibilitychange", sync);
@@ -997,9 +1073,8 @@ function BrokenPhysicsMode({
     const container = containerRef.current;
     if (!container) return;
 
-    const { wallThickness, wallOffset, groundInset } = bounds;
-
     const handleResize = (entries) => {
+      const { wallThickness, wallOffset, groundInset } = bounds;
       const { width, height } = entries[0].contentRect;
       sizeRef.current = { width, height };
 
@@ -1140,7 +1215,7 @@ function BrokenPhysicsMode({
   );
 
   return (
-    <PhysicsOverlay>
+    <PhysicsOverlay ref={overlayRef}>
       {/* Message + CTA - now fully interactive, no canvas blocking them! */}
       <BrokenMessage>
         <p>Your love for my work has broken through.</p>
@@ -1167,7 +1242,6 @@ function BrokenPhysicsMode({
             else elementsRef.current.delete(item.id);
           }}
           style={{
-            "--settle-from": 1 / bounds.tileScale,
             width: item.width,
             height: item.height,
             transform: tileTransform(
@@ -1455,42 +1529,9 @@ export default function MasonryGrid({
 
       // Capture item positions BEFORE hiding the grid
       if (gridRef.current) {
-        const container = gridRef.current;
-        const rect = container.getBoundingClientRect();
-        const mediaElements = container.querySelectorAll("li");
-        const positions = [];
-
-        // Fast position capture - no canvas work here
-        // Video frames were pre-captured during idle time
-        mediaElements.forEach((el, index) => {
-          const elRect = el.getBoundingClientRect();
-          const mediaSrc =
-            el.querySelector("video")?.src || el.querySelector("img")?.src;
-          const isVideo = !!el.querySelector("video");
-
-          if (mediaSrc) {
-            // Look up pre-captured video frame (no capture during easter egg)
-            const posterDataUrl = isVideo
-              ? videoFramesRef.current.get(mediaSrc) ||
-                el.querySelector("img")?.getAttribute("src") ||
-                null
-              : null;
-
-            positions.push({
-              id: index,
-              x: elRect.left - rect.left + elRect.width / 2,
-              y: elRect.top - rect.top + elRect.height / 2,
-              width: elRect.width,
-              height: elRect.height,
-              src: mediaSrc,
-              isVideo,
-              posterDataUrl,
-              angle: 0,
-            });
-          }
-        });
-
-        setCapturedPositions(positions);
+        setCapturedPositions(
+          captureTilePositions(gridRef.current, videoFramesRef.current)
+        );
       }
 
       setIsBroken(true);
@@ -1524,6 +1565,25 @@ export default function MasonryGrid({
     // Reshuffle items when fixing
     reshuffle();
   }, [reshuffle]);
+
+  // EggTune: temporary — restore (if broken) then break again
+  const eggTune = useEggTune();
+  const retriggerRef = useRef(null);
+  const retriggerEgg = useCallback(() => {
+    if (retriggerRef.current) return;
+    preloadMatter();
+    setIsBroken(false);
+    setCapturedPositions(null);
+    retriggerRef.current = setTimeout(() => {
+      retriggerRef.current = null;
+      if (!gridRef.current) return;
+      setCapturedPositions(
+        captureTilePositions(gridRef.current, videoFramesRef.current)
+      );
+      setIsBroken(true);
+    }, 150);
+  }, []);
+  useEffect(() => () => clearTimeout(retriggerRef.current), []);
 
   // Handle empty state
   if (!items || items.length === 0) {
@@ -1661,9 +1721,11 @@ export default function MasonryGrid({
             icon={<Icon name="fix" />}
             onClick={handleFixBroken}
             aria-label="Fix layout"
+            style={eggTune && { animationDelay: `${eggTune.fixDelay}ms` }}
           />
         </ButtonGroup>
       )}
+      {isPhone && eggTune && <EggTunePanel onRetrigger={retriggerEgg} />}
     </GridWrapper>
   );
 }
@@ -1932,13 +1994,6 @@ const ContactButton = styled(Button)`
   animation: ${FadeIn} 0.3s ease-out 0.8s both;
 `;
 
-/* Shrinks from grid size to the (smaller) phone physics size; 1 on desktop */
-const SettleIn = keyframes`
-  from {
-    scale: var(--settle-from);
-  }
-`;
-
 const PhysicsItem = styled.div`
   ${sharedMediaItemStyles}
   position: absolute;
@@ -1953,10 +2008,6 @@ const PhysicsItem = styled.div`
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   cursor: grab;
-
-  @media ${QUERIES.phoneAndBelow} {
-    animation: ${SettleIn} 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  }
 
   &:active {
     cursor: grabbing;
