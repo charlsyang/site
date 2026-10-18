@@ -1,6 +1,7 @@
 /**
  * TEMPORARY phone masonry tune panel — remove before merge (or keep behind ?tune=1).
- * Open: /work?tune=1 at ≤550px (or any width; vars only affect phone layout CSS).
+ * Open: /work?tune=1 at ≤550px.
+ * Compact by default so the grid dissolve stays visible while dragging.
  */
 import { useEffect, useState } from "react";
 import styled from "styled-components";
@@ -29,6 +30,34 @@ const VAR_MAP = {
   headlineOverlapPx: "--masonry-headline-overlap",
 };
 
+/** Fade-focused controls shown in compact mode (default) */
+const FADE_KEYS = [
+  "fadeHeightPx",
+  "fadeSolidPct",
+  "fadeEndPct",
+  "fadeBlurPx",
+  "fadeTint",
+  "headlineOverlapPx",
+];
+
+const ALL_SLIDERS = [
+  { key: "gridHeightVh", label: "Grid h", unit: "vh", min: 40, max: 75, step: 1 },
+  { key: "topInsetPx", label: "Top inset", unit: "px", min: 0, max: 64, step: 1 },
+  { key: "fadeHeightPx", label: "Fade h", unit: "px", min: 48, max: 240, step: 1 },
+  { key: "fadeSolidPct", label: "Solid %", unit: "%", min: 0, max: 80, step: 1 },
+  { key: "fadeEndPct", label: "End %", unit: "%", min: 20, max: 100, step: 1 },
+  { key: "fadeBlurPx", label: "Blur", unit: "px", min: 0, max: 40, step: 1 },
+  { key: "fadeTint", label: "Strength", unit: "", min: 0, max: 1, step: 0.05 },
+  {
+    key: "headlineOverlapPx",
+    label: "Overlap",
+    unit: "px",
+    min: 0,
+    max: 120,
+    step: 1,
+  },
+];
+
 function formatVar(key, value) {
   if (key === "gridHeightVh") return `${value}vh`;
   if (key === "fadeTint") return String(value);
@@ -53,6 +82,8 @@ function clearVars() {
 export default function MasonryTune() {
   const [values, setValues] = useState(MASONRY_TUNE_DEFAULTS);
   const [collapsed, setCollapsed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [showVars, setShowVars] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -79,106 +110,58 @@ export default function MasonryTune() {
     }
   };
 
+  const sliders = showAll
+    ? ALL_SLIDERS
+    : ALL_SLIDERS.filter((s) => FADE_KEYS.includes(s.key));
+
   return (
-    <Panel data-masonry-tune>
+    <Panel data-masonry-tune $collapsed={collapsed}>
       <Header>
-        <Title>TEMP masonry tune</Title>
+        <Title>Tune</Title>
         <HeaderActions>
-          <SmallBtn type="button" onClick={() => setValues(MASONRY_TUNE_DEFAULTS)}>
-            Reset
-          </SmallBtn>
+          {!collapsed && (
+            <>
+              <SmallBtn
+                type="button"
+                $active={showAll}
+                onClick={() => setShowAll((v) => !v)}
+              >
+                {showAll ? "Fade" : "All"}
+              </SmallBtn>
+              <SmallBtn type="button" onClick={() => setValues(MASONRY_TUNE_DEFAULTS)}>
+                Reset
+              </SmallBtn>
+              <SmallBtn type="button" onClick={copy}>
+                {copied ? "OK" : "Copy"}
+              </SmallBtn>
+            </>
+          )}
           <SmallBtn type="button" onClick={() => setCollapsed((c) => !c)}>
-            {collapsed ? "Open" : "Hide"}
+            {collapsed ? "▸" : "▾"}
           </SmallBtn>
         </HeaderActions>
       </Header>
       {!collapsed && (
-        <>
-          <Hint>
-            Preview only · remove before merge · <code>?tune=1</code>
-          </Hint>
-          <Slider
-            label="Grid height"
-            unit="vh"
-            min={40}
-            max={75}
-            step={1}
-            value={values.gridHeightVh}
-            onChange={(v) => set("gridHeightVh", v)}
-          />
-          <Slider
-            label="Top inset (half nav ≈ 28)"
-            unit="px"
-            min={0}
-            max={64}
-            step={1}
-            value={values.topInsetPx}
-            onChange={(v) => set("topInsetPx", v)}
-          />
-          <Slider
-            label="Fade height"
-            unit="px"
-            min={48}
-            max={240}
-            step={1}
-            value={values.fadeHeightPx}
-            onChange={(v) => set("fadeHeightPx", v)}
-          />
-          <Slider
-            label="Fade solid stop"
-            unit="%"
-            min={0}
-            max={80}
-            step={1}
-            value={values.fadeSolidPct}
-            onChange={(v) => set("fadeSolidPct", v)}
-          />
-          <Slider
-            label="Fade end (transparent)"
-            unit="%"
-            min={20}
-            max={100}
-            step={1}
-            value={values.fadeEndPct}
-            onChange={(v) => set("fadeEndPct", v)}
-          />
-          <Slider
-            label="Blur"
-            unit="px"
-            min={0}
-            max={40}
-            step={1}
-            value={values.fadeBlurPx}
-            onChange={(v) => set("fadeBlurPx", v)}
-          />
-          <Slider
-            label="Solid fade strength"
-            unit=""
-            min={0}
-            max={1}
-            step={0.05}
-            value={values.fadeTint}
-            onChange={(v) => set("fadeTint", v)}
-          />
-          <Slider
-            label="Headline overlap"
-            unit="px"
-            min={0}
-            max={120}
-            step={1}
-            value={values.headlineOverlapPx}
-            onChange={(v) => set("headlineOverlapPx", v)}
-          />
-          <Values>
-            <ValuesHeader>
-              <span>CSS vars</span>
-              <SmallBtn type="button" onClick={copy}>
-                {copied ? "Copied" : "Copy"}
-              </SmallBtn>
-            </ValuesHeader>
-            <pre>{snippet}</pre>
-          </Values>
-        </>
+        <Body>
+          <Grid>
+            {sliders.map((s) => (
+              <Slider
+                key={s.key}
+                label={s.label}
+                unit={s.unit}
+                min={s.min}
+                max={s.max}
+                step={s.step}
+                value={values[s.key]}
+                onChange={(v) => set(s.key, v)}
+              />
+            ))}
+          </Grid>
+          <VarsToggle type="button" onClick={() => setShowVars((v) => !v)}>
+            {showVars ? "Hide vars" : "Show vars"}
+          </VarsToggle>
+          {showVars && <pre>{snippet}</pre>}
+        </Body>
       )}
     </Panel>
   );
@@ -206,26 +189,29 @@ function Slider({ label, unit, min, max, step, value, onChange }) {
   );
 }
 
+/* Bottom-right strip — leaves dissolve visible on the left */
 const Panel = styled.aside`
   display: none;
 
   @media ${QUERIES.phoneAndBelow} {
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: fixed;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
+    right: 6px;
+    bottom: 6px;
+    left: auto;
+    width: min(52vw, 210px);
     z-index: 9999;
-    max-height: min(55vh, 420px);
-    overflow: auto;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(20, 18, 16, 0.92);
+    max-height: ${({ $collapsed }) => ($collapsed ? "auto" : "32vh")};
+    overflow: hidden;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(20, 18, 16, 0.9);
     color: #f5f2ec;
     font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 11px;
-    line-height: 1.35;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    font-size: 10px;
+    line-height: 1.2;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
   }
 `;
@@ -234,43 +220,62 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
+  flex-shrink: 0;
 `;
 
 const Title = styled.strong`
-  font-size: 11px;
-  letter-spacing: 0.02em;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: #ffb4a2;
 `;
 
 const HeaderActions = styled.div`
   display: flex;
-  gap: 6px;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 `;
 
-const Hint = styled.p`
-  margin: 6px 0 10px;
-  opacity: 0.7;
+const Body = styled.div`
+  margin-top: 4px;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
 
-  code {
-    color: #ffd7a8;
+  pre {
+    margin: 4px 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #d8d2c8;
+    font-size: 9px;
   }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
 `;
 
 const Row = styled.label`
   display: block;
-  margin-bottom: 8px;
+  margin: 0;
 
   input[type="range"] {
     width: 100%;
-    margin: 2px 0 0;
+    height: 14px;
+    margin: 0;
+    padding: 0;
   }
 `;
 
 const LabelRow = styled.div`
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
+  font-size: 9px;
 `;
 
 const ValueReadout = styled.span`
@@ -278,34 +283,33 @@ const ValueReadout = styled.span`
   font-variant-numeric: tabular-nums;
 `;
 
-const Values = styled.div`
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-
-  pre {
-    margin: 6px 0 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    color: #d8d2c8;
-  }
-`;
-
-const ValuesHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const VarsToggle = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  color: #ffd7a8;
+  font: inherit;
+  font-size: 9px;
+  padding: 4px 0 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 `;
 
 const SmallBtn = styled.button`
   appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid
+    ${({ $active }) =>
+      $active ? "rgba(255, 180, 162, 0.7)" : "rgba(255, 255, 255, 0.22)"};
+  background: ${({ $active }) =>
+    $active ? "rgba(255, 180, 162, 0.18)" : "rgba(255, 255, 255, 0.08)"};
   color: inherit;
-  border-radius: 6px;
-  padding: 3px 8px;
+  border-radius: 4px;
+  padding: 1px 5px;
   font: inherit;
+  font-size: 9px;
   cursor: pointer;
+  line-height: 1.4;
 
   &:active {
     background: rgba(255, 255, 255, 0.16);
