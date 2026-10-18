@@ -1,5 +1,12 @@
 import styled, { keyframes, css } from "styled-components";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -177,7 +184,7 @@ const crossfadeTransition = {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, shuffleKey, isClone = false }) {
+function MasonryItem({ item, shuffleKey, slot, isClone = false }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
@@ -287,6 +294,7 @@ function MasonryItem({ item, shuffleKey, isClone = false }) {
           {item.type === "video" ? (
             <Video
               ref={videoRef}
+              data-slot={slot}
               src={item.src}
               autoPlay={prefersReducedMotion === false}
               loop
@@ -314,36 +322,106 @@ function MasonryItem({ item, shuffleKey, isClone = false }) {
 // InfiniteMasonryRow Component
 // ============================================
 
+/** Distance from copy A's first tile to copy B's first tile (one copy + one gap) */
+function measureTrackPeriod(track) {
+  const tiles = track.children;
+  const half = tiles.length / 2;
+  if (!half) return 0;
+  return (
+    tiles[half].getBoundingClientRect().left -
+    tiles[0].getBoundingClientRect().left
+  );
+}
+
+const trackKeyframes = (period) => [
+  { transform: "translate3d(0px, 0px, 0px)" },
+  { transform: `translate3d(${-period}px, 0px, 0px)` },
+];
+
 /**
  * Row (clip) > Track (the only animated element). The track renders the
  * items twice; translating it by one copy plus one gap lands the clone
  * exactly where the original started, so the loop seam is invisible.
+ *
+ * Driven by WAAPI with measured px keyframes rather than a CSS `%`/calc
+ * keyframe: iOS WebKit dropped the whole row for a frame at each iteration
+ * boundary of the percentage-based animation, and px keyframes can be
+ * updated in place on resize without restarting the animation.
  */
 function InfiniteMasonryRow({
   items,
+  rowIndex,
   duration = 30,
   offset = 1.2,
   animationPaused = false,
   shuffleKey = 0,
   className,
 }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const trackRef = useRef(null);
+  const animationRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track || prefersReducedMotion) return;
+
+    let period = measureTrackPeriod(track);
+    const durationMs = duration * 1000;
+    const animation = track.animate(trackKeyframes(period), {
+      duration: durationMs,
+      iterations: Infinity,
+      easing: "linear",
+    });
+    // Stagger rows (offset 1.0, 1.3, 1.6 → 0 / 30% / 60% into the loop)
+    animation.currentTime = (offset % 1) * durationMs;
+    animationRef.current = animation;
+
+    const resizeObserver = new ResizeObserver(() => {
+      const next = measureTrackPeriod(track);
+      if (!next || Math.abs(next - period) < 0.01) return;
+      period = next;
+      animation.effect.setKeyframes(trackKeyframes(period));
+    });
+    resizeObserver.observe(track);
+
+    return () => {
+      resizeObserver.disconnect();
+      animation.cancel();
+      animationRef.current = null;
+    };
+  }, [duration, offset, prefersReducedMotion]);
+
+  useEffect(() => {
+    const animation = animationRef.current;
+    if (!animation) return;
+    if (animationPaused) {
+      // Pin the hold time now; WebKit otherwise resolves a pending pause a few
+      // frames late and settles slightly behind, reading as a snap-back.
+      const time = animation.currentTime;
+      animation.pause();
+      if (time != null) animation.currentTime = time;
+    } else {
+      animation.play();
+    }
+  }, [animationPaused, duration, offset, prefersReducedMotion]);
+
   return (
-    <Row
-      className={className}
-      style={{
-        "--duration": `${duration}s`,
-        "--offset": offset,
-      }}
-    >
-      <Track data-masonry-track="" $paused={animationPaused}>
+    <Row className={className}>
+      <Track ref={trackRef} data-masonry-track="" style={{ "--offset": offset }}>
         {items.map((item, index) => (
-          <MasonryItem key={`a-${index}`} item={item} shuffleKey={shuffleKey} />
+          <MasonryItem
+            key={`a-${index}`}
+            item={item}
+            shuffleKey={shuffleKey}
+            slot={`${rowIndex}-${index}`}
+          />
         ))}
         {items.map((item, index) => (
           <MasonryItem
             key={`b-${index}`}
             item={item}
             shuffleKey={shuffleKey}
+            slot={`${rowIndex}-${index}`}
             isClone
           />
         ))}
@@ -811,59 +889,6 @@ export default function MasonryGrid({
     clickTimestampsRef.current = [];
   }, [isPhone, isBroken]);
 
-  // Restart track animations when a track's width changes (Safari-only fix)
-  // Safari doesn't recalculate percentage-based translate values in running
-  // animations, so the -50% keyframe goes stale when the track width changes.
-  // Track width only depends on row height, so viewport changes that don't
-  // resize rows (iOS toolbar collapse, scrolling) never restart anything.
-  useEffect(() => {
-    if (!mounted || isBroken || !gridRef.current) return;
-
-    // Only apply workaround for Safari (not Chrome, which handles this correctly)
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (!isSafari) return;
-
-    const widths = new WeakMap();
-    const stale = new Set();
-    let resizeTimeout;
-
-    const restartAnimations = () => {
-      // Carry currentTime across the restart so the loop keeps its phase
-      // instead of jumping back to the delay-derived start position.
-      stale.forEach((el) => {
-        const prev = el.getAnimations?.()[0];
-        const time = prev?.currentTime;
-        el.style.animation = "none";
-        void el.offsetWidth;
-        el.style.animation = "";
-        const next = el.getAnimations?.()[0];
-        if (next && time != null) next.currentTime = time;
-      });
-      stale.clear();
-    };
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      entries.forEach(({ target, contentRect }) => {
-        const prev = widths.get(target);
-        widths.set(target, contentRect.width);
-        if (prev !== undefined && Math.abs(contentRect.width - prev) >= 0.5) {
-          stale.add(target);
-        }
-      });
-      if (!stale.size) return;
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(restartAnimations, 150);
-    });
-    gridRef.current
-      .querySelectorAll("[data-masonry-track]")
-      .forEach((el) => resizeObserver.observe(el));
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      resizeObserver.disconnect();
-    };
-  }, [mounted, isBroken, rows]);
-
   // Handle shuffle/refresh button visibility
   useEffect(() => {
     if (!mounted) return;
@@ -883,32 +908,48 @@ export default function MasonryGrid({
   }, [mounted, prefersReducedMotion, isPhone]);
 
   // Play only on-screen track videos; pause all when reduced motion is on (WCAG 2.2.2)
-  // Each track holds two copies, so offscreen videos would otherwise keep
-  // decoding. Our own matchMedia listener ensures DevTools emulation is detected.
+  // A video and its clone-copy twin share a slot and play/pause together, so
+  // the loop wrap (twin hands off to twin) never toggles playback. Pauses are
+  // deferred so a hand-off split across observer callbacks doesn't blink.
+  // Our own matchMedia listener ensures DevTools emulation is detected.
   // Re-runs on shuffle / egg reset to catch newly rendered videos.
   useEffect(() => {
     if (!mounted || isBroken || !gridRef.current) return;
 
     const root = gridRef.current;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const slots = new Map();
     const visible = new Set();
-    const observed = new Set();
+    const pauseTimers = new Map();
+    const slotOf = (video) => `${video.dataset.slot}|${video.getAttribute("src")}`;
 
-    const sync = (video) => {
-      if (!mediaQuery.matches && visible.has(video)) {
-        video.play().catch(() => {});
+    const syncSlot = (slot) => {
+      const videos = slots.get(slot) || [];
+      const active = !mediaQuery.matches && videos.some((v) => visible.has(v));
+      clearTimeout(pauseTimers.get(slot));
+      if (active) {
+        videos.forEach((video) => {
+          if (video.paused) video.play().catch(() => {});
+        });
+      } else if (mediaQuery.matches) {
+        videos.forEach((video) => video.pause());
       } else {
-        video.pause();
+        pauseTimers.set(
+          slot,
+          setTimeout(() => videos.forEach((video) => video.pause()), 300)
+        );
       }
     };
 
     const observer = new IntersectionObserver(
       (entries) => {
+        const touched = new Set();
         entries.forEach(({ target, isIntersecting }) => {
           if (isIntersecting) visible.add(target);
           else visible.delete(target);
-          sync(target);
+          touched.add(slotOf(target));
         });
+        touched.forEach(syncSlot);
       },
       { root }
     );
@@ -916,16 +957,18 @@ export default function MasonryGrid({
     // Small delay to ensure new videos have rendered
     const timeoutId = setTimeout(() => {
       root.querySelectorAll("[data-masonry-track] video").forEach((video) => {
-        observed.add(video);
+        const slot = slotOf(video);
+        slots.set(slot, [...(slots.get(slot) || []), video]);
         observer.observe(video);
       });
     }, 50);
 
-    const handleChange = () => observed.forEach(sync);
+    const handleChange = () => slots.forEach((_, slot) => syncSlot(slot));
     mediaQuery.addEventListener("change", handleChange);
 
     return () => {
       clearTimeout(timeoutId);
+      pauseTimers.forEach(clearTimeout);
       observer.disconnect();
       mediaQuery.removeEventListener("change", handleChange);
     };
@@ -1094,6 +1137,7 @@ export default function MasonryGrid({
         rowData.map((rowItems, rowIndex) => (
           <InfiniteMasonryRow
             key={rowIndex}
+            rowIndex={rowIndex}
             items={rowItems}
             duration={effectiveDuration}
             offset={getRowOffset(rowIndex)}
@@ -1212,19 +1256,6 @@ const sharedMediaItemStyles = css`
   background: var(--color-bg-hover);
 `;
 
-/*
- * Track = copy A, gap, copy B. One period (copy width + one gap) is
- * (trackWidth − gap) / 2 + gap = 50% of the track + gap / 2.
- */
-const scrollLeft = keyframes`
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(-50% - var(--masonry-row-gap) / 2));
-  }
-`;
-
 const ItemWrapper = styled.li`
   ${sharedMediaItemStyles}
   flex-shrink: 0;
@@ -1250,12 +1281,6 @@ const Row = styled.div`
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   overflow: hidden;
-  /*
-   * Own compositing layer that clips the (2× wide) track, so iOS keeps each
-   * row as a stable, viewport-sized layer under the phone fade's backdrop.
-   */
-  contain: paint;
-  transform: translateZ(0);
 
   /*
    * Phone: snap each row to an even px height so tile widths (3:2) are whole
@@ -1285,14 +1310,10 @@ const Track = styled.ul`
   padding: 0;
   margin: 0;
 
-  /* Negative delay staggers rows (offset 1.0, 1.3, 1.6 → 0 / 30% / 60% in) */
-  animation: ${scrollLeft} var(--duration) linear
-    calc(var(--duration) * var(--offset) * -1) infinite;
-  animation-play-state: ${({ $paused }) => ($paused ? "paused" : "running")};
+  /* Animated by InfiniteMasonryRow (WAAPI) */
   will-change: transform;
 
   @media (prefers-reduced-motion: reduce) {
-    animation: none;
     will-change: auto;
     /* margin % resolves against the Row width, matching the old row stagger */
     margin-left: calc((var(--offset) - 1) * -15%);
