@@ -9,7 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:shuffle": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-masonry-shuffle.mjs"
   },
   "dependencies": {
     "@radix-ui/colors": "^1.0.0",
