@@ -59,6 +59,26 @@ const ICONS = {
       />
     </>
   ),
+  tilt: (
+    <>
+      <rect
+        x="8.5"
+        y="4.5"
+        width="7"
+        height="15"
+        rx="1.75"
+        transform="rotate(-20 12 12)"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M3.5 9C2.83 10.95 2.83 13.05 3.5 15M20.5 9C21.17 10.95 21.17 13.05 20.5 15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </>
+  ),
   arrowUpRight: (
     <path
       d="M18 15V6M18 6H9M18 6L6.25 17.75"
@@ -88,7 +108,7 @@ const SIZES = {
  * Icon component with centralized SVG definitions and sizing.
  *
  * @param {Object} props
- * @param {'play' | 'pause' | 'refresh' | 'fix'} props.name - Icon identifier
+ * @param {'play' | 'pause' | 'refresh' | 'fix' | 'tilt'} props.name - Icon identifier
  * @param {'sm' | 'md' | 'lg'} [props.size='md'] - Predefined size
  * @param {string} [props.color] - Icon color (accepts CSS vars)
  * @param {string} [props.className] - For animations or custom styles
