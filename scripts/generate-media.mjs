@@ -5,13 +5,15 @@
  *
  * Scans /public/visuals/ directory and generates:
  * - Blur placeholders for images (using Sharp)
- * - Blur placeholders for videos (using FFmpeg to extract frame, then Sharp)
+ * - First-frame posters for videos (FFmpeg → Sharp, committed to
+ *   /public/visuals/posters/) and blur placeholders derived from them
  * - Complete media manifest with metadata
  *
- * Output: data/visuals.json
+ * Output: data/visuals.json, public/visuals/posters/*.webp
  *
  * Usage:
- *   node scripts/generate-media.js
+ *   node scripts/generate-media.mjs            # posters only when missing/stale
+ *   node scripts/generate-media.mjs --posters  # re-extract every poster
  *
  * Features:
  * - Smart caching: skips files that haven't changed (based on mtime)
@@ -38,6 +40,9 @@ const PROJECT_ROOT = path.resolve(__dirname, "..");
 const VISUALS_DIR = path.join(PROJECT_ROOT, "public", "visuals");
 const OUTPUT_FILE = path.join(PROJECT_ROOT, "data", "visuals.json");
 const CACHE_FILE = path.join(PROJECT_ROOT, "data", ".visuals-cache.json");
+const POSTERS_DIR = path.join(VISUALS_DIR, "posters");
+
+const FORCE_POSTERS = process.argv.includes("--posters");
 
 // Supported extensions
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".avif"];
@@ -47,6 +52,10 @@ const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov"];
 const PLACEHOLDER_WIDTH = 16; // Tiny size for blur effect
 const PLACEHOLDER_QUALITY = 50;
 const BLUR_SIGMA = 1;
+
+// Poster settings (largest tile is ~650 CSS px wide on big desktops at 2x)
+const POSTER_MAX_WIDTH = 1280;
+const POSTER_QUALITY = 80;
 
 /**
  * Convert filename to human-readable alt text
@@ -78,39 +87,41 @@ async function generateImagePlaceholder(imagePath) {
 }
 
 /**
- * Generate blur placeholder for a video file
- * Extracts first frame using FFmpeg, then processes like an image
+ * Ensure a first-frame poster exists for a video (re-extracted when missing,
+ * older than the video, or with --posters). Returns its absolute path, or
+ * null when there is no poster and FFmpeg isn't available.
  */
-async function generateVideoPlaceholder(videoPath) {
+async function ensureVideoPoster(videoPath, ffmpegAvailable) {
+  const posterPath = path.join(
+    POSTERS_DIR,
+    `${path.basename(videoPath, path.extname(videoPath))}.webp`
+  );
+  const isFresh =
+    fs.existsSync(posterPath) &&
+    fs.statSync(posterPath).mtimeMs >= fs.statSync(videoPath).mtimeMs;
+  if (isFresh && !FORCE_POSTERS) return posterPath;
+  if (!ffmpegAvailable) return fs.existsSync(posterPath) ? posterPath : null;
+
   const tempDir = path.join(PROJECT_ROOT, "data", ".temp");
   const tempFrame = path.join(
     tempDir,
-    `frame-${crypto.randomBytes(8).toString("hex")}.jpg`
+    `frame-${crypto.randomBytes(8).toString("hex")}.png`
   );
-
-  // Ensure temp directory exists
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-  }
+  fs.mkdirSync(tempDir, { recursive: true });
+  fs.mkdirSync(POSTERS_DIR, { recursive: true });
 
   try {
-    // Extract first frame with FFmpeg
-    // -ss 0.1: seek to 0.1s (avoids potential black first frame)
-    // -vframes 1: extract only 1 frame
-    // -q:v 2: high quality JPEG
+    // First decoded frame = what playback shows at t=0, so poster → video is seamless
     await execAsync(
-      `ffmpeg -y -ss 0.1 -i "${videoPath}" -vframes 1 -q:v 2 "${tempFrame}" 2>/dev/null`
+      `ffmpeg -y -i "${videoPath}" -frames:v 1 "${tempFrame}" 2>/dev/null`
     );
-
-    // Process like an image
-    const blurDataURL = await generateImagePlaceholder(tempFrame);
-
-    return blurDataURL;
+    await sharp(tempFrame)
+      .resize(POSTER_MAX_WIDTH, null, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: POSTER_QUALITY })
+      .toFile(posterPath);
+    return posterPath;
   } finally {
-    // Cleanup temp frame
-    if (fs.existsSync(tempFrame)) {
-      fs.unlinkSync(tempFrame);
-    }
+    if (fs.existsSync(tempFrame)) fs.unlinkSync(tempFrame);
   }
 }
 
@@ -153,7 +164,9 @@ async function main() {
     await execAsync("ffmpeg -version");
   } catch {
     ffmpegAvailable = false;
-    console.warn("⚠️  FFmpeg not found. Video placeholders will be skipped.");
+    console.warn(
+      "⚠️  FFmpeg not found. Using committed posters; videos without one will be skipped."
+    );
     console.warn("   Install with: brew install ffmpeg\n");
   }
 
@@ -188,7 +201,20 @@ async function main() {
 
     // Get file stats for cache checking
     const stat = fs.statSync(filePath);
-    const mtime = stat.mtimeMs;
+    let mtime = stat.mtimeMs;
+
+    let poster;
+    if (isVideo) {
+      try {
+        const posterPath = await ensureVideoPoster(filePath, ffmpegAvailable);
+        if (posterPath) {
+          poster = `/visuals/posters/${path.basename(posterPath)}`;
+          mtime = Math.max(mtime, fs.statSync(posterPath).mtimeMs);
+        }
+      } catch (error) {
+        console.error(`  ✗ ${file} poster - Error: ${error.message}`);
+      }
+    }
 
     // Check cache
     const cached = cache[src];
@@ -200,14 +226,15 @@ async function main() {
         alt: cached.alt || filenameToAlt(file),
         type,
         blurDataURL: cached.blurDataURL,
+        ...(poster && { poster }),
       });
       cachedCount++;
       console.log(`  ✓ ${file} (cached)`);
       continue;
     }
 
-    // Skip videos if FFmpeg not available
-    if (isVideo && !ffmpegAvailable) {
+    // Skip videos without a poster to derive a placeholder from
+    if (isVideo && !poster) {
       results.push({
         id: String(i + 1),
         src,
@@ -216,15 +243,15 @@ async function main() {
         blurDataURL: null,
       });
       skippedCount++;
-      console.log(`  ⊘ ${file} (skipped - no FFmpeg)`);
+      console.log(`  ⊘ ${file} (skipped - no poster and no FFmpeg)`);
       continue;
     }
 
     // Generate placeholder
     try {
-      const blurDataURL = isVideo
-        ? await generateVideoPlaceholder(filePath)
-        : await generateImagePlaceholder(filePath);
+      const blurDataURL = await generateImagePlaceholder(
+        isVideo ? path.join(PROJECT_ROOT, "public", poster) : filePath
+      );
 
       const alt = filenameToAlt(file);
 
@@ -234,6 +261,7 @@ async function main() {
         alt,
         type,
         blurDataURL,
+        ...(poster && { poster }),
       });
 
       // Update cache
@@ -271,7 +299,7 @@ async function main() {
   console.log(`   ${newCount} new/updated`);
   console.log(`   ${cachedCount} cached`);
   if (skippedCount > 0) {
-    console.log(`   ${skippedCount} skipped (no FFmpeg)`);
+    console.log(`   ${skippedCount} skipped (no poster and no FFmpeg)`);
   }
   console.log();
 }

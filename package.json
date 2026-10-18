@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "generate-media": "node scripts/generate-media.mjs",
+    "generate-posters": "node scripts/generate-media.mjs --posters",
     "prebuild": "npm run generate-media",
     "dev": "next dev",
     "build": "next build",

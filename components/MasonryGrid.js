@@ -1,5 +1,12 @@
 import styled, { keyframes, css } from "styled-components";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -140,21 +147,14 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 // Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
 const SECONDS_PER_ITEM = 10;
 
-/** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
+/** Shared gutter token — between rows and between tiles (rounded to whole px) */
 const MASONRY_ROW_GAP = "0.9vh";
 /** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
 const MASONRY_ROW_GAP_PHONE = "4px";
 /** Item aspect-ratio width/height (matches ItemWrapper) */
 const ITEM_ASPECT = 3 / 2;
-
-/**
- * Intra-row visual gap from the infinite translate inset:
- *   G ≈ ((1 + inset) / count) × itemWidth
- * Set G = rowGap → inset = count × rowGap / itemWidth − 1
- */
-function insetForRowGap(rowGapPx, itemWidthPx, count) {
-  return (count * rowGapPx) / itemWidthPx - 1;
-}
+/** Fraction of a loop each successive row starts ahead of the previous one */
+const ROW_STAGGER = 0.3;
 
 /**
  * Calculate animation duration based on item count and row distribution
@@ -188,13 +188,19 @@ const crossfadeTransition = {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, index, animationPaused, shuffleKey }) {
+function MasonryItem({ item, shuffleKey }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
+  // Keyed to the current media so a shuffle never inherits the previous
+  // item's ready state for a render before the reset effect runs.
+  const mediaKey = `${item.src}-${shuffleKey}`;
+  const [posterReadyKey, setPosterReadyKey] = useState(null);
+  const posterReady = posterReadyKey === mediaKey;
 
   // Refs for checking if media is already loaded (cached)
   const imgRef = useRef(null);
+  const posterRef = useRef(null);
   const videoRef = useRef(null);
 
   // Track if this is the first render of this component instance
@@ -215,22 +221,29 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
     setIsLoaded(false);
   }, [item.src, shuffleKey]);
 
-  // Check if media is already loaded from cache on mount
-  // This handles the case where onLoad fires before React attaches the listener
+  // Videos are "loaded" once their first-frame poster <img> is ready, never on a
+  // video event: iOS may never autoplay (Low Power Mode, deferred loads).
+  const handlePosterReady = () => {
+    setPosterReadyKey(mediaKey);
+    setIsLoaded(true);
+  };
+
+  // Check if media is already loaded from cache on mount. This handles the case
+  // where onLoad fired before React attached the listener; it must stay
+  // declared after the reset effect so it runs after setIsLoaded(false).
   useEffect(() => {
-    // For images: check if already complete (cached)
-    if (item.type !== "video" && imgRef.current) {
-      if (imgRef.current.complete && imgRef.current.naturalWidth > 0) {
-        setIsLoaded(true);
-      }
+    const isReady = (img) => img && img.complete && img.naturalWidth > 0;
+    if (item.type !== "video") {
+      if (isReady(imgRef.current)) setIsLoaded(true);
+    } else if (
+      item.poster
+        ? isReady(posterRef.current)
+        : videoRef.current?.readyState >= 2
+    ) {
+      setPosterReadyKey(mediaKey);
+      setIsLoaded(true);
     }
-    // For videos: check if enough data is loaded (readyState >= 2 means HAVE_CURRENT_DATA)
-    if (item.type === "video" && videoRef.current) {
-      if (videoRef.current.readyState >= 2) {
-        setIsLoaded(true);
-      }
-    }
-  }, [item.src, item.type, shuffleKey]);
+  }, [mediaKey, item.type, item.poster]);
 
   // Hide placeholder after unblur animation completes
   useEffect(() => {
@@ -259,16 +272,16 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
 
   return (
     <ItemWrapper
-      style={{
-        "--index": index,
+      style={
         // Show blur placeholder as background during reveal
-        ...(showPlaceholder && {
-          backgroundImage: `url(${item.blurDataURL})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }),
-      }}
-      $paused={animationPaused}
+        showPlaceholder
+          ? {
+              backgroundImage: `url(${item.blurDataURL})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
       aria-hidden={item.isDuplicate ? "true" : undefined}
     >
       <AnimatePresence mode="popLayout">
@@ -289,21 +302,21 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
               ? isLoaded || !hasPlaceholder
                 ? { opacity: 1, filter: "blur(0px)" }
                 : { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
-              : "animate"
+              : item.type === "video" && item.poster && !posterReady
+                ? "initial"
+                : "animate"
           }
           exit="exit"
           transition={crossfadeTransition}
         >
           {item.type === "video" ? (
-            <Video
-              ref={videoRef}
+            <VideoWithPoster
+              posterRef={posterRef}
+              videoRef={videoRef}
               src={item.src}
+              poster={item.poster}
               autoPlay={prefersReducedMotion === false}
-              loop
-              muted
-              playsInline
-              draggable={false}
-              onLoadedData={() => setIsLoaded(true)}
+              onReady={handlePosterReady}
             />
           ) : (
             <Img
@@ -320,66 +333,355 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
   );
 }
 
+/** No frame progress for this long while playing counts as a stall */
+const VIDEO_STALL_MS = 3000;
+const VIDEO_RETRY_DELAY_MS = 1000;
+
+/**
+ * The first-frame poster <img> always stays underneath; the video covers it
+ * only while frames are actually advancing. Errors, aborts, resets and stalls
+ * hide the video again (it may paint black or nothing) and retry once.
+ */
+function VideoWithPoster({ posterRef, videoRef, src, poster, autoPlay, onReady }) {
+  const [isPainting, setIsPainting] = useState(false);
+  // A broken poster can't back the video, so fall back to a plain video tile
+  // that counts as loaded on its first frame.
+  const [posterFailed, setPosterFailed] = useState(false);
+  const hasPoster = !!poster && !posterFailed;
+
+  const handlePosterError = () => {
+    setPosterFailed(true);
+    if (videoRef.current?.readyState >= 2) onReady();
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!hasPoster || !video) return;
+    let lastTime = video.currentTime;
+    let lastProgress = performance.now();
+    let retried = false;
+    let retryTimer;
+
+    const fail = () => {
+      setIsPainting(false);
+      if (retried) return;
+      retried = true;
+      retryTimer = setTimeout(() => {
+        lastProgress = performance.now();
+        video.load();
+      }, VIDEO_RETRY_DELAY_MS);
+    };
+    const onTimeUpdate = () => {
+      if (video.currentTime === lastTime) return;
+      lastTime = video.currentTime;
+      lastProgress = performance.now();
+      if (video.readyState >= 2) setIsPainting(true);
+    };
+    const onPlay = () => {
+      lastProgress = performance.now();
+    };
+    // Offscreen tiles may legitimately stop advancing (iOS) without being
+    // paused; don't spend the one retry on them.
+    const isOnScreen = () => {
+      const band = video.closest("section")?.getBoundingClientRect();
+      const r = video.getBoundingClientRect();
+      return (
+        !!band &&
+        r.right > band.left &&
+        r.left < band.right &&
+        r.bottom > 0 &&
+        r.top < window.innerHeight
+      );
+    };
+    const watchdog = setInterval(() => {
+      if (video.paused || document.hidden || !isOnScreen()) {
+        lastProgress = performance.now();
+      } else if (performance.now() - lastProgress > VIDEO_STALL_MS) {
+        lastProgress = performance.now();
+        fail();
+      }
+    }, 1000);
+
+    const failEvents = ["error", "abort", "emptied"];
+    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("play", onPlay);
+    failEvents.forEach((e) => video.addEventListener(e, fail));
+    return () => {
+      clearInterval(watchdog);
+      clearTimeout(retryTimer);
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("play", onPlay);
+      failEvents.forEach((e) => video.removeEventListener(e, fail));
+    };
+  }, [hasPoster, autoPlay, videoRef]);
+
+  return (
+    <>
+      {hasPoster && (
+        <Img
+          ref={posterRef}
+          src={poster}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          onLoad={onReady}
+          onError={handlePosterError}
+        />
+      )}
+      <Video
+        ref={videoRef}
+        src={src}
+        autoPlay={autoPlay}
+        loop
+        muted
+        playsInline
+        draggable={false}
+        data-over-poster={hasPoster ? "" : undefined}
+        data-painting={isPainting ? "" : undefined}
+        onLoadedData={hasPoster ? undefined : onReady}
+      />
+    </>
+  );
+}
+
+// ============================================
+// Marquee (one compositor animation per tile)
+// ============================================
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+/** Row offset (1.0, 1.3, 1.6, …) — loop phase and reduced-motion stagger */
+function getRowOffset(rowIndex) {
+  return 1 + rowIndex * ROW_STAGGER;
+}
+
+/** Resolve a px / vh / vw / rem token to CSS px */
+function resolveLength(token) {
+  const value = parseFloat(token);
+  if (!Number.isFinite(value)) return 0;
+  if (token.endsWith("vh")) return (value * window.innerHeight) / 100;
+  if (token.endsWith("vw")) return (value * window.innerWidth) / 100;
+  if (token.endsWith("rem")) {
+    const rootSize = getComputedStyle(document.documentElement).fontSize;
+    return value * parseFloat(rootSize);
+  }
+  return value;
+}
+
+const timelineNow = () => document.timeline.currentTime ?? performance.now();
+
+/**
+ * Scrolls every tile with its own Web Animation so motion runs on the
+ * compositor (no per-frame JS).
+ *
+ * Geometry is whole CSS px: row height (even, so the 3:2 tile width is whole),
+ * gap, pitch and loop. Every tile in a row shares identical keyframes
+ * (loop − tileW → −tileW) and one startTime; its place in the row is a
+ * negative delay worth a whole number of px. Every tile's x therefore has the
+ * same sub-pixel fraction on every frame, so tiles snap to device pixels
+ * together and the gaps stay uniform. A tile wraps from −tileW to
+ * loop − tileW, both fully outside the band; there are no clones.
+ *
+ * Animations are reused across shuffles and resizes (keyframes and timing are
+ * updated in place), and pause/resume re-locks every tile to one startTime.
+ * Each row moves one pitch every `duration / count` seconds, starts half a
+ * loop in, and rows are staggered by ROW_STAGGER.
+ */
+function useMarqueeAnimations({
+  gridRef,
+  enabled,
+  paused,
+  duration,
+  direction,
+  layoutKey,
+}) {
+  // Motion time in seconds while stopped; startRef holds the shared startTime
+  // while running. Both survive shuffles and easter-egg resets.
+  const elapsedRef = useRef(0);
+  const startRef = useRef(null);
+  const animsRef = useRef(new Map());
+  // Layout key each animation was last built for
+  const keysRef = useRef(new WeakMap());
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  // Re-evaluates run state without rebuilding animations or observers
+  const syncRef = useRef(null);
+
+  useEffect(() => {
+    const anims = animsRef.current;
+    return () => {
+      anims.forEach((anim) => anim.cancel());
+      anims.clear();
+    };
+  }, []);
+
+  useIsomorphicLayoutEffect(() => {
+    syncRef.current?.();
+  }, [paused]);
+
+  useIsomorphicLayoutEffect(() => {
+    const grid = gridRef.current;
+    const anims = animsRef.current;
+    const keys = keysRef.current;
+    const rowEls = grid ? Array.from(grid.querySelectorAll(":scope > ul")) : [];
+
+    const elapsedNow = () =>
+      startRef.current === null
+        ? elapsedRef.current
+        : (timelineNow() - startRef.current) / 1000;
+
+    const cancelExcept = (keep) => {
+      anims.forEach((anim, el) => {
+        if (keep.has(el)) return;
+        anim.cancel();
+        anims.delete(el);
+      });
+    };
+
+    if (
+      !grid ||
+      rowEls.length === 0 ||
+      !enabled ||
+      typeof grid.animate !== "function"
+    ) {
+      elapsedRef.current = elapsedNow();
+      startRef.current = null;
+      cancelExcept(new Set());
+      if (grid) delete grid.dataset.marquee;
+      return;
+    }
+
+    const apply = () => {
+      const cs = getComputedStyle(grid);
+      const gapToken = cs.getPropertyValue("--masonry-row-gap").trim();
+      const gap = Math.max(1, Math.round(resolveLength(gapToken)));
+      const contentH =
+        grid.clientHeight -
+        parseFloat(cs.paddingTop) -
+        parseFloat(cs.paddingBottom);
+      const rowCount = rowEls.length;
+      const rowH = Math.max(
+        2,
+        Math.floor((contentH - (rowCount - 1) * gap) / rowCount / 2) * 2
+      );
+      const tileW = rowH * ITEM_ASPECT;
+      const pitch = tileW + gap;
+
+      grid.style.setProperty("--masonry-gap-px", `${gap}px`);
+      grid.style.setProperty("--masonry-row-h", `${rowH}px`);
+      grid.style.setProperty("--masonry-tile-w", `${tileW}px`);
+      grid.dataset.marquee = "";
+
+      const keep = new Set();
+      rowEls.forEach((row, rowIndex) => {
+        const tiles = Array.from(row.querySelectorAll(":scope > li"));
+        const loop = tiles.length * pitch;
+        const speed = loop / duration; // px/s
+        // Half a loop in, plus the row's stagger fraction
+        const phase = Math.round(
+          speed * tiles.length * 0.5 + loop * (getRowOffset(rowIndex) - 1)
+        );
+        const ends = [
+          `translate3d(${loop - tileW}px, 0, 0)`,
+          `translate3d(${-tileW}px, 0, 0)`,
+        ];
+        if (direction === "right") ends.reverse();
+        const keyframes = ends.map((transform) => ({ transform }));
+
+        tiles.forEach((el, i) => {
+          keep.add(el);
+          const leadPx = (((phase - i * pitch) % loop) + loop) % loop;
+          const timing = {
+            duration: duration * 1000,
+            delay: -(leadPx / speed) * 1000,
+            iterations: Infinity,
+            easing: "linear",
+          };
+          const key = `${loop}|${tileW}|${leadPx}|${duration}|${direction}`;
+          let anim = anims.get(el);
+          if (!anim) {
+            anim = el.animate(keyframes, timing);
+            anims.set(el, anim);
+          } else if (keys.get(anim) !== key) {
+            anim.effect.setKeyframes(keyframes);
+            anim.effect.updateTiming(timing);
+          }
+          keys.set(anim, key);
+        });
+      });
+      cancelExcept(keep);
+    };
+
+    // Pin every animation to the shared clock (running) or the shared hold time
+    const lock = () => {
+      const start = startRef.current;
+      anims.forEach((anim) => {
+        if (start !== null) {
+          if (anim.playState !== "running" || anim.startTime !== start) {
+            anim.startTime = start;
+          }
+        } else {
+          if (anim.playState !== "paused") anim.pause();
+          anim.currentTime = elapsedRef.current * 1000;
+        }
+      });
+    };
+
+    let onScreen = true;
+    const sync = () => {
+      const run = !pausedRef.current && onScreen && !document.hidden;
+      if (run && startRef.current === null) {
+        startRef.current = timelineNow() - elapsedRef.current * 1000;
+      } else if (!run && startRef.current !== null) {
+        elapsedRef.current = elapsedNow();
+        startRef.current = null;
+      }
+      lock();
+    };
+
+    apply();
+    sync();
+    syncRef.current = sync;
+
+    const resizeObserver = new ResizeObserver(() => {
+      apply();
+      lock();
+    });
+    resizeObserver.observe(grid);
+
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      const next = entries[entries.length - 1].isIntersecting;
+      if (next === onScreen) return;
+      onScreen = next;
+      sync();
+      grid.querySelectorAll("video").forEach((video) => {
+        if (onScreen) video.play().catch(() => {});
+        else video.pause();
+      });
+    });
+    intersectionObserver.observe(grid);
+
+    document.addEventListener("visibilitychange", sync);
+
+    return () => {
+      syncRef.current = null;
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [gridRef, enabled, duration, direction, layoutKey]);
+}
+
 // ============================================
 // InfiniteMasonryRow Component
 // ============================================
 
-function InfiniteMasonryRow({
-  items,
-  count,
-  duration = 30,
-  offset = 1.2,
-  direction = "left",
-  animationPaused = false,
-  shuffleKey = 0,
-  className,
-}) {
-  const rowRef = useRef(null);
-
-  // Keep --inset in sync with GridWrapper’s row-gap token (no flex gap on animated rows)
-  useEffect(() => {
-    const rowEl = rowRef.current;
-    if (!rowEl) return;
-
-    const syncInset = () => {
-      const grid = rowEl.parentElement;
-      if (!grid) return;
-      const gapPx = parseFloat(getComputedStyle(grid).rowGap);
-      const firstItem = rowEl.querySelector(":scope > li");
-      const measuredW = firstItem?.getBoundingClientRect().width;
-      const itemWidth =
-        measuredW > 0 ? measuredW : rowEl.clientHeight * ITEM_ASPECT;
-      if (!Number.isFinite(gapPx) || gapPx <= 0 || itemWidth <= 0) return;
-      const inset = insetForRowGap(gapPx, itemWidth, count);
-      rowEl.style.setProperty("--inset", String(inset));
-    };
-
-    syncInset();
-    const ro = new ResizeObserver(syncInset);
-    ro.observe(rowEl);
-    if (rowEl.parentElement) ro.observe(rowEl.parentElement);
-    return () => ro.disconnect();
-  }, [count, shuffleKey]);
-
+function InfiniteMasonryRow({ items, offset = 1, shuffleKey = 0, className }) {
   return (
-    <RowWrapper
-      ref={rowRef}
-      style={{
-        "--count": count,
-        "--duration": `${duration}s`,
-        "--offset": offset,
-      }}
-      $direction={direction}
-      className={className}
-    >
+    <RowWrapper style={{ "--offset": offset }} className={className}>
       {items.map((item, index) => (
-        <MasonryItem
-          key={index}
-          item={item}
-          index={index}
-          animationPaused={animationPaused}
-          shuffleKey={shuffleKey}
-        />
+        <MasonryItem key={index} item={item} shuffleKey={shuffleKey} />
       ))}
     </RowWrapper>
   );
@@ -845,72 +1147,6 @@ export default function MasonryGrid({
     clickTimestampsRef.current = [];
   }, [isPhone, isBroken]);
 
-  // Force animation restart on resize (Safari-only fix)
-  // Safari doesn't properly recalculate percentage-based translate values in running animations
-  useEffect(() => {
-    if (!mounted || !gridRef.current) return;
-
-    // Only apply workaround for Safari (not Chrome, which handles this correctly)
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (!isSafari) return;
-
-    let resizeTimeout;
-    let primed = false;
-    let prevWidth = 0;
-    let prevHeight = 0;
-
-    const restartAnimations = () => {
-      const root = gridRef.current;
-      const items = root?.querySelectorAll("li");
-      if (!root || !items?.length) return;
-
-      // Freeze each tile at its current painted position before clearing
-      // animation. A bare `animation: none` falls back to origin-x and reads
-      // as a snap-back on mount / nav (ResizeObserver fires on observe).
-      items.forEach((el) => {
-        const computed = getComputedStyle(el).transform;
-        if (computed && computed !== "none") {
-          el.style.transform = computed;
-        }
-        el.style.animation = "none";
-      });
-      void root.offsetHeight;
-      items.forEach((el) => {
-        el.style.animation = "";
-        el.style.transform = "";
-      });
-    };
-
-    const handleResize = (entries) => {
-      const { width, height } = entries[0].contentRect;
-      if (!primed) {
-        primed = true;
-        prevWidth = width;
-        prevHeight = height;
-        return;
-      }
-      if (
-        Math.abs(width - prevWidth) < 0.5 &&
-        Math.abs(height - prevHeight) < 0.5
-      ) {
-        return;
-      }
-      prevWidth = width;
-      prevHeight = height;
-
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(restartAnimations, 150);
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(gridRef.current);
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      resizeObserver.disconnect();
-    };
-  }, [mounted]);
-
   // Handle shuffle/refresh button visibility
   useEffect(() => {
     if (!mounted) return;
@@ -1041,13 +1277,15 @@ export default function MasonryGrid({
           mediaElements.forEach((el, index) => {
             const elRect = el.getBoundingClientRect();
             const mediaSrc =
-              el.querySelector("img")?.src || el.querySelector("video")?.src;
+              el.querySelector("video")?.src || el.querySelector("img")?.src;
             const isVideo = !!el.querySelector("video");
 
             if (mediaSrc) {
               // Look up pre-captured video frame (no capture during easter egg)
               const posterDataUrl = isVideo
-                ? videoFramesRef.current.get(mediaSrc) || null
+                ? videoFramesRef.current.get(mediaSrc) ||
+                  el.querySelector("img")?.getAttribute("src") ||
+                  null
                 : null;
 
               positions.push({
@@ -1085,6 +1323,15 @@ export default function MasonryGrid({
     setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
   }, [isRefreshing, items, rowData, rows, isPhone]);
 
+  useMarqueeAnimations({
+    gridRef,
+    enabled: mounted && prefersReducedMotion === false,
+    paused: userPaused,
+    duration: effectiveDuration,
+    direction,
+    layoutKey: isBroken ? null : rowData,
+  });
+
   // Handle reset from broken mode
   const handleFixBroken = useCallback(() => {
     setIsBroken(false);
@@ -1093,12 +1340,6 @@ export default function MasonryGrid({
     setShuffleVersion((v) => v + 1);
     setShuffledItems(shuffleArray(items));
   }, [items]);
-
-  // Calculate offset for each row to create stagger
-  const getRowOffset = (rowIndex) => {
-    const baseOffset = 1;
-    return baseOffset + rowIndex * 0.3;
-  };
 
   // Handle empty state
   if (!items || items.length === 0) {
@@ -1125,11 +1366,7 @@ export default function MasonryGrid({
           <InfiniteMasonryRow
             key={rowIndex}
             items={rowItems}
-            count={rowItems.length}
-            duration={effectiveDuration}
             offset={getRowOffset(rowIndex)}
-            direction={direction}
-            animationPaused={userPaused}
             shuffleKey={shuffleVersion}
           />
         ))}
@@ -1244,47 +1481,23 @@ const sharedMediaItemStyles = css`
   background: var(--color-bg-hover);
 `;
 
-const scrollLeft = keyframes`
-  100% {
-    transform: translateX(var(--destination-x));
-  }
-`;
-
 const ItemWrapper = styled.li`
   ${sharedMediaItemStyles}
   flex-shrink: 0;
 
-  /* Size based on row height, width derived from aspect ratio */
+  /* Static layout (reduced motion): size from row height */
+  position: relative;
   height: 100%;
   aspect-ratio: 3 / 2;
 
-  /* Enable layering for crossfade */
-  position: relative;
-
-  /* Intra-row gap via inherited --inset from RowWrapper (do not redeclare). */
-  --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
-  --destination-x: calc((var(--index) + 1) * -100%);
-
-  --delay: calc(
-    (var(--duration) / var(--count)) *
-      (var(--index, 0) - (var(--count) * var(--offset)))
-  );
-
-  /* Initial position */
-  transform: translateX(var(--origin-x));
-
-  /* Animation */
-  animation: ${scrollLeft} var(--duration)
-    calc(var(--delay) - (var(--count) * 0.5s)) infinite linear;
-  animation-play-state: ${({ $paused }) => ($paused ? "paused" : "running")};
-
-  /* GPU acceleration */
-  will-change: transform;
-
-  /* Reduced motion fallback */
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    transform: translateX(0);
+  /* Marquee: whole-px box, x animated by useMarqueeAnimations */
+  [data-marquee] & {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--masonry-tile-w);
+    height: var(--masonry-row-h);
+    will-change: transform;
   }
 `;
 
@@ -1298,23 +1511,23 @@ const MediaLayer = styled(motion.div)`
 `;
 
 const RowWrapper = styled.ul`
-  /* Fallback until ResizeObserver writes the synced value; inherited by items */
-  --inset: -0.9;
-
+  position: relative;
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: var(--masonry-row-gap);
 
   /* Reset list styles */
   list-style: none;
   padding: 0;
   margin: 0;
 
-  /* Reduced motion: real gap (animation off) — same token as GridWrapper */
+  [data-marquee] > & {
+    flex: 0 0 var(--masonry-row-h);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    gap: var(--masonry-row-gap, ${MASONRY_ROW_GAP});
     /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
     transform: translateX(calc((var(--offset) - 1) * -15%));
   }
@@ -1333,6 +1546,12 @@ const GridWrapper = styled.section`
 
   @media ${QUERIES.phoneAndBelow} {
     --masonry-row-gap: ${MASONRY_ROW_GAP_PHONE};
+  }
+
+  /* Whole-px rows and gap; leftover px split above and below */
+  &[data-marquee] {
+    gap: var(--masonry-gap-px);
+    justify-content: center;
   }
 `;
 
@@ -1354,6 +1573,18 @@ const Video = styled.video`
   object-position: center;
   user-select: none;
   -webkit-user-drag: none;
+
+  /* Over the poster <img>, same box and fit, shown only while painting */
+  &[data-over-poster] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 200ms linear;
+  }
+
+  &[data-over-poster][data-painting] {
+    opacity: 1;
+  }
 `;
 
 const ButtonGroup = styled.div`
