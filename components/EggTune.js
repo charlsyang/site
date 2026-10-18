@@ -13,7 +13,7 @@ import { QUERIES } from "../utils/constants";
 const STORAGE_KEY = "eggTune:v1";
 
 export const EGG_TUNE_DEFAULTS = {
-  floor: 56, // px above the band bottom
+  floor: 56, // px above the band bottom; below it, tiles are clipped by the band
   tiles: "mostly", // "mostly" (≥60% in view) | "visible" (any part) | "all"
   cap: 8, // 0 = no cap
   burst: 1, // × upward launch speed
@@ -27,20 +27,14 @@ export const EGG_TUNE_DEFAULTS = {
   fixDelay: 800, // ms before the fix button is tappable
 };
 
-// The band clips its tiles. Tiles overhang their bodies by ~24px, so the
-// lowest floor rests tile edges on the band's bottom edge.
-const FLOOR_MIN = 24;
-const FLOOR_MAX = 200;
-const clampFloor = (floor) => Math.min(Math.max(floor, FLOOR_MIN), FLOOR_MAX);
-
 const MIN_VISIBLE = { mostly: 0.6, visible: 0.001, all: -Infinity };
 
 const SLIDERS = [
   {
     key: "floor",
     label: "Floor",
-    min: FLOOR_MIN,
-    max: FLOOR_MAX,
+    min: -600,
+    max: 200,
     step: 4,
     unit: "px",
   },
@@ -55,10 +49,19 @@ const SLIDERS = [
   { key: "fixDelay", label: "Fix in", min: 0, max: 2000, step: 50, unit: "ms" },
 ];
 
+const gridBottomGap = () => {
+  const grid = document.querySelector('[aria-label="Visual gallery"]');
+  return grid
+    ? Math.round(window.innerHeight - grid.getBoundingClientRect().bottom)
+    : 300;
+};
+
 const PRESETS = [
   { label: "Default", values: () => ({}) },
   { label: "Fewer tiles", values: () => ({ cap: 4 }) },
-  { label: "Lower floor", values: () => ({ floor: FLOOR_MIN }) },
+  { label: "Lower floor", values: () => ({ floor: -120 }) },
+  // Tiles overhang their bodies by ~24px; land the visual edge on the screen edge
+  { label: "Screen bottom", values: () => ({ floor: 24 - gridBottomGap() }) },
 ];
 
 // ============================================
@@ -75,10 +78,7 @@ function isEnabled() {
     if (enabled) {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (saved) {
-          values = { ...EGG_TUNE_DEFAULTS, ...saved };
-          values.floor = clampFloor(values.floor);
-        }
+        if (saved) values = { ...EGG_TUNE_DEFAULTS, ...saved };
       } catch (e) {
         // Ignore unreadable storage
       }
@@ -99,7 +99,7 @@ function setValues(next) {
 
 function toBounds(v) {
   return {
-    groundInset: clampFloor(v.floor),
+    groundInset: v.floor,
     minVisible: MIN_VISIBLE[v.tiles] ?? 0.6,
     maxBodies: v.cap > 0 ? v.cap : Infinity,
     burst: v.burst,
