@@ -754,7 +754,7 @@ const PHYSICS_BOUNDS = {
     // Rest on the headline that overlaps the band (WorkLayout headlineOverlapPx)
     groundInset: 56,
     maxBodies: 8,
-    minVisible: 0.6,
+    minVisible: 0.001, // any visible part
     maxThrow: 30,
     rescueEscaped: true,
   },
@@ -769,6 +769,17 @@ const IDLE_DRAG = {
   velocity: { x: 0, y: 0 },
 };
 
+const WALL_CATEGORY = 0x0002;
+/** Fraction of an edge tile's remaining overhang closed per frame */
+const EDGE_SETTLE_RATE = 0.06;
+
+/** Signed px to move a body so it's fully inside [0, width]; 0 when inside */
+function edgeOverlap(body, width) {
+  if (body.bounds.min.x < 0) return -body.bounds.min.x;
+  if (body.bounds.max.x > width) return width - body.bounds.max.x;
+  return 0;
+}
+
 function tileTransform(x, y, angle, width, height) {
   return `translate(${x - width / 2}px, ${
     y - height / 2
@@ -776,8 +787,8 @@ function tileTransform(x, y, angle, width, height) {
 }
 
 /**
- * Phone: only tiles mostly in view break (most central first, capped); the
- * rest vanish with the grid. Bodies start where the tiles are.
+ * Phone: tiles in view break (most visible first, capped); the rest vanish
+ * with the grid. Bodies start exactly where the tiles are.
  */
 function fitItemsToBounds(items, bounds, width) {
   if (!bounds.fitToScreen) return items;
@@ -787,13 +798,8 @@ function fitItemsToBounds(items, bounds, width) {
     item.width;
   return items
     .filter((item) => visibleFraction(item) >= bounds.minVisible)
-    .sort((a, b) => Math.abs(a.x - width / 2) - Math.abs(b.x - width / 2))
-    .slice(0, bounds.maxBodies)
-    .map((item) => {
-      if (!bounds.walls) return item;
-      const half = (item.width * BODY_SCALE) / 2;
-      return { ...item, x: Math.min(Math.max(item.x, half), width - half) };
-    });
+    .sort((a, b) => visibleFraction(b) - visibleFraction(a))
+    .slice(0, bounds.maxBodies);
 }
 
 /**
@@ -892,14 +898,14 @@ function BrokenPhysicsMode({
         rect.height / 2,
         wallThickness,
         rect.height * wallSpan,
-        { isStatic: true }
+        { isStatic: true, collisionFilter: { category: WALL_CATEGORY } }
       );
       const rightWall = Matter.Bodies.rectangle(
         rect.width + wallOffset + wallThickness / 2,
         rect.height / 2,
         wallThickness,
         rect.height * wallSpan,
-        { isStatic: true }
+        { isStatic: true, collisionFilter: { category: WALL_CATEGORY } }
       );
 
       groundRef.current = ground;
@@ -909,6 +915,7 @@ function BrokenPhysicsMode({
         Matter.Composite.add(engine.world, [leftWall, rightWall]);
       }
 
+      const edgeBodies = new Set();
       itemData.forEach((item) => {
         const body = Matter.Bodies.rectangle(
           item.x,
@@ -924,6 +931,12 @@ function BrokenPhysicsMode({
           }
         );
         body.itemId = item.id;
+        // A body starting inside a wall gets shoved out past it (and clipped
+        // away), so edge tiles pass through the walls until they're inside
+        if (bounds.fitToScreen && edgeOverlap(body, rect.width) !== 0) {
+          body.collisionFilter.mask = ~WALL_CATEGORY;
+          edgeBodies.add(body);
+        }
 
         // Upward burst, optionally pushed out from the centre
         const fromCenter = (item.x - rect.width / 2) / (rect.width / 2);
@@ -952,8 +965,29 @@ function BrokenPhysicsMode({
         Matter.Body.setAngularVelocity(body, 0);
       };
 
+      // Ease edge tiles into the band as they fall, then let walls catch them
+      const settleInside = (body) => {
+        const { width } = sizeRef.current;
+        const over = edgeOverlap(body, width);
+        if (over === 0) {
+          body.collisionFilter.mask = ~0;
+          edgeBodies.delete(body);
+          return;
+        }
+        const push = over * EDGE_SETTLE_RATE;
+        if (
+          Math.abs(body.velocity.x) < Math.abs(push) ||
+          body.velocity.x * push < 0
+        ) {
+          Matter.Body.setVelocity(body, { x: push, y: body.velocity.y });
+        }
+      };
+
       const render = () => {
         bodiesRef.current.forEach(({ body, item }, id) => {
+          if (edgeBodies.has(body) && body !== dragRef.current.body) {
+            settleInside(body);
+          }
           if (bounds.rescueEscaped && body !== dragRef.current.body) {
             rescueIfEscaped(body, item);
           }

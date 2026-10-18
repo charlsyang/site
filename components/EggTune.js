@@ -14,7 +14,7 @@ const STORAGE_KEY = "eggTune:v1";
 
 export const EGG_TUNE_DEFAULTS = {
   floor: 56, // px above the band bottom; below it, tiles are clipped by the band
-  tiles: "mostly", // "mostly" (≥60% in view) | "visible" (any part) | "all"
+  tiles: "visible", // "visible" (any part) | "mostly" (≥60% in view) | "all"
   cap: 8, // 0 = no cap
   burst: 1, // × upward launch speed
   spread: 0, // outward launch speed
@@ -27,7 +27,7 @@ export const EGG_TUNE_DEFAULTS = {
   fixDelay: 800, // ms before the fix button is tappable
 };
 
-const MIN_VISIBLE = { mostly: 0.6, visible: 0.001, all: -Infinity };
+const MIN_VISIBLE = { visible: 0.001, mostly: 0.6, all: -Infinity };
 
 const SLIDERS = [
   {
