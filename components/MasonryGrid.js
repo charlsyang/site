@@ -767,6 +767,50 @@ const WALL_CATEGORY = 0x0002;
 /** Fraction of an edge tile's remaining overhang closed per frame */
 const EDGE_SETTLE_RATE = 0.06;
 
+/** Per-frame easing of gravity toward the tilt direction */
+const TILT_SMOOTHING = 0.2;
+/** Max gravity turn per frame (rad): a full flip takes ~1/3 s */
+const TILT_MAX_TURN = 0.15;
+/** Below this in-plane share of g the phone is ~flat: keep the last direction */
+const TILT_FLAT = 0.2;
+/** Tilt is reported unavailable if no reading arrives in time */
+const TILT_NO_DATA_MS = 1000;
+
+/** Gravity direction as a screen-space angle (radians, y down) */
+const DOWN_ANGLE = Math.PI / 2;
+
+/**
+ * Screen-space gravity angle for a device orientation reading, or null when
+ * the phone lies flat. `angle` is screen.orientation.angle.
+ */
+function tiltDirection(beta, gamma, angle) {
+  const b = (beta * Math.PI) / 180;
+  const g = (gamma * Math.PI) / 180;
+  // Portrait screen axes: x right, y down
+  const px = Math.sin(g) * Math.cos(b);
+  const py = Math.sin(b);
+  const a = (-angle * Math.PI) / 180;
+  const x = px * Math.cos(a) - py * Math.sin(a);
+  const y = px * Math.sin(a) + py * Math.cos(a);
+  return Math.hypot(x, y) < TILT_FLAT ? null : Math.atan2(y, x);
+}
+
+function screenAngle() {
+  return window.screen?.orientation?.angle ?? window.orientation ?? 0;
+}
+
+function canTilt() {
+  return (
+    typeof window !== "undefined" &&
+    "DeviceOrientationEvent" in window &&
+    (window.matchMedia("(pointer: coarse)").matches ||
+      navigator.maxTouchPoints > 0)
+  );
+}
+
+// Survives re-breaks so a denied prompt isn't shown again this session
+let tiltDenied = false;
+
 /** Signed px to move a body so it's fully inside [0, width]; 0 when inside */
 function edgeOverlap(body, width) {
   if (body.bounds.min.x < 0) return -body.bounds.min.x;
@@ -835,6 +879,8 @@ function BrokenPhysicsMode({
   onReset,
   containerRef,
   isPhone,
+  tiltOn = false,
+  onTiltUnavailable,
 }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const bounds = isPhone ? PHYSICS_BOUNDS.phone : PHYSICS_BOUNDS.desktop;
@@ -842,6 +888,9 @@ function BrokenPhysicsMode({
   const matterRef = useRef(null); // Store Matter.js module reference
   const groundRef = useRef(null); // Store ground body for resize updates
   const wallsRef = useRef({ left: null, right: null }); // Store wall bodies
+  const ceilingRef = useRef(null); // Only in the world while tilting
+  // Latest orientation reading; the physics loop turns it into gravity
+  const tiltRef = useRef({ active: false, beta: 0, gamma: 0 });
   const sizeRef = useRef({ width: 0, height: 0 });
   const bodiesRef = useRef(new Map()); // item id -> { body, item }
   const elementsRef = useRef(new Map()); // item id -> PhysicsItem node
@@ -897,9 +946,18 @@ function BrokenPhysicsMode({
         rect.height * wallSpan,
         { isStatic: true, collisionFilter: { category: WALL_CATEGORY } }
       );
+      // Not a wall category: edge tiles passing through walls still hit it
+      const ceiling = Matter.Bodies.rectangle(
+        rect.width / 2,
+        -wallThickness / 2,
+        rect.width + (wallOffset + wallThickness) * 2,
+        wallThickness,
+        { isStatic: true }
+      );
 
       groundRef.current = ground;
       wallsRef.current = { left: leftWall, right: rightWall };
+      ceilingRef.current = ceiling;
       Matter.Composite.add(engine.world, ground);
       if (bounds.walls) {
         Matter.Composite.add(engine.world, [leftWall, rightWall]);
@@ -939,18 +997,24 @@ function BrokenPhysicsMode({
         bodiesRef.current.set(item.id, { body, item });
       });
 
+      let hasCeiling = false;
+      let gravityAngle = DOWN_ANGLE;
+
       const rescueIfEscaped = (body, item) => {
         const { width, height } = sizeRef.current;
         const { x, y } = body.position;
         if (
           x > -item.width &&
           x < width + item.width &&
-          y > -height * 2 &&
+          y > (hasCeiling ? 0 : -height * 2) &&
           y < height - bounds.groundInset + item.height
         ) {
           return;
         }
-        Matter.Body.setPosition(body, { x: width / 2, y: -item.height / 2 });
+        Matter.Body.setPosition(body, {
+          x: width / 2,
+          y: hasCeiling ? height / 2 : -item.height / 2,
+        });
         Matter.Body.setVelocity(body, { x: 0, y: 0 });
         Matter.Body.setAngularVelocity(body, 0);
       };
@@ -993,6 +1057,34 @@ function BrokenPhysicsMode({
         });
       };
 
+      // Ease gravity toward the tilt (or back down), magnitude held constant
+      const updateGravity = () => {
+        const tilt = tiltRef.current;
+        if (tilt.active !== hasCeiling) {
+          hasCeiling = tilt.active;
+          if (hasCeiling) Matter.Composite.add(engine.world, ceiling);
+          else Matter.Composite.remove(engine.world, ceiling);
+        }
+        const target = tilt.active
+          ? tiltDirection(tilt.beta, tilt.gamma, screenAngle())
+          : DOWN_ANGLE;
+        if (target !== null && target !== gravityAngle) {
+          // Shortest way round, so a flip turns instead of passing through 0
+          const delta =
+            ((target - gravityAngle + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+          const turn = Math.max(
+            -TILT_MAX_TURN,
+            Math.min(TILT_MAX_TURN, delta * TILT_SMOOTHING)
+          );
+          gravityAngle = Math.abs(delta) < 1e-3 ? target : gravityAngle + turn;
+        }
+        const down = gravityAngle === DOWN_ANGLE;
+        engine.gravity.x = down ? 0 : Math.cos(gravityAngle) * bounds.gravity;
+        engine.gravity.y = down
+          ? bounds.gravity
+          : Math.sin(gravityAngle) * bounds.gravity;
+      };
+
       // Single rAF loop: fixed steps, capped per frame, paused when unseen
       let rafId = null;
       let lastTime = null;
@@ -1007,6 +1099,7 @@ function BrokenPhysicsMode({
           accumulator + elapsed,
           PHYSICS_STEP_MS * PHYSICS_MAX_STEPS_PER_FRAME
         );
+        if (bounds.fitToScreen) updateGravity();
         let steps = 0;
         // 1ms slack absorbs rAF jitter so 60Hz doesn't alternate 0/2 steps
         while (
@@ -1054,6 +1147,7 @@ function BrokenPhysicsMode({
         engineRef.current = null;
         groundRef.current = null;
         wallsRef.current = { left: null, right: null };
+        ceilingRef.current = null;
         bodiesRef.current.clear();
         dragRef.current = IDLE_DRAG;
       };
@@ -1106,6 +1200,12 @@ function BrokenPhysicsMode({
           y: height / 2,
         });
       }
+      if (ceilingRef.current) {
+        Matter.Body.setPosition(ceilingRef.current, {
+          x: width / 2,
+          y: -wallThickness / 2,
+        });
+      }
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
@@ -1115,6 +1215,44 @@ function BrokenPhysicsMode({
       resizeObserver.disconnect();
     };
   }, [containerRef, bounds]);
+
+  // Tilt: the listener only stores readings; the physics loop applies them.
+  // Off while the tab is hidden, and on Fix / navigation via unmount.
+  useEffect(() => {
+    if (!tiltOn) return;
+    const tilt = tiltRef.current;
+    let noDataTimer = null;
+
+    const onOrientation = (event) => {
+      if (event.beta === null || event.gamma === null) return;
+      tilt.beta = event.beta;
+      tilt.gamma = event.gamma;
+      if (!tilt.active) {
+        tilt.active = true;
+        clearTimeout(noDataTimer);
+      }
+    };
+    const listen = () => {
+      window.addEventListener("deviceorientation", onOrientation);
+      clearTimeout(noDataTimer);
+      if (!tilt.active) {
+        noDataTimer = setTimeout(() => onTiltUnavailable?.(), TILT_NO_DATA_MS);
+      }
+    };
+    const unlisten = () => {
+      window.removeEventListener("deviceorientation", onOrientation);
+      clearTimeout(noDataTimer);
+    };
+    const onVisibility = () => (document.hidden ? unlisten() : listen());
+
+    if (!document.hidden) listen();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      unlisten();
+      document.removeEventListener("visibilitychange", onVisibility);
+      tilt.active = false;
+    };
+  }, [tiltOn, onTiltUnavailable]);
 
   // Handle drag start on physics items (one pointer at a time)
   const handlePointerDown = useCallback(
@@ -1356,6 +1494,37 @@ export default function MasonryGrid({
   const clickTimestampsRef = useRef([]);
   const gridRef = useRef(null);
 
+  // Phone tilt-to-move while broken: "off" | "on" | "unavailable"
+  const [tiltSupported, setTiltSupported] = useState(false);
+  const [tilt, setTilt] = useState(() => (tiltDenied ? "unavailable" : "off"));
+  const tiltRequestRef = useRef(0);
+  useEffect(() => setTiltSupported(canTilt()), []);
+  const handleTiltUnavailable = useCallback(() => setTilt("unavailable"), []);
+  const handleTilt = useCallback(() => {
+    if (tilt === "on") {
+      setTilt("off");
+      return;
+    }
+    if (tilt !== "off") return;
+    const requestPermission = window.DeviceOrientationEvent?.requestPermission;
+    if (typeof requestPermission !== "function") {
+      setTilt("on");
+      return;
+    }
+    // iOS 13+: must be called inside the tap
+    const request = ++tiltRequestRef.current;
+    requestPermission
+      .call(window.DeviceOrientationEvent)
+      .then((state) => state === "granted")
+      .catch(() => false)
+      .then((granted) => {
+        if (!granted) tiltDenied = true;
+        if (request === tiltRequestRef.current) {
+          setTilt(granted ? "on" : "unavailable");
+        }
+      });
+  }, [tilt]);
+
   // Pre-captured video frames (captured during idle time, not during easter egg trigger)
   const videoFramesRef = useRef(new Map());
 
@@ -1570,6 +1739,8 @@ export default function MasonryGrid({
   const handleFixBroken = useCallback(() => {
     setIsBroken(false);
     setCapturedPositions(null);
+    tiltRequestRef.current++;
+    setTilt(tiltDenied ? "unavailable" : "off");
     // Reshuffle items when fixing
     reshuffle();
   }, [reshuffle]);
@@ -1699,10 +1870,26 @@ export default function MasonryGrid({
           onReset={handleFixBroken}
           containerRef={gridRef}
           isPhone={isPhone}
+          tiltOn={isPhone && tilt === "on"}
+          onTiltUnavailable={handleTiltUnavailable}
         />
       )}
       {isPhone && isBroken && (
         <ButtonGroup>
+          {tiltSupported && (
+            <TiltButton
+              iconOnly
+              size="lg"
+              variant="elevated"
+              icon={<Icon name="tilt" />}
+              onClick={handleTilt}
+              disabled={tilt === "unavailable"}
+              aria-pressed={tilt === "on"}
+              aria-label={
+                tilt === "unavailable" ? "Tilt unavailable" : "Tilt to move"
+              }
+            />
+          )}
           <PhoneFixButton
             iconOnly
             size="lg"
@@ -2015,4 +2202,19 @@ const FixButtonStyled = styled(Button)`
 /* Phone: takes the Refresh button's slot in ButtonGroup */
 const PhoneFixButton = styled(Button)`
   animation: ${RevealIn} 0.3s ease-out 0.8s both;
+`;
+
+/* Sits left of the fix button; inverted while tilt is on */
+const TiltButton = styled(PhoneFixButton)`
+  &[aria-pressed="true"],
+  &[aria-pressed="true"]:active {
+    background: var(--color-text-inverted);
+    color: var(--color-bg-inverted);
+  }
+
+  @media (hover: hover) {
+    &[aria-pressed="true"]:hover {
+      background: var(--color-text-inverted);
+    }
+  }
 `;
