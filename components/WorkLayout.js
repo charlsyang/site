@@ -3,20 +3,66 @@ import styled, { css, keyframes } from "styled-components";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { QUERIES } from "../utils/constants";
+import {
+  buildFadeMaskGradient,
+  buildFadeTintGradient,
+} from "../utils/easedGradient";
 import Fleuron from "../public/favicon.svg";
-import MasonryTune, {
-  DEFAULT_FADE_GRADIENTS,
-  MASONRY_TUNE_DEFAULTS,
-} from "./MasonryTune";
+
+/**
+ * Locked phone masonry values (Charlsy-approved).
+ * Tune panel removed — these are the production defaults.
+ */
+const MASONRY_PHONE = {
+  gridHeightVh: 55,
+  topInsetPx: 20,
+  headlineOverlapPx: 56,
+  /* Bottom fade */
+  fadeHeightPx: 140,
+  fadeSolidPct: 12,
+  fadeBlurPx: 2,
+  fadeTint: 1,
+  /* Top fade */
+  topFadeHeightPx: 88,
+  topFadeSolidPct: 0,
+  topFadeBlurPx: 2,
+  topFadeTint: 1,
+};
+
+const FADE_SHARED = {
+  steps: 16,
+  easeA: "ease-in-out",
+  easePos: "linear",
+};
+
+const FADE_GRADIENTS = {
+  tint: buildFadeTintGradient({
+    ...FADE_SHARED,
+    solidPct: MASONRY_PHONE.fadeSolidPct,
+    maxAlpha: 1,
+  }),
+  mask: buildFadeMaskGradient({
+    ...FADE_SHARED,
+    solidPct: MASONRY_PHONE.fadeSolidPct,
+  }),
+  topTint: buildFadeTintGradient({
+    direction: "to top",
+    ...FADE_SHARED,
+    solidPct: MASONRY_PHONE.topFadeSolidPct,
+    maxAlpha: 1,
+  }),
+  topMask: buildFadeMaskGradient({
+    direction: "to top",
+    ...FADE_SHARED,
+    solidPct: MASONRY_PHONE.topFadeSolidPct,
+  }),
+};
 
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
   const currentSlug = router.query.slug;
   // Case studies stay hidden on phone; only the /work index shows the grid.
   const showGridOnPhone = router.pathname === "/work";
-  const showTune =
-    showGridOnPhone &&
-    (router.query.tune === "1" || router.query.tune === "true");
   const [time, setTime] = useState(null);
 
   useEffect(() => {
@@ -114,11 +160,10 @@ export default function WorkLayout({ children, allPostsData }) {
       </Sidebar>
       <ContentArea $showOnPhone={showGridOnPhone}>
         {children}
-        {/* Top/bottom edge dissolves — eased multi-stop (see MasonryTune) */}
+        {/* Top/bottom edge dissolves — eased multi-stop (utils/easedGradient) */}
         {showGridOnPhone && <GridTopFade aria-hidden="true" />}
         {showGridOnPhone && <GridBottomFade aria-hidden="true" />}
       </ContentArea>
-      {showTune && <MasonryTune />}
     </Container>
   );
 }
@@ -176,7 +221,7 @@ const NavBlur = styled.div`
 /*
  * Top dissolve at the grid band’s top edge (mirror of bottom).
  * Lives on ContentArea so Nav stays untouched — grid runs under nav blur.
- * Opaque toward the top (`to top`); tune overwrites --masonry-top-fade-*.
+ * Opaque toward the top (`to top`).
  *
  * z-index MUST stay below NavWrapper (4) / NavBlur (3). A higher z-index
  * paints the solid top of this fade over the Work/Blog links.
@@ -191,10 +236,7 @@ const GridTopFade = styled.div`
     right: 0;
     top: 0;
     z-index: 1;
-    height: var(
-      --masonry-top-fade-height,
-      ${MASONRY_TUNE_DEFAULTS.topFadeHeightPx}px
-    );
+    height: ${MASONRY_PHONE.topFadeHeightPx}px;
     pointer-events: none;
     user-select: none;
 
@@ -202,34 +244,18 @@ const GridTopFade = styled.div`
       content: "";
       position: absolute;
       inset: 0;
-      backdrop-filter: blur(
-        var(--masonry-top-fade-blur, ${MASONRY_TUNE_DEFAULTS.topFadeBlurPx}px)
-      );
-      -webkit-backdrop-filter: blur(
-        var(--masonry-top-fade-blur, ${MASONRY_TUNE_DEFAULTS.topFadeBlurPx}px)
-      );
-      -webkit-mask-image: var(
-        --masonry-top-fade-mask-gradient,
-        ${DEFAULT_FADE_GRADIENTS.topMask}
-      );
-      mask-image: var(
-        --masonry-top-fade-mask-gradient,
-        ${DEFAULT_FADE_GRADIENTS.topMask}
-      );
+      backdrop-filter: blur(${MASONRY_PHONE.topFadeBlurPx}px);
+      -webkit-backdrop-filter: blur(${MASONRY_PHONE.topFadeBlurPx}px);
+      -webkit-mask-image: ${FADE_GRADIENTS.topMask};
+      mask-image: ${FADE_GRADIENTS.topMask};
     }
 
     &::after {
       content: "";
       position: absolute;
       inset: 0;
-      background-image: var(
-        --masonry-top-fade-tint-gradient,
-        ${DEFAULT_FADE_GRADIENTS.topTint}
-      );
-      opacity: var(
-        --masonry-top-fade-tint,
-        ${MASONRY_TUNE_DEFAULTS.topFadeTint}
-      );
+      background-image: ${FADE_GRADIENTS.topTint};
+      opacity: ${MASONRY_PHONE.topFadeTint};
     }
   }
 `;
@@ -239,7 +265,6 @@ const GridTopFade = styled.div`
  *
  * Tint + mask use multi-stop eased gradients (see utils/easedGradient.js /
  * CodePen “HD CSS gradients w/ easing”) so alpha isn’t a harsh 2-stop ramp.
- * Tune widget (?tune=1) overwrites --masonry-fade-*-gradient on :root.
  */
 const GridBottomFade = styled.div`
   display: none;
@@ -251,7 +276,7 @@ const GridBottomFade = styled.div`
     right: 0;
     bottom: 0;
     z-index: 5;
-    height: var(--masonry-fade-height, ${MASONRY_TUNE_DEFAULTS.fadeHeightPx}px);
+    height: ${MASONRY_PHONE.fadeHeightPx}px;
     pointer-events: none;
     user-select: none;
 
@@ -260,20 +285,10 @@ const GridBottomFade = styled.div`
       content: "";
       position: absolute;
       inset: 0;
-      backdrop-filter: blur(
-        var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
-      );
-      -webkit-backdrop-filter: blur(
-        var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
-      );
-      -webkit-mask-image: var(
-        --masonry-fade-mask-gradient,
-        ${DEFAULT_FADE_GRADIENTS.mask}
-      );
-      mask-image: var(
-        --masonry-fade-mask-gradient,
-        ${DEFAULT_FADE_GRADIENTS.mask}
-      );
+      backdrop-filter: blur(${MASONRY_PHONE.fadeBlurPx}px);
+      -webkit-backdrop-filter: blur(${MASONRY_PHONE.fadeBlurPx}px);
+      -webkit-mask-image: ${FADE_GRADIENTS.mask};
+      mask-image: ${FADE_GRADIENTS.mask};
     }
 
     /* Eased multi-stop dissolve into page bg (opaque at bottom) */
@@ -281,11 +296,8 @@ const GridBottomFade = styled.div`
       content: "";
       position: absolute;
       inset: 0;
-      background-image: var(
-        --masonry-fade-tint-gradient,
-        ${DEFAULT_FADE_GRADIENTS.tint}
-      );
-      opacity: var(--masonry-fade-tint, ${MASONRY_TUNE_DEFAULTS.fadeTint});
+      background-image: ${FADE_GRADIENTS.tint};
+      opacity: ${MASONRY_PHONE.fadeTint};
     }
   }
 `;
@@ -411,14 +423,8 @@ const ContentArea = styled.main`
      * Nav still overlays the upper portion of this band.
      */
     margin: 0;
-    margin-top: var(
-      --masonry-top-inset,
-      ${MASONRY_TUNE_DEFAULTS.topInsetPx}px
-    );
-    height: var(
-      --masonry-grid-height,
-      ${MASONRY_TUNE_DEFAULTS.gridHeightVh}vh
-    );
+    margin-top: ${MASONRY_PHONE.topInsetPx}px;
+    height: ${MASONRY_PHONE.gridHeightVh}vh;
     border: none;
     border-radius: 0;
     /* Match body so any gap under the fade is invisible */
@@ -443,9 +449,7 @@ const Intro = styled.section`
     ${({ $overlapGrid }) =>
       $overlapGrid &&
       css`
-        margin-top: calc(
-          -1 * var(--masonry-headline-overlap, ${MASONRY_TUNE_DEFAULTS.headlineOverlapPx}px)
-        );
+        margin-top: -${MASONRY_PHONE.headlineOverlapPx}px;
         position: relative;
         z-index: 6;
       `}
