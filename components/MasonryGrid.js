@@ -878,7 +878,8 @@ function BrokenPhysicsMode({
       const ground = Matter.Bodies.rectangle(
         rect.width / 2,
         rect.height - groundInset + wallThickness / 2,
-        rect.width + wallOffset * 2,
+        // Runs under the walls so tiles overhanging an edge still rest flat
+        rect.width + (wallOffset + wallThickness) * 2,
         wallThickness,
         { isStatic: true }
       );
