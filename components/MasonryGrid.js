@@ -140,21 +140,10 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 // Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
 const SECONDS_PER_ITEM = 10;
 
-/** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
+/** Shared gutter token — GridWrapper row gap AND Track flex gap */
 const MASONRY_ROW_GAP = "0.9vh";
 /** Phone: fixed px so row + intra-row gutters stay uniform (vh drifts with band height) */
 const MASONRY_ROW_GAP_PHONE = "4px";
-/** Item aspect-ratio width/height (matches ItemWrapper) */
-const ITEM_ASPECT = 3 / 2;
-
-/**
- * Intra-row visual gap from the infinite translate inset:
- *   G ≈ ((1 + inset) / count) × itemWidth
- * Set G = rowGap → inset = count × rowGap / itemWidth − 1
- */
-function insetForRowGap(rowGapPx, itemWidthPx, count) {
-  return (count * rowGapPx) / itemWidthPx - 1;
-}
 
 /**
  * Calculate animation duration based on item count and row distribution
@@ -188,7 +177,7 @@ const crossfadeTransition = {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, index, animationPaused, shuffleKey }) {
+function MasonryItem({ item, shuffleKey, isClone = false }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
@@ -259,17 +248,18 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
 
   return (
     <ItemWrapper
-      style={{
-        "--index": index,
+      style={
         // Show blur placeholder as background during reveal
-        ...(showPlaceholder && {
-          backgroundImage: `url(${item.blurDataURL})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }),
-      }}
-      $paused={animationPaused}
-      aria-hidden={item.isDuplicate ? "true" : undefined}
+        showPlaceholder
+          ? {
+              backgroundImage: `url(${item.blurDataURL})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
+      aria-hidden={isClone || item.isDuplicate ? "true" : undefined}
+      inert={isClone ? "" : undefined}
     >
       <AnimatePresence mode="popLayout">
         <MediaLayer
@@ -324,64 +314,41 @@ function MasonryItem({ item, index, animationPaused, shuffleKey }) {
 // InfiniteMasonryRow Component
 // ============================================
 
+/**
+ * Row (clip) > Track (the only animated element). The track renders the
+ * items twice; translating it by one copy plus one gap lands the clone
+ * exactly where the original started, so the loop seam is invisible.
+ */
 function InfiniteMasonryRow({
   items,
-  count,
   duration = 30,
   offset = 1.2,
-  direction = "left",
   animationPaused = false,
   shuffleKey = 0,
   className,
 }) {
-  const rowRef = useRef(null);
-
-  // Keep --inset in sync with GridWrapper’s row-gap token (no flex gap on animated rows)
-  useEffect(() => {
-    const rowEl = rowRef.current;
-    if (!rowEl) return;
-
-    const syncInset = () => {
-      const grid = rowEl.parentElement;
-      if (!grid) return;
-      const gapPx = parseFloat(getComputedStyle(grid).rowGap);
-      const firstItem = rowEl.querySelector(":scope > li");
-      const measuredW = firstItem?.getBoundingClientRect().width;
-      const itemWidth =
-        measuredW > 0 ? measuredW : rowEl.clientHeight * ITEM_ASPECT;
-      if (!Number.isFinite(gapPx) || gapPx <= 0 || itemWidth <= 0) return;
-      const inset = insetForRowGap(gapPx, itemWidth, count);
-      rowEl.style.setProperty("--inset", String(inset));
-    };
-
-    syncInset();
-    const ro = new ResizeObserver(syncInset);
-    ro.observe(rowEl);
-    if (rowEl.parentElement) ro.observe(rowEl.parentElement);
-    return () => ro.disconnect();
-  }, [count, shuffleKey]);
-
   return (
-    <RowWrapper
-      ref={rowRef}
+    <Row
+      className={className}
       style={{
-        "--count": count,
         "--duration": `${duration}s`,
         "--offset": offset,
       }}
-      $direction={direction}
-      className={className}
     >
-      {items.map((item, index) => (
-        <MasonryItem
-          key={index}
-          item={item}
-          index={index}
-          animationPaused={animationPaused}
-          shuffleKey={shuffleKey}
-        />
-      ))}
-    </RowWrapper>
+      <Track data-masonry-track="" $paused={animationPaused}>
+        {items.map((item, index) => (
+          <MasonryItem key={`a-${index}`} item={item} shuffleKey={shuffleKey} />
+        ))}
+        {items.map((item, index) => (
+          <MasonryItem
+            key={`b-${index}`}
+            item={item}
+            shuffleKey={shuffleKey}
+            isClone
+          />
+        ))}
+      </Track>
+    </Row>
   );
 }
 
@@ -786,7 +753,6 @@ export default function MasonryGrid({
   items,
   rows = 3,
   duration, // Optional: auto-calculated if not provided
-  direction = "left",
   showPauseButton = true,
   showRefreshButton = true,
   className,
@@ -845,8 +811,9 @@ export default function MasonryGrid({
     clickTimestampsRef.current = [];
   }, [isPhone, isBroken]);
 
-  // Force animation restart on resize (Safari-only fix)
-  // Safari doesn't properly recalculate percentage-based translate values in running animations
+  // Restart track animations on resize (Safari-only fix)
+  // Safari doesn't recalculate percentage-based translate values in running
+  // animations, so the -50% keyframe goes stale when the track width changes.
   useEffect(() => {
     if (!mounted || !gridRef.current) return;
 
@@ -860,24 +827,19 @@ export default function MasonryGrid({
     let prevHeight = 0;
 
     const restartAnimations = () => {
-      const root = gridRef.current;
-      const items = root?.querySelectorAll("li");
-      if (!root || !items?.length) return;
+      const tracks = gridRef.current?.querySelectorAll("[data-masonry-track]");
+      if (!tracks?.length) return;
 
-      // Freeze each tile at its current painted position before clearing
-      // animation. A bare `animation: none` falls back to origin-x and reads
-      // as a snap-back on mount / nav (ResizeObserver fires on observe).
-      items.forEach((el) => {
-        const computed = getComputedStyle(el).transform;
-        if (computed && computed !== "none") {
-          el.style.transform = computed;
-        }
+      // Carry currentTime across the restart so the loop keeps its phase
+      // instead of jumping back to the delay-derived start position.
+      tracks.forEach((el) => {
+        const prev = el.getAnimations?.()[0];
+        const time = prev?.currentTime;
         el.style.animation = "none";
-      });
-      void root.offsetHeight;
-      items.forEach((el) => {
+        void el.offsetWidth;
         el.style.animation = "";
-        el.style.transform = "";
+        const next = el.getAnimations?.()[0];
+        if (next && time != null) next.currentTime = time;
       });
     };
 
@@ -1040,6 +1002,8 @@ export default function MasonryGrid({
           // Video frames were pre-captured during idle time
           mediaElements.forEach((el, index) => {
             const elRect = el.getBoundingClientRect();
+            // Each track holds two copies; skip tiles fully outside the grid
+            if (elRect.right <= rect.left || elRect.left >= rect.right) return;
             const mediaSrc =
               el.querySelector("img")?.src || el.querySelector("video")?.src;
             const isVideo = !!el.querySelector("video");
@@ -1118,6 +1082,7 @@ export default function MasonryGrid({
     <GridWrapper
       ref={gridRef}
       className={className}
+      style={{ "--rows": rows }}
       aria-label="Visual gallery"
     >
       {!isBroken &&
@@ -1125,10 +1090,8 @@ export default function MasonryGrid({
           <InfiniteMasonryRow
             key={rowIndex}
             items={rowItems}
-            count={rowItems.length}
             duration={effectiveDuration}
             offset={getRowOffset(rowIndex)}
-            direction={direction}
             animationPaused={userPaused}
             shuffleKey={shuffleVersion}
           />
@@ -1244,9 +1207,16 @@ const sharedMediaItemStyles = css`
   background: var(--color-bg-hover);
 `;
 
+/*
+ * Track = copy A, gap, copy B. One period (copy width + one gap) is
+ * (trackWidth − gap) / 2 + gap = 50% of the track + gap / 2.
+ */
 const scrollLeft = keyframes`
-  100% {
-    transform: translateX(var(--destination-x));
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - var(--masonry-row-gap) / 2));
   }
 `;
 
@@ -1260,32 +1230,6 @@ const ItemWrapper = styled.li`
 
   /* Enable layering for crossfade */
   position: relative;
-
-  /* Intra-row gap via inherited --inset from RowWrapper (do not redeclare). */
-  --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
-  --destination-x: calc((var(--index) + 1) * -100%);
-
-  --delay: calc(
-    (var(--duration) / var(--count)) *
-      (var(--index, 0) - (var(--count) * var(--offset)))
-  );
-
-  /* Initial position */
-  transform: translateX(var(--origin-x));
-
-  /* Animation */
-  animation: ${scrollLeft} var(--duration)
-    calc(var(--delay) - (var(--count) * 0.5s)) infinite linear;
-  animation-play-state: ${({ $paused }) => ($paused ? "paused" : "running")};
-
-  /* GPU acceleration */
-  will-change: transform;
-
-  /* Reduced motion fallback */
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    transform: translateX(0);
-  }
 `;
 
 /* Layer for crossfade - Motion handles animations */
@@ -1297,26 +1241,50 @@ const MediaLayer = styled(motion.div)`
   backface-visibility: hidden;
 `;
 
-const RowWrapper = styled.ul`
-  /* Fallback until ResizeObserver writes the synced value; inherited by items */
-  --inset: -0.9;
-
+const Row = styled.div`
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
+  overflow: hidden;
+
+  /*
+   * Phone: snap each row to an even px height so tile widths (3:2) are whole
+   * pixels too. Leftover (< 2px per row) collects under the bottom fade.
+   */
+  @media ${QUERIES.phoneAndBelow} {
+    @supports (height: round(down, 1px, 1px)) {
+      flex: none;
+      height: round(
+        down,
+        calc((100% - (var(--rows) - 1) * var(--masonry-row-gap)) / var(--rows)),
+        2px
+      );
+    }
+  }
+`;
+
+const Track = styled.ul`
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: var(--masonry-row-gap);
+  width: max-content;
+  height: 100%;
 
   /* Reset list styles */
   list-style: none;
   padding: 0;
   margin: 0;
 
-  /* Reduced motion: real gap (animation off) — same token as GridWrapper */
+  /* Negative delay staggers rows (offset 1.0, 1.3, 1.6 → 0 / 30% / 60% in) */
+  animation: ${scrollLeft} var(--duration) linear
+    calc(var(--duration) * var(--offset) * -1) infinite;
+  animation-play-state: ${({ $paused }) => ($paused ? "paused" : "running")};
+  will-change: transform;
+
   @media (prefers-reduced-motion: reduce) {
-    gap: var(--masonry-row-gap, ${MASONRY_ROW_GAP});
-    /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
-    transform: translateX(calc((var(--offset) - 1) * -15%));
+    animation: none;
+    will-change: auto;
+    /* margin % resolves against the Row width, matching the old row stagger */
+    margin-left: calc((var(--offset) - 1) * -15%);
   }
 `;
 
