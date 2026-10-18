@@ -14,131 +14,12 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { QUERIES } from "../utils/constants";
 import Icon from "./Icon";
 import Button from "./Button";
-
-// ============================================
-// Utility Functions
-// ============================================
-
-/**
- * Fisher-Yates shuffle algorithm
- */
-function shuffleArray(array) {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/**
- * Distribute items across rows using round-robin,
- * then equalize row lengths by duplicating items
- */
-function distributeItems(items, rowCount) {
-  // Initialize empty rows
-  const rows = Array.from({ length: rowCount }, () => []);
-
-  // Round-robin distribution
-  items.forEach((item, index) => {
-    const rowIndex = index % rowCount;
-    rows[rowIndex].push(item);
-  });
-
-  // Find max length
-  const maxLength = Math.max(...rows.map((row) => row.length));
-
-  // Equalize by borrowing items from OTHER rows (no repeats within same row)
-  rows.forEach((row, rowIdx) => {
-    let dupIndex = 0;
-    while (row.length < maxLength) {
-      // Pick from a different row (round-robin through other rows, skip self)
-      let sourceRowIndex = (rowIdx + 1 + dupIndex) % rowCount;
-      if (sourceRowIndex === rowIdx) {
-        sourceRowIndex = (sourceRowIndex + 1) % rowCount;
-      }
-      const sourceRow = rows[sourceRowIndex];
-      const sourceItem = sourceRow[dupIndex % sourceRow.length];
-
-      row.push({
-        ...sourceItem,
-        id: `${sourceItem.id}-dup-${rowIdx}-${dupIndex}`,
-        isDuplicate: true,
-      });
-      dupIndex++;
-    }
-  });
-
-  return rows;
-}
-
-/**
- * Shuffle items ensuring each item moves to a different row than before.
- *
- * Strategy: Constrained Random Assignment
- * - Each item can go to ANY row except its current row
- * - Rows are kept balanced (equal items per row)
- * - Provides true randomness while guaranteeing row changes
- */
-function shuffleWithRowChange(currentRowData, rowCount) {
-  // Flatten current rows, tagging each item with its current row
-  const items = currentRowData.flatMap((row, rowIndex) =>
-    row
-      .filter((item) => !item.isDuplicate)
-      .map((item) => ({ ...item, _prevRow: rowIndex }))
-  );
-
-  const totalItems = items.length;
-  const baseItemsPerRow = Math.floor(totalItems / rowCount);
-  const extraItems = totalItems % rowCount;
-
-  // Calculate target size for each row
-  const targetSizes = Array.from(
-    { length: rowCount },
-    (_, i) => baseItemsPerRow + (i < extraItems ? 1 : 0)
-  );
-
-  // Initialize new rows
-  const newRows = Array.from({ length: rowCount }, () => []);
-  const rowSizes = Array(rowCount).fill(0);
-
-  // Shuffle items to randomize assignment order
-  const shuffledItems = shuffleArray([...items]);
-
-  // Assign each item to a random valid row
-  for (const item of shuffledItems) {
-    // Find all valid rows (not full, and not the item's previous row)
-    const validRows = [];
-    for (let r = 0; r < rowCount; r++) {
-      if (r !== item._prevRow && rowSizes[r] < targetSizes[r]) {
-        validRows.push(r);
-      }
-    }
-
-    // If no valid rows (edge case), allow previous row as fallback
-    let targetRow;
-    if (validRows.length > 0) {
-      targetRow = validRows[Math.floor(Math.random() * validRows.length)];
-    } else {
-      // Fallback: find any row with space
-      for (let r = 0; r < rowCount; r++) {
-        if (rowSizes[r] < targetSizes[r]) {
-          targetRow = r;
-          break;
-        }
-      }
-    }
-
-    // Clean up and assign
-    const cleanItem = { ...item };
-    delete cleanItem._prevRow;
-    newRows[targetRow].push(cleanItem);
-    rowSizes[targetRow]++;
-  }
-
-  // Shuffle within each row for extra randomness, then flatten
-  return newRows.flatMap((row) => shuffleArray(row));
-}
+import {
+  shuffleArray,
+  distributeItems,
+  shuffleWithRowChange,
+  layoutItems,
+} from "../utils/masonryLayout";
 
 // ============================================
 // Animation Configuration
@@ -1197,16 +1078,18 @@ export default function MasonryGrid({
   // Client-only rendering to avoid hydration mismatch from shuffle
   const [mounted, setMounted] = useState(false);
 
-  // Shuffled items state (allows re-shuffling)
-  const [shuffledItems, setShuffledItems] = useState([]);
+  // Rows as rendered (clones included), so each shuffle is computed against
+  // exactly the layout on screen
+  const [layout, setLayout] = useState([]);
 
   // Shuffle version - increments on each refresh to force all items to animate
   // When 0 (initial mount), items appear without animation
   // When > 0 (user clicked shuffle), items animate with crossfade
   const [shuffleVersion, setShuffleVersion] = useState(0);
 
-  // Button disabled state during animation
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Ignores clicks during the crossfade. A ref, so a second tap in the same
+  // frame can never start a shuffle from a stale layout.
+  const refreshLockedRef = useRef(false);
 
   // Icon flip animation state
   const [isFlipping, setIsFlipping] = useState(false);
@@ -1231,8 +1114,9 @@ export default function MasonryGrid({
 
   useEffect(() => {
     // Shuffle once on mount
-    setShuffledItems(shuffleArray(items));
+    setLayout(distributeItems(shuffleArray(items), rows));
     setMounted(true);
+    // Only a new item set reshuffles; a row count change re-deals in rowData
   }, [items]);
 
   // Phone has no physics mode; clear a leftover desktop egg so the grid isn't empty
@@ -1333,14 +1217,23 @@ export default function MasonryGrid({
 
   // Distribute items across rows
   const rowData = useMemo(() => {
-    if (shuffledItems.length === 0) return [];
-    return distributeItems(shuffledItems, rows);
-  }, [shuffledItems, rows]);
+    if (layout.length === 0 || layout.length === rows) return layout;
+    return distributeItems(layoutItems(layout), rows);
+  }, [layout, rows]);
+
+  // Every item changes row and no slot keeps its media; against the latest
+  // layout, not a render's closure
+  const reshuffle = useCallback(() => {
+    setShuffleVersion((v) => v + 1);
+    setLayout((prev) =>
+      prev.length > 0 ? shuffleWithRowChange(prev, rows) : prev
+    );
+  }, [rows]);
 
   // Handle refresh - ensures items move to different rows
   const handleRefresh = useCallback(() => {
     // Ignore clicks during animation (debounce without visual indicator)
-    if (isRefreshing) return;
+    if (refreshLockedRef.current) return;
 
     // Trigger icon flip animation
     setIsFlipping(true);
@@ -1406,18 +1299,13 @@ export default function MasonryGrid({
       }
     }
 
-    setIsRefreshing(true);
-    // Increment shuffle version to force all items to animate (even same src in same slot)
-    setShuffleVersion((v) => v + 1);
-    // Use row-aware shuffle to ensure items change rows
-    const newShuffle =
-      rowData.length > 0
-        ? shuffleWithRowChange(rowData, rows)
-        : shuffleArray(items);
-    setShuffledItems(newShuffle);
+    refreshLockedRef.current = true;
+    reshuffle();
     // Re-enable button after animation completes
-    setTimeout(() => setIsRefreshing(false), CROSSFADE_DURATION * 1000);
-  }, [isRefreshing, items, rowData, rows, isPhone]);
+    setTimeout(() => {
+      refreshLockedRef.current = false;
+    }, CROSSFADE_DURATION * 1000);
+  }, [reshuffle, isPhone]);
 
   useMarqueeAnimations({
     gridRef,
@@ -1433,9 +1321,8 @@ export default function MasonryGrid({
     setIsBroken(false);
     setCapturedPositions(null);
     // Reshuffle items when fixing
-    setShuffleVersion((v) => v + 1);
-    setShuffledItems(shuffleArray(items));
-  }, [items]);
+    reshuffle();
+  }, [reshuffle]);
 
   // Handle empty state
   if (!items || items.length === 0) {
