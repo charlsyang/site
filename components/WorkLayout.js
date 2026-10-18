@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { QUERIES } from "../utils/constants";
 import Fleuron from "../public/favicon.svg";
-import MasonryTune, { MASONRY_TUNE_DEFAULTS } from "./MasonryTune";
+import MasonryTune, {
+  DEFAULT_FADE_GRADIENTS,
+  MASONRY_TUNE_DEFAULTS,
+} from "./MasonryTune";
 
 export default function WorkLayout({ children, allPostsData }) {
   const router = useRouter();
@@ -172,11 +175,9 @@ const NavBlur = styled.div`
 /*
  * Bottom dissolve into page bg.
  *
- * Nav blur uses tint opacity 0.3 because it only softens content under the nav.
- * Reusing that 0.3 alone here left tiles showing through at the band edge → hard
- * seam against solid body bg. Fix: keep nav's blur+mask technique on ::before,
- * and put a FULL-strength gradient to var(--color-bg-base) on ::after so the
- * last pixels match the page background exactly.
+ * Tint + mask use multi-stop eased gradients (see utils/easedGradient.js /
+ * CodePen “HD CSS gradients w/ easing”) so alpha isn’t a harsh 2-stop ramp.
+ * Tune widget (?tune=1) overwrites --masonry-fade-*-gradient on :root.
  */
 const GridBottomFade = styled.div`
   display: none;
@@ -192,7 +193,7 @@ const GridBottomFade = styled.div`
     pointer-events: none;
     user-select: none;
 
-    /* Soften tiles — same stack as Nav.js Blur, flipped to-top */
+    /* Soften tiles — nav-style blur, masked with eased multi-stop */
     &::before {
       content: "";
       position: absolute;
@@ -203,32 +204,24 @@ const GridBottomFade = styled.div`
       -webkit-backdrop-filter: blur(
         var(--masonry-fade-blur, ${MASONRY_TUNE_DEFAULTS.fadeBlurPx}px)
       );
-      -webkit-mask-image: linear-gradient(
-        to top,
-        #000 0,
-        #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
-        transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+      -webkit-mask-image: var(
+        --masonry-fade-mask-gradient,
+        ${DEFAULT_FADE_GRADIENTS.mask}
       );
-      mask-image: linear-gradient(
-        to top,
-        #000 0,
-        #000 var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
-        transparent var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+      mask-image: var(
+        --masonry-fade-mask-gradient,
+        ${DEFAULT_FADE_GRADIENTS.mask}
       );
     }
 
-    /* Continuous dissolve into page bg (must reach opaque at bottom) */
+    /* Eased multi-stop dissolve into page bg (opaque at bottom) */
     &::after {
       content: "";
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(
-        to top,
-        var(--color-bg-base) 0%,
-        var(--color-bg-base)
-          var(--masonry-fade-solid, ${MASONRY_TUNE_DEFAULTS.fadeSolidPct}%),
-        transparent
-          var(--masonry-fade-end, ${MASONRY_TUNE_DEFAULTS.fadeEndPct}%)
+      background-image: var(
+        --masonry-fade-tint-gradient,
+        ${DEFAULT_FADE_GRADIENTS.tint}
       );
       opacity: var(--masonry-fade-tint, ${MASONRY_TUNE_DEFAULTS.fadeTint});
     }

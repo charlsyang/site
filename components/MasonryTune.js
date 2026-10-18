@@ -6,17 +6,26 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { QUERIES } from "../utils/constants";
+import {
+  EASING_PRESET_KEYS,
+  buildFadeMaskGradient,
+  buildFadeTintGradient,
+  buildTwoStopFadeGradient,
+} from "../utils/easedGradient";
 
 /** Defaults: nav-height is 56px → top inset ≈ half = 28px */
 export const MASONRY_TUNE_DEFAULTS = {
   gridHeightVh: 55,
   topInsetPx: 28,
   fadeHeightPx: 140,
-  fadeSolidPct: 22,
-  fadeEndPct: 100,
+  fadeSolidPct: 18,
   fadeBlurPx: 16,
   fadeTint: 1,
+  fadeStops: 16,
+  fadeEasing: "ease-in-out",
   headlineOverlapPx: 56,
+  /** Debug: force harsh 2-stop gradient for A/B */
+  fadeTwoStop: 0,
 };
 
 const VAR_MAP = {
@@ -24,7 +33,6 @@ const VAR_MAP = {
   topInsetPx: "--masonry-top-inset",
   fadeHeightPx: "--masonry-fade-height",
   fadeSolidPct: "--masonry-fade-solid",
-  fadeEndPct: "--masonry-fade-end",
   fadeBlurPx: "--masonry-fade-blur",
   fadeTint: "--masonry-fade-tint",
   headlineOverlapPx: "--masonry-headline-overlap",
@@ -34,7 +42,7 @@ const VAR_MAP = {
 const FADE_KEYS = [
   "fadeHeightPx",
   "fadeSolidPct",
-  "fadeEndPct",
+  "fadeStops",
   "fadeBlurPx",
   "fadeTint",
   "headlineOverlapPx",
@@ -45,7 +53,7 @@ const ALL_SLIDERS = [
   { key: "topInsetPx", label: "Top inset", unit: "px", min: 0, max: 64, step: 1 },
   { key: "fadeHeightPx", label: "Fade h", unit: "px", min: 48, max: 240, step: 1 },
   { key: "fadeSolidPct", label: "Solid %", unit: "%", min: 0, max: 80, step: 1 },
-  { key: "fadeEndPct", label: "End %", unit: "%", min: 20, max: 100, step: 1 },
+  { key: "fadeStops", label: "Stops", unit: "", min: 4, max: 24, step: 1 },
   { key: "fadeBlurPx", label: "Blur", unit: "px", min: 0, max: 40, step: 1 },
   { key: "fadeTint", label: "Strength", unit: "", min: 0, max: 1, step: 0.05 },
   {
@@ -61,15 +69,44 @@ const ALL_SLIDERS = [
 function formatVar(key, value) {
   if (key === "gridHeightVh") return `${value}vh`;
   if (key === "fadeTint") return String(value);
-  if (key === "fadeSolidPct" || key === "fadeEndPct") return `${value}%`;
+  if (key === "fadeSolidPct") return `${value}%`;
+  if (key === "fadeStops" || key === "fadeTwoStop") return String(value);
+  if (key === "fadeEasing") return String(value);
   return `${value}px`;
 }
 
-function applyVars(values) {
+export function buildFadeGradients(values) {
+  const steps = values.fadeStops;
+  const easing = values.fadeEasing;
+  const solidPct = values.fadeSolidPct;
+  const maxAlpha = values.fadeTint;
+
+  if (values.fadeTwoStop) {
+    const tint = buildTwoStopFadeGradient({ solidPct });
+    const mask = buildTwoStopFadeGradient({
+      solidPct,
+      color: "#000",
+    });
+    return { tint, mask };
+  }
+
+  return {
+    tint: buildFadeTintGradient({ steps, easing, solidPct, maxAlpha: 1 }),
+    mask: buildFadeMaskGradient({ steps, easing, solidPct }),
+  };
+}
+
+/** Apply numeric layout vars + regenerated eased gradients to :root */
+export function applyMasonryTuneVars(values) {
   const root = document.documentElement;
   Object.entries(VAR_MAP).forEach(([key, cssVar]) => {
     root.style.setProperty(cssVar, formatVar(key, values[key]));
   });
+  const { tint, mask } = buildFadeGradients(values);
+  root.style.setProperty("--masonry-fade-tint-gradient", tint);
+  root.style.setProperty("--masonry-fade-mask-gradient", mask);
+  root.style.setProperty("--masonry-fade-stops", String(values.fadeStops));
+  root.style.setProperty("--masonry-fade-easing", values.fadeEasing);
 }
 
 function clearVars() {
@@ -77,7 +114,14 @@ function clearVars() {
   Object.values(VAR_MAP).forEach((cssVar) => {
     root.style.removeProperty(cssVar);
   });
+  root.style.removeProperty("--masonry-fade-tint-gradient");
+  root.style.removeProperty("--masonry-fade-mask-gradient");
+  root.style.removeProperty("--masonry-fade-stops");
+  root.style.removeProperty("--masonry-fade-easing");
 }
+
+/** Default gradient strings for CSS fallbacks (no tune widget). */
+export const DEFAULT_FADE_GRADIENTS = buildFadeGradients(MASONRY_TUNE_DEFAULTS);
 
 export default function MasonryTune() {
   const [values, setValues] = useState(MASONRY_TUNE_DEFAULTS);
@@ -87,7 +131,7 @@ export default function MasonryTune() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    applyVars(values);
+    applyMasonryTuneVars(values);
     return () => clearVars();
   }, [values]);
 
@@ -96,9 +140,15 @@ export default function MasonryTune() {
     setValues((prev) => ({ ...prev, [key]: num }));
   };
 
-  const snippet = Object.entries(values)
-    .map(([key, value]) => `${VAR_MAP[key]}: ${formatVar(key, value)};`)
-    .join("\n");
+  const snippet = [
+    ...Object.entries(VAR_MAP).map(
+      ([key, cssVar]) => `${cssVar}: ${formatVar(key, values[key])};`
+    ),
+    `--masonry-fade-stops: ${values.fadeStops};`,
+    `--masonry-fade-easing: ${values.fadeEasing};`,
+    `/* tint gradient (${values.fadeTwoStop ? "2-stop" : "eased"}) */`,
+    `--masonry-fade-tint-gradient: ${buildFadeGradients(values).tint};`,
+  ].join("\n");
 
   const copy = async () => {
     try {
@@ -128,6 +178,19 @@ export default function MasonryTune() {
               >
                 {showAll ? "Fade" : "All"}
               </SmallBtn>
+              <SmallBtn
+                type="button"
+                $active={!!values.fadeTwoStop}
+                onClick={() =>
+                  setValues((prev) => ({
+                    ...prev,
+                    fadeTwoStop: prev.fadeTwoStop ? 0 : 1,
+                  }))
+                }
+                title="Toggle harsh 2-stop vs eased multi-stop"
+              >
+                {values.fadeTwoStop ? "2-stop" : "Eased"}
+              </SmallBtn>
               <SmallBtn type="button" onClick={() => setValues(MASONRY_TUNE_DEFAULTS)}>
                 Reset
               </SmallBtn>
@@ -143,6 +206,21 @@ export default function MasonryTune() {
       </Header>
       {!collapsed && (
         <Body>
+          <EasingRow>
+            <span>Easing</span>
+            <select
+              value={values.fadeEasing}
+              onChange={(e) =>
+                setValues((prev) => ({ ...prev, fadeEasing: e.target.value }))
+              }
+            >
+              {EASING_PRESET_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+          </EasingRow>
           <Grid>
             {sliders.map((s) => (
               <Slider
@@ -250,6 +328,28 @@ const Body = styled.div`
     word-break: break-word;
     color: #d8d2c8;
     font-size: 9px;
+  }
+`;
+
+const EasingRow = styled.label`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 9px;
+
+  select {
+    flex: 1;
+    min-width: 0;
+    max-width: 120px;
+    font: inherit;
+    font-size: 9px;
+    color: #f5f2ec;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    padding: 2px 4px;
   }
 `;
 
