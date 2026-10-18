@@ -13,7 +13,7 @@ import { QUERIES } from "../utils/constants";
 const STORAGE_KEY = "eggTune:v1";
 
 export const EGG_TUNE_DEFAULTS = {
-  floor: 56, // px above the band bottom; negative rests below the band
+  floor: 56, // px above the band bottom
   tiles: "mostly", // "mostly" (≥60% in view) | "visible" (any part) | "all"
   cap: 8, // 0 = no cap
   burst: 1, // × upward launch speed
@@ -27,10 +27,23 @@ export const EGG_TUNE_DEFAULTS = {
   fixDelay: 800, // ms before the fix button is tappable
 };
 
+// The band clips its tiles. Tiles overhang their bodies by ~24px, so the
+// lowest floor rests tile edges on the band's bottom edge.
+const FLOOR_MIN = 24;
+const FLOOR_MAX = 200;
+const clampFloor = (floor) => Math.min(Math.max(floor, FLOOR_MIN), FLOOR_MAX);
+
 const MIN_VISIBLE = { mostly: 0.6, visible: 0.001, all: -Infinity };
 
 const SLIDERS = [
-  { key: "floor", label: "Floor", min: -400, max: 200, step: 4, unit: "px" },
+  {
+    key: "floor",
+    label: "Floor",
+    min: FLOOR_MIN,
+    max: FLOOR_MAX,
+    step: 4,
+    unit: "px",
+  },
   { key: "cap", label: "Cap", min: 0, max: 18, step: 1, fmt: (v) => v || "∞" },
   { key: "burst", label: "Burst", min: 0, max: 3, step: 0.1 },
   { key: "spread", label: "Spread", min: 0, max: 10, step: 0.5 },
@@ -42,19 +55,10 @@ const SLIDERS = [
   { key: "fixDelay", label: "Fix in", min: 0, max: 2000, step: 50, unit: "ms" },
 ];
 
-const gridBottomGap = () => {
-  const grid = document.querySelector('[aria-label="Visual gallery"]');
-  return grid
-    ? Math.round(window.innerHeight - grid.getBoundingClientRect().bottom)
-    : 300;
-};
-
 const PRESETS = [
   { label: "Default", values: () => ({}) },
   { label: "Fewer tiles", values: () => ({ cap: 4 }) },
-  { label: "Lower floor", values: () => ({ floor: -120 }) },
-  // Tiles overhang their bodies by ~24px; land the visual edge on the screen edge
-  { label: "Screen bottom", values: () => ({ floor: 24 - gridBottomGap() }) },
+  { label: "Lower floor", values: () => ({ floor: FLOOR_MIN }) },
 ];
 
 // ============================================
@@ -71,7 +75,10 @@ function isEnabled() {
     if (enabled) {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (saved) values = { ...EGG_TUNE_DEFAULTS, ...saved };
+        if (saved) {
+          values = { ...EGG_TUNE_DEFAULTS, ...saved };
+          values.floor = clampFloor(values.floor);
+        }
       } catch (e) {
         // Ignore unreadable storage
       }
@@ -92,7 +99,7 @@ function setValues(next) {
 
 function toBounds(v) {
   return {
-    groundInset: v.floor,
+    groundInset: clampFloor(v.floor),
     minVisible: MIN_VISIBLE[v.tiles] ?? 0.6,
     maxBodies: v.cap > 0 ? v.cap : Infinity,
     burst: v.burst,
@@ -135,27 +142,8 @@ export function subscribeEggTuneLive({
   walls,
   bodiesRef,
   sizeRef,
-  overlay,
-  container,
 }) {
   if (!isEnabled()) return () => {};
-
-  // Negative floor: let tiles spill out of the band down to the floor
-  const spillTargets = [overlay];
-  for (let el = container; el; el = el.parentElement) {
-    spillTargets.push(el);
-    if (el.tagName === "MAIN") break;
-  }
-  // Clip sideways so spilled tiles can't widen (and zoom out) the page
-  const saved = spillTargets.map(
-    (el) => el && [el.style.overflowX, el.style.overflowY]
-  );
-  const setSpill = (on) =>
-    spillTargets.forEach((el, i) => {
-      if (!el) return;
-      el.style.overflowX = on ? "clip" : saved[i][0];
-      el.style.overflowY = on ? "visible" : saved[i][1];
-    });
 
   const apply = (v) => {
     const b = toBounds(v);
@@ -187,15 +175,11 @@ export function subscribeEggTuneLive({
       Matter.Composite.remove(engine.world, walls.left);
       Matter.Composite.remove(engine.world, walls.right);
     }
-    setSpill(b.groundInset < 0);
   };
 
   apply(values);
   listeners.add(apply);
-  return () => {
-    listeners.delete(apply);
-    setSpill(false);
-  };
+  return () => listeners.delete(apply);
 }
 
 // ============================================

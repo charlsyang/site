@@ -851,7 +851,6 @@ function BrokenPhysicsMode({
   const bodiesRef = useRef(new Map()); // item id -> { body, item }
   const elementsRef = useRef(new Map()); // item id -> PhysicsItem node
   const dragRef = useRef(IDLE_DRAG);
-  const overlayRef = useRef(null);
 
   // Frozen for this break; a breakpoint flip unmounts the egg instead
   const [itemData] = useState(() =>
@@ -1031,8 +1030,6 @@ function BrokenPhysicsMode({
             walls: wallsRef.current,
             bodiesRef,
             sizeRef,
-            overlay: overlayRef.current,
-            container,
           })
         : () => {};
 
@@ -1215,7 +1212,7 @@ function BrokenPhysicsMode({
   );
 
   return (
-    <PhysicsOverlay ref={overlayRef}>
+    <PhysicsOverlay>
       {/* Message + CTA - now fully interactive, no canvas blocking them! */}
       <BrokenMessage>
         <p>Your love for my work has broken through.</p>
