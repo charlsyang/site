@@ -811,28 +811,26 @@ export default function MasonryGrid({
     clickTimestampsRef.current = [];
   }, [isPhone, isBroken]);
 
-  // Restart track animations on resize (Safari-only fix)
+  // Restart track animations when a track's width changes (Safari-only fix)
   // Safari doesn't recalculate percentage-based translate values in running
   // animations, so the -50% keyframe goes stale when the track width changes.
+  // Track width only depends on row height, so viewport changes that don't
+  // resize rows (iOS toolbar collapse, scrolling) never restart anything.
   useEffect(() => {
-    if (!mounted || !gridRef.current) return;
+    if (!mounted || isBroken || !gridRef.current) return;
 
     // Only apply workaround for Safari (not Chrome, which handles this correctly)
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     if (!isSafari) return;
 
+    const widths = new WeakMap();
+    const stale = new Set();
     let resizeTimeout;
-    let primed = false;
-    let prevWidth = 0;
-    let prevHeight = 0;
 
     const restartAnimations = () => {
-      const tracks = gridRef.current?.querySelectorAll("[data-masonry-track]");
-      if (!tracks?.length) return;
-
       // Carry currentTime across the restart so the loop keeps its phase
       // instead of jumping back to the delay-derived start position.
-      tracks.forEach((el) => {
+      stale.forEach((el) => {
         const prev = el.getAnimations?.()[0];
         const time = prev?.currentTime;
         el.style.animation = "none";
@@ -841,37 +839,30 @@ export default function MasonryGrid({
         const next = el.getAnimations?.()[0];
         if (next && time != null) next.currentTime = time;
       });
+      stale.clear();
     };
 
-    const handleResize = (entries) => {
-      const { width, height } = entries[0].contentRect;
-      if (!primed) {
-        primed = true;
-        prevWidth = width;
-        prevHeight = height;
-        return;
-      }
-      if (
-        Math.abs(width - prevWidth) < 0.5 &&
-        Math.abs(height - prevHeight) < 0.5
-      ) {
-        return;
-      }
-      prevWidth = width;
-      prevHeight = height;
-
+    const resizeObserver = new ResizeObserver((entries) => {
+      entries.forEach(({ target, contentRect }) => {
+        const prev = widths.get(target);
+        widths.set(target, contentRect.width);
+        if (prev !== undefined && Math.abs(contentRect.width - prev) >= 0.5) {
+          stale.add(target);
+        }
+      });
+      if (!stale.size) return;
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(restartAnimations, 150);
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(gridRef.current);
+    });
+    gridRef.current
+      .querySelectorAll("[data-masonry-track]")
+      .forEach((el) => resizeObserver.observe(el));
 
     return () => {
       clearTimeout(resizeTimeout);
       resizeObserver.disconnect();
     };
-  }, [mounted]);
+  }, [mounted, isBroken, rows]);
 
   // Handle shuffle/refresh button visibility
   useEffect(() => {
@@ -891,40 +882,54 @@ export default function MasonryGrid({
     }
   }, [mounted, prefersReducedMotion, isPhone]);
 
-  // Pause/resume videos when reduced motion preference changes (WCAG 2.2.2)
-  // Using our own listener to ensure DevTools emulation is detected
-  // Also re-runs on shuffle to catch newly rendered videos
+  // Play only on-screen track videos; pause all when reduced motion is on (WCAG 2.2.2)
+  // Each track holds two copies, so offscreen videos would otherwise keep
+  // decoding. Our own matchMedia listener ensures DevTools emulation is detected.
+  // Re-runs on shuffle / egg reset to catch newly rendered videos.
   useEffect(() => {
-    if (!mounted || !gridRef.current) return;
+    if (!mounted || isBroken || !gridRef.current) return;
 
+    const root = gridRef.current;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const visible = new Set();
+    const observed = new Set();
 
-    const updateVideos = (shouldReduce) => {
-      const videos = gridRef.current?.querySelectorAll("video");
-      if (!videos) return;
-
-      videos.forEach((video) => {
-        if (shouldReduce) {
-          video.pause();
-        } else {
-          video.play().catch(() => {});
-        }
-      });
+    const sync = (video) => {
+      if (!mediaQuery.matches && visible.has(video)) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
     };
 
-    // Initial check (and after shuffle)
-    // Small delay to ensure new videos have rendered
-    const timeoutId = setTimeout(() => updateVideos(mediaQuery.matches), 50);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(({ target, isIntersecting }) => {
+          if (isIntersecting) visible.add(target);
+          else visible.delete(target);
+          sync(target);
+        });
+      },
+      { root }
+    );
 
-    // Listen for changes (DevTools emulation or system settings)
-    const handleChange = (e) => updateVideos(e.matches);
+    // Small delay to ensure new videos have rendered
+    const timeoutId = setTimeout(() => {
+      root.querySelectorAll("[data-masonry-track] video").forEach((video) => {
+        observed.add(video);
+        observer.observe(video);
+      });
+    }, 50);
+
+    const handleChange = () => observed.forEach(sync);
     mediaQuery.addEventListener("change", handleChange);
 
     return () => {
       clearTimeout(timeoutId);
+      observer.disconnect();
       mediaQuery.removeEventListener("change", handleChange);
     };
-  }, [mounted, shuffleVersion]);
+  }, [mounted, shuffleVersion, isBroken]);
 
   // Pre-capture video frames once after videos load (for easter egg poster fallback)
   // Skip on phone — easter egg is disabled there.
@@ -1245,6 +1250,12 @@ const Row = styled.div`
   flex: 1;
   min-height: 0; /* Allow flex item to shrink */
   overflow: hidden;
+  /*
+   * Own compositing layer that clips the (2× wide) track, so iOS keeps each
+   * row as a stable, viewport-sized layer under the phone fade's backdrop.
+   */
+  contain: paint;
+  transform: translateZ(0);
 
   /*
    * Phone: snap each row to an even px height so tile widths (3:2) are whole
