@@ -170,20 +170,14 @@ function calculateDuration(itemCount, rowCount) {
 // ============================================
 const CROSSFADE_DURATION = 0.5; // seconds (for Motion)
 const CROSSFADE_BLUR = 16; // pixels
-/** Phone: blur cost grows with radius and runs on all 15 tiles at once */
-const CROSSFADE_BLUR_PHONE = 6;
 const CROSSFADE_EASE = [0.4, 0, 0.2, 1];
 
 // Motion animation variants for crossfade (used on shuffle)
-function makeCrossfadeVariants(blur) {
-  return {
-    initial: { opacity: 0, filter: `blur(${blur}px)` },
-    animate: { opacity: 1, filter: "blur(0px)" },
-    exit: { opacity: 0, filter: `blur(${blur}px)` },
-  };
-}
-const crossfadeVariants = makeCrossfadeVariants(CROSSFADE_BLUR);
-const crossfadeVariantsPhone = makeCrossfadeVariants(CROSSFADE_BLUR_PHONE);
+const crossfadeVariants = {
+  initial: { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` },
+  animate: { opacity: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` },
+};
 
 const crossfadeTransition = {
   duration: CROSSFADE_DURATION,
@@ -194,8 +188,7 @@ const crossfadeTransition = {
 // MasonryItem Component (with blur placeholder support)
 // ============================================
 
-function MasonryItem({ item, shuffleKey, isPhone = false }) {
-  const blur = isPhone ? CROSSFADE_BLUR_PHONE : CROSSFADE_BLUR;
+function MasonryItem({ item, shuffleKey }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isLoaded, setIsLoaded] = useState(false);
   const [placeholderHidden, setPlaceholderHidden] = useState(false);
@@ -295,13 +288,13 @@ function MasonryItem({ item, shuffleKey, isPhone = false }) {
       <AnimatePresence mode="popLayout">
         <MediaLayer
           key={`${item.src}-${shuffleKey}`}
-          variants={isPhone ? crossfadeVariantsPhone : crossfadeVariants}
+          variants={crossfadeVariants}
           // Fresh mount: start hidden, animate in when loaded
           // Shuffle: use crossfade variants
           initial={
             usePlaceholderAnimation
               ? hasPlaceholder
-                ? { opacity: 0, filter: `blur(${blur}px)` }
+                ? { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
                 : false
               : "initial"
           }
@@ -309,7 +302,7 @@ function MasonryItem({ item, shuffleKey, isPhone = false }) {
             usePlaceholderAnimation
               ? isLoaded || !hasPlaceholder
                 ? { opacity: 1, filter: "blur(0px)" }
-                : { opacity: 0, filter: `blur(${blur}px)` }
+                : { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
               : "animate"
           }
           exit="exit"
@@ -560,22 +553,11 @@ function useMarqueeAnimations({
 // InfiniteMasonryRow Component
 // ============================================
 
-function InfiniteMasonryRow({
-  items,
-  offset = 1,
-  shuffleKey = 0,
-  isPhone = false,
-  className,
-}) {
+function InfiniteMasonryRow({ items, offset = 1, shuffleKey = 0, className }) {
   return (
     <RowWrapper style={{ "--offset": offset }} className={className}>
       {items.map((item, index) => (
-        <MasonryItem
-          key={index}
-          item={item}
-          shuffleKey={shuffleKey}
-          isPhone={isPhone}
-        />
+        <MasonryItem key={index} item={item} shuffleKey={shuffleKey} />
       ))}
     </RowWrapper>
   );
@@ -1262,7 +1244,6 @@ export default function MasonryGrid({
             items={rowItems}
             offset={getRowOffset(rowIndex)}
             shuffleKey={shuffleVersion}
-            isPhone={isPhone}
           />
         ))}
       {!isBroken && (
