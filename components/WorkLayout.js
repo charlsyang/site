@@ -348,18 +348,19 @@ const ContentArea = styled.main`
     width: 100%;
     box-sizing: border-box;
     /*
-     * Band still begins at the top of the page (nav overlays it), but tiles
-     * are inset ~half nav-height so the visible masonry starts mid-nav.
+     * Offset the band ~half nav-height so visible tiles start mid-nav.
+     * (padding-top won't shift PageTransition's absolute child.)
+     * Nav still overlays the upper portion of this band.
      */
+    margin: 0;
+    margin-top: var(
+      --masonry-top-inset,
+      ${MASONRY_TUNE_DEFAULTS.topInsetPx}px
+    );
     height: var(
       --masonry-grid-height,
       ${MASONRY_TUNE_DEFAULTS.gridHeightVh}vh
     );
-    padding-top: var(
-      --masonry-top-inset,
-      ${MASONRY_TUNE_DEFAULTS.topInsetPx}px
-    );
-    margin: 0;
     border: none;
     border-radius: 0;
     /* Match body so any gap under the fade is invisible */
