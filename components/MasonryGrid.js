@@ -196,14 +196,10 @@ function MasonryItem({ item, shuffleKey }) {
   // item's ready state for a render before the reset effect runs.
   const mediaKey = `${item.src}-${shuffleKey}`;
   const [posterReadyKey, setPosterReadyKey] = useState(null);
-  const [playingKey, setPlayingKey] = useState(null);
   const posterReady = posterReadyKey === mediaKey;
-  const isPlaying = playingKey === mediaKey;
 
-  // Refs for checking if media is already loaded (cached)
+  // Ref for checking if the image is already loaded (cached)
   const imgRef = useRef(null);
-  const videoRef = useRef(null);
-  const posterRef = useRef(null);
 
   // Track if this is the first render of this component instance
   // Fresh mount = true, re-render (shuffle) = false
@@ -232,23 +228,10 @@ function MasonryItem({ item, shuffleKey }) {
         setIsLoaded(true);
       }
     }
-    if (item.type === "video") {
-      const poster = posterRef.current;
-      if (poster && poster.complete && poster.naturalWidth > 0) {
-        setPosterReadyKey(mediaKey);
-        setIsLoaded(true);
-      }
-      const video = videoRef.current;
-      if (video && video.readyState >= 2 && !video.paused) {
-        setPlayingKey(mediaKey);
-        setIsLoaded(true);
-      }
-    }
-  }, [item.src, item.type, shuffleKey, mediaKey]);
+  }, [item.src, item.type, shuffleKey]);
 
   // Videos are "loaded" once their first-frame poster <img> is ready, never on a
-  // video event: iOS may never autoplay (Low Power Mode, deferred loads) and
-  // WebKit doesn't reliably paint a <video> poster while its load is pending.
+  // video event: iOS may never autoplay (Low Power Mode, deferred loads).
   const handlePosterReady = () => {
     setPosterReadyKey(mediaKey);
     setIsLoaded(true);
@@ -311,7 +294,7 @@ function MasonryItem({ item, shuffleKey }) {
               ? isLoaded || !hasPlaceholder
                 ? { opacity: 1, filter: "blur(0px)" }
                 : { opacity: 0, filter: `blur(${CROSSFADE_BLUR}px)` }
-              : item.type === "video" && item.poster && !posterReady && !isPlaying
+              : item.type === "video" && item.poster && !posterReady
                 ? "initial"
                 : "animate"
           }
@@ -319,35 +302,12 @@ function MasonryItem({ item, shuffleKey }) {
           transition={crossfadeTransition}
         >
           {item.type === "video" ? (
-            <>
-              <Video
-                ref={videoRef}
-                src={item.src}
-                poster={item.poster}
-                autoPlay={prefersReducedMotion === false}
-                loop
-                muted
-                playsInline
-                draggable={false}
-                onPlaying={() => {
-                  setPlayingKey(mediaKey);
-                  setIsLoaded(true);
-                }}
-                onLoadedData={item.poster ? undefined : () => setIsLoaded(true)}
-              />
-              {item.poster && (
-                <PosterImg
-                  ref={posterRef}
-                  src={item.poster}
-                  alt=""
-                  aria-hidden="true"
-                  draggable={false}
-                  data-playing={isPlaying ? "" : undefined}
-                  onLoad={handlePosterReady}
-                  onError={handlePosterReady}
-                />
-              )}
-            </>
+            <VideoWithPoster
+              src={item.src}
+              poster={item.poster}
+              autoPlay={prefersReducedMotion === false}
+              onReady={handlePosterReady}
+            />
           ) : (
             <Img
               ref={imgRef}
@@ -360,6 +320,105 @@ function MasonryItem({ item, shuffleKey }) {
         </MediaLayer>
       </AnimatePresence>
     </ItemWrapper>
+  );
+}
+
+/** No frame progress for this long while playing counts as a stall */
+const VIDEO_STALL_MS = 3000;
+const VIDEO_RETRY_DELAY_MS = 1000;
+
+/**
+ * The first-frame poster <img> always stays underneath; the video covers it
+ * only while frames are actually advancing. Errors, aborts, resets and stalls
+ * hide the video again (it may paint black or nothing) and retry once.
+ */
+function VideoWithPoster({ src, poster, autoPlay, onReady }) {
+  const videoRef = useRef(null);
+  const posterRef = useRef(null);
+  const [isPainting, setIsPainting] = useState(false);
+
+  useEffect(() => {
+    const img = posterRef.current;
+    if (img && img.complete && img.naturalWidth > 0) onReady();
+    const video = videoRef.current;
+    if (!poster && video && video.readyState >= 2) onReady();
+    // Mount-only: each shuffle mounts a fresh instance
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !poster) return;
+    let lastTime = video.currentTime;
+    let lastProgress = performance.now();
+    let retried = false;
+    let retryTimer;
+
+    const fail = () => {
+      setIsPainting(false);
+      if (retried) return;
+      retried = true;
+      retryTimer = setTimeout(() => {
+        lastProgress = performance.now();
+        video.load();
+      }, VIDEO_RETRY_DELAY_MS);
+    };
+    const onTimeUpdate = () => {
+      if (video.currentTime === lastTime) return;
+      lastTime = video.currentTime;
+      lastProgress = performance.now();
+      if (video.readyState >= 2) setIsPainting(true);
+    };
+    const onPlay = () => {
+      lastProgress = performance.now();
+    };
+    const watchdog = setInterval(() => {
+      if (video.paused || document.hidden) {
+        lastProgress = performance.now();
+      } else if (performance.now() - lastProgress > VIDEO_STALL_MS) {
+        lastProgress = performance.now();
+        fail();
+      }
+    }, 1000);
+
+    const failEvents = ["error", "abort", "emptied"];
+    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("play", onPlay);
+    failEvents.forEach((e) => video.addEventListener(e, fail));
+    return () => {
+      clearInterval(watchdog);
+      clearTimeout(retryTimer);
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("play", onPlay);
+      failEvents.forEach((e) => video.removeEventListener(e, fail));
+    };
+  }, [poster, autoPlay]);
+
+  return (
+    <>
+      {poster && (
+        <Img
+          ref={posterRef}
+          src={poster}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          onLoad={onReady}
+          onError={onReady}
+        />
+      )}
+      <Video
+        ref={videoRef}
+        src={src}
+        autoPlay={autoPlay}
+        loop
+        muted
+        playsInline
+        draggable={false}
+        data-over-poster={poster ? "" : undefined}
+        data-painting={isPainting ? "" : undefined}
+        onLoadedData={poster ? undefined : onReady}
+      />
+    </>
   );
 }
 
@@ -1188,7 +1247,7 @@ export default function MasonryGrid({
               // Look up pre-captured video frame (no capture during easter egg)
               const posterDataUrl = isVideo
                 ? videoFramesRef.current.get(mediaSrc) ||
-                  el.querySelector("video")?.getAttribute("poster") ||
+                  el.querySelector("img")?.getAttribute("src") ||
                   null
                 : null;
 
@@ -1478,17 +1537,17 @@ const Video = styled.video`
   user-select: none;
   -webkit-user-drag: none;
 
-`;
 
-/* Covers the video (which stays visible, so autoplay heuristics still treat it
-   as on-screen) until frames are actually playing */
-const PosterImg = styled(Img)`
-  position: absolute;
-  inset: 0;
-  transition: opacity 200ms linear;
-
-  &[data-playing] {
+  /* Over the poster <img>, same box and fit, shown only while painting */
+  &[data-over-poster] {
+    position: absolute;
+    inset: 0;
     opacity: 0;
+    transition: opacity 200ms linear;
+  }
+
+  &[data-over-poster][data-painting] {
+    opacity: 1;
   }
 `;
 
