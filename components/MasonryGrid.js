@@ -229,6 +229,7 @@ function MasonryItem({ item, shuffleKey, onExitsCommitted }) {
           : undefined
       }
       aria-hidden={item.isDuplicate ? "true" : undefined}
+      data-video-src={item.type === "video" ? item.src : undefined}
     >
       <AnimatePresence
         mode="popLayout"
@@ -871,10 +872,13 @@ function captureTilePositions(container, videoFrames) {
   const positions = [];
   container.querySelectorAll("li").forEach((el, index) => {
     const elRect = el.getBoundingClientRect();
-    // The video, not its first-frame poster <img> underneath
-    const mediaSrc =
-      el.querySelector("video")?.src || el.querySelector("img")?.src;
-    const isVideo = !!el.querySelector("video");
+    // The video, not its first-frame poster <img> underneath. From the tile's
+    // data: a shuffled-in video shows only its poster until it settles.
+    const videoSrc =
+      el.dataset.videoSrc &&
+      new URL(el.dataset.videoSrc, document.baseURI).href;
+    const mediaSrc = videoSrc || el.querySelector("img")?.src;
+    const isVideo = !!videoSrc;
     if (!mediaSrc) return;
     positions.push({
       id: index,
