@@ -140,6 +140,21 @@ function shuffleWithRowChange(currentRowData, rowCount) {
 // Calibrated from: 17 items / 3 rows = ~6 items per row @ 40s = ~6.67s per item
 const SECONDS_PER_ITEM = 10;
 
+/** Shared gutter token — GridWrapper row gap AND derived intra-row inset */
+const MASONRY_ROW_GAP = "0.9vh";
+/** Item aspect-ratio width/height (matches ItemWrapper) */
+const ITEM_ASPECT = 3 / 2;
+
+/**
+ * Intra-row visual gap from the infinite translate inset:
+ *   G ≈ ((1 + inset) / count) × itemWidth
+ * Set G = rowGap → inset = count × rowGap / itemWidth − 1
+ */
+function insetForRowGap(rowGapPx, itemWidthPx, count) {
+  if (!rowGapPx || !itemWidthPx || count < 1) return -0.9;
+  return (count * rowGapPx) / itemWidthPx - 1;
+}
+
 /**
  * Calculate animation duration based on item count and row distribution
  * This ensures consistent perceived scroll speed regardless of content count
@@ -318,8 +333,34 @@ function InfiniteMasonryRow({
   shuffleKey = 0,
   className,
 }) {
+  const rowRef = useRef(null);
+
+  // Keep --inset in sync with GridWrapper’s row-gap token (no flex gap on animated rows)
+  useEffect(() => {
+    const rowEl = rowRef.current;
+    if (!rowEl) return;
+
+    const syncInset = () => {
+      const grid = rowEl.parentElement;
+      if (!grid) return;
+      const gapPx = parseFloat(getComputedStyle(grid).rowGap);
+      const rowHeight = rowEl.clientHeight;
+      if (!Number.isFinite(gapPx) || gapPx <= 0 || rowHeight <= 0) return;
+      const itemWidth = rowHeight * ITEM_ASPECT;
+      const inset = insetForRowGap(gapPx, itemWidth, count);
+      rowEl.style.setProperty("--inset", String(inset));
+    };
+
+    syncInset();
+    const ro = new ResizeObserver(syncInset);
+    ro.observe(rowEl);
+    if (rowEl.parentElement) ro.observe(rowEl.parentElement);
+    return () => ro.disconnect();
+  }, [count, shuffleKey]);
+
   return (
     <RowWrapper
+      ref={rowRef}
       style={{
         "--count": count,
         "--duration": `${duration}s`,
@@ -742,7 +783,6 @@ export default function MasonryGrid({
   items,
   rows = 3,
   duration, // Optional: auto-calculated if not provided
-  gap = 16,
   direction = "left",
   showPauseButton = true,
   showRefreshButton = true,
@@ -1179,7 +1219,10 @@ const ItemWrapper = styled.li`
   /* Enable layering for crossfade */
   position: relative;
 
-  /* Inset: controls gap between items */
+  /*
+   * Inset controls visual gap between items (infinite path; no flex gap).
+   * Row sets --inset from MASONRY_ROW_GAP via insetForRowGap(); fallback matches legacy.
+   */
   --inset: -0.9;
 
   --origin-x: calc(((var(--count) - var(--index)) + var(--inset, 0)) * 100%);
@@ -1229,19 +1272,20 @@ const RowWrapper = styled.ul`
   padding: 0;
   margin: 0;
 
-  /* Reduced motion: add gap and stagger rows */
+  /* Reduced motion: real gap (animation off) — same token as GridWrapper */
   @media (prefers-reduced-motion: reduce) {
-    gap: 0.9vh;
+    gap: var(--masonry-row-gap, ${MASONRY_ROW_GAP});
     /* Stagger each row using the offset variable (1.0, 1.3, 1.6 for 3 rows) */
     transform: translateX(calc((var(--offset) - 1) * -15%));
   }
 `;
 
 const GridWrapper = styled.section`
+  --masonry-row-gap: ${MASONRY_ROW_GAP};
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.9vh;
+  gap: var(--masonry-row-gap);
   width: 100%;
   height: 100%;
   overflow: hidden;
