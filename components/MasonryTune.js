@@ -20,13 +20,13 @@ import {
 } from "../utils/easedGradient";
 
 /**
- * Defaults: nav-height is 56px → top inset ≈ half = 28px.
+ * Locked defaults (Charlsy-approved).
  * easeA (fadeEasing) shapes alpha; easePos stays linear so the dissolve
  * curve is visible (identical easePos+easeA collapses to a linear ramp).
  */
 export const MASONRY_TUNE_DEFAULTS = {
   gridHeightVh: 55,
-  topInsetPx: 28,
+  topInsetPx: 20,
   /* —— Bottom (locked) —— */
   fadeHeightPx: 140,
   fadeSolidPct: 12,
@@ -36,9 +36,9 @@ export const MASONRY_TUNE_DEFAULTS = {
   fadeEasing: "ease-in-out", // easeA — alpha channel
   fadePosEasing: "linear", // easePos — stop packing (keep linear!)
   headlineOverlapPx: 56,
-  /* —— Top (mirror, slightly shorter) —— */
+  /* —— Top (locked) —— */
   topFadeHeightPx: 88,
-  topFadeSolidPct: 12,
+  topFadeSolidPct: 0,
   topFadeBlurPx: 2,
   topFadeTint: 1,
   /** Debug: force harsh 2-stop gradient for A/B */
